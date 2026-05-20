@@ -11,7 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Plus, Trash2, Users, ChevronLeft } from 'lucide-react';
 
 interface RosterSheetProps {
   open:           boolean;
@@ -151,10 +151,19 @@ export function RosterSheet({
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="bg-neutral-950 border-t border-white/10 rounded-t-2xl max-h-[88dvh] flex flex-col pb-safe"
       >
-        <SheetHeader className="shrink-0 mb-3">
-          <SheetTitle className="text-white text-sm flex items-center gap-2">
+        <SheetHeader className="shrink-0 mb-3 flex-row items-center gap-2 p-4 pb-0">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-0.5 text-white/50 active:text-white/90 transition-colors shrink-0 -ml-1"
+            aria-label="戻る"
+          >
+            <ChevronLeft size={20} />
+            <span className="text-xs font-medium">戻る</span>
+          </button>
+          <SheetTitle className="text-white text-sm flex items-center gap-2 flex-1">
             <Users size={15} className={cfg.nameText} />
             {team?.team_name || '—'} — メンバー管理
           </SheetTitle>
