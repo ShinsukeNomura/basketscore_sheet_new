@@ -93,6 +93,17 @@ export default function HomePage() {
   const [games, setGames]       = useState<GameSummary[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
 
+  // プレミアム登録後に自動で試合作成シートを開く
+  useEffect(() => {
+    if (!loading && user && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('create') === 'true') {
+        setCreateOpen(true);
+        window.history.replaceState({}, '', '/');
+      }
+    }
+  }, [loading, user]);
+
   // 未ログイン時はログインページへ（クライアント側チェック）
   useEffect(() => {
     if (!loading && !user) {

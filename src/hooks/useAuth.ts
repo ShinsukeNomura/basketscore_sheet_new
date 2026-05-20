@@ -14,10 +14,11 @@ export interface AuthState {
 }
 
 export function useAuth(): AuthState & {
-  signUp:   (email: string, password: string) => Promise<{ error: string | null }>;
-  signIn:   (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut:  () => Promise<void>;
-  isPremium: boolean;
+  signUp:      (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn:      (email: string, password: string) => Promise<{ error: string | null }>;
+  signOut:     () => Promise<void>;
+  refetchPlan: () => Promise<void>;
+  isPremium:   boolean;
 } {
   const [user,    setUser]    = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -72,9 +73,14 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut();
   }, []);
 
+  const refetchPlan = useCallback(async () => {
+    if (!user) return;
+    await fetchPlan(user.id);
+  }, [user, fetchPlan]);
+
   return {
     user, session, plan, loading,
     isPremium: plan === 'premium',
-    signUp, signIn, signOut,
+    signUp, signIn, signOut, refetchPlan,
   };
 }
