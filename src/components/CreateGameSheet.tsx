@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createNewGame, isFreeLimitReached, FREE_GAME_LIMIT } from '@/lib/storage';
+import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { ColorPicker } from '@/components/ColorPicker';
@@ -150,6 +151,7 @@ interface Props {
 
 export function CreateGameSheet({ open, onClose }: Props) {
   const router = useRouter();
+  const { isPremium } = useAuth();
 
   const [limitReached, setLimitReached] = useState(false);
   const [gameType,     setGameType]     = useState<string>('練習試合');
@@ -160,10 +162,10 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const [darkColor,    setDarkColor]    = useState<JerseyColorId>(DEFAULT_DARK_COLOR);
   const [errors,       setErrors]       = useState<{ white?: string; dark?: string }>({});
 
-  // シートが開くたびに上限チェック
+  // シートが開くたびに上限チェック（プレミアムは無制限）
   useEffect(() => {
-    if (open) setLimitReached(isFreeLimitReached());
-  }, [open]);
+    if (open) setLimitReached(!isPremium && isFreeLimitReached());
+  }, [open, isPremium]);
 
   const validate = useCallback((): boolean => {
     const e: typeof errors = {};

@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getGamesIndex, deleteGame, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown } from 'lucide-react';
+import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut } from 'lucide-react';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
@@ -87,6 +88,7 @@ function GameCard({
 }
 
 export default function HomePage() {
+  const { user, isPremium, signOut } = useAuth();
   const [games, setGames]       = useState<GameSummary[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -120,6 +122,28 @@ export default function HomePage() {
         </div>
         <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
         <p className="text-white/30 text-sm mt-1">片手でリアルタイム記録</p>
+
+        {/* ユーザー情報 */}
+        <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-white/5 border border-white/8">
+          {isPremium ? (
+            <Crown size={12} className="text-amber-400" />
+          ) : (
+            <span className="w-2 h-2 rounded-full bg-white/30" />
+          )}
+          <span className="text-white/40 text-xs truncate max-w-[160px]">{user?.email}</span>
+          {isPremium && (
+            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
+              PRO
+            </span>
+          )}
+          <button
+            onClick={signOut}
+            className="text-white/25 hover:text-white/60 transition-colors ml-1"
+            aria-label="ログアウト"
+          >
+            <LogOut size={12} />
+          </button>
+        </div>
       </div>
 
       {/* ── コンテンツ ── */}
@@ -171,7 +195,7 @@ export default function HomePage() {
 
       {/* ── 新規試合ボタン（固定フッター） ── */}
       <div className="fixed bottom-0 inset-x-0 p-4 bg-neutral-950/90 backdrop-blur-md border-t border-white/5">
-        {games.length >= FREE_GAME_LIMIT ? (
+        {!isPremium && games.length >= FREE_GAME_LIMIT ? (
           <button
             onClick={() => setCreateOpen(true)}
             className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
