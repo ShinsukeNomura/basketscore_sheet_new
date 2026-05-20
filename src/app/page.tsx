@@ -88,9 +88,16 @@ function GameCard({
 }
 
 export default function HomePage() {
-  const { user, isPremium, signOut } = useAuth();
+  const { user, isPremium, signOut, loading } = useAuth();
   const [games, setGames]       = useState<GameSummary[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // 未ログイン時はログインページへ（クライアント側チェック）
+  useEffect(() => {
+    if (!loading && !user) {
+      window.location.href = '/login';
+    }
+  }, [user, loading]);
 
   // クライアントサイドで localStorage から読み込む
   useEffect(() => {
@@ -112,6 +119,14 @@ export default function HomePage() {
 
   const activeGames   = games.filter((g) => g.status === 'progress');
   const finishedGames = games.filter((g) => g.status === 'finished');
+
+  if (loading || !user) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-neutral-950">
+        <div className="w-7 h-7 border-2 border-white/15 border-t-white/60 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh bg-neutral-950 flex flex-col">

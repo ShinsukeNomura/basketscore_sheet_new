@@ -50,7 +50,7 @@ export default function LoginPage() {
         if (error) {
           setError(`エラー: ${error}`);
         } else {
-          router.push('/');
+          window.location.href = '/';
         }
       }
     } catch (e) {
