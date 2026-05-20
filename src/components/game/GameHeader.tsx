@@ -179,7 +179,7 @@ export function GameHeader({
               <span className="text-white font-black text-5xl tabular-nums">{theirScore}</span>
             </div>
           </div>
-          <p className="text-white/35 text-xs text-center -mt-3 mb-1">終了後は記録の追加・変更はできません</p>
+          <p className="text-white/35 text-xs text-center -mt-3 mb-1">終了後も「記録を再開する」からスコアを修正できます</p>
           <DialogFooter className="flex flex-row gap-2 mt-2">
             <button
               onPointerDown={() => setConfirmOpen(false)}
