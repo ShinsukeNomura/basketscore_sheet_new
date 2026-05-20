@@ -67,7 +67,7 @@ const PREMIUM_FEATURES = [
   { icon: FileText,  text: 'スコアシートのPDF出力' },
 ];
 
-function Paywall({ onClose }: { onClose: () => void }) {
+function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; email?: string } | null }) {
   return (
     <div className="flex flex-col items-center text-center gap-6 py-4">
 
@@ -121,9 +121,15 @@ function Paywall({ onClose }: { onClose: () => void }) {
       {/* CTAボタン */}
       <div className="w-full flex flex-col gap-2">
         <button
-          onClick={() => {
-            // TODO: Stripe決済ページへ遷移
-            alert('近日公開予定です。しばらくお待ちください。');
+          onClick={async () => {
+            if (!user) return;
+            const res = await fetch('/api/stripe/checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: user.id, userEmail: user.email }),
+            });
+            const { url } = await res.json();
+            if (url) window.location.href = url;
           }}
           className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
         >
@@ -151,7 +157,7 @@ interface Props {
 
 export function CreateGameSheet({ open, onClose }: Props) {
   const router = useRouter();
-  const { isPremium } = useAuth();
+  const { isPremium, user } = useAuth();
 
   const [limitReached, setLimitReached] = useState(false);
   const [gameType,     setGameType]     = useState<string>('練習試合');
@@ -206,7 +212,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
             <SheetHeader className="mb-5">
               <SheetTitle className="text-white text-base">プレミアムプラン</SheetTitle>
             </SheetHeader>
-            <Paywall onClose={handleClose} />
+            <Paywall onClose={handleClose} user={user} />
           </>
         ) : (
           <>
