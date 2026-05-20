@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,16 +39,13 @@ ${playerStats.their.map((p: {num: string; pts: number; fg2: number; fg2a: number
 ## 次戦への提言
 `;
 
-    const message = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(prompt);
+    const text   = result.response.text();
 
-    const text = message.content[0].type === 'text' ? message.content[0].text : '';
     return NextResponse.json({ report: text });
   } catch (error) {
-    console.error('AI analyze error:', error);
+    console.error('Gemini analyze error:', error);
     return NextResponse.json({ error: 'AI分析に失敗しました' }, { status: 500 });
   }
 }
