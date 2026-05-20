@@ -134,6 +134,7 @@ export default function GamePage() {
 
       {game.status === 'finished' && (
         <EndGameOverlay
+          game={game}
           ourTeam={ourTeam}
           theirTeam={theirTeam}
           allPlayers={allPlayers}

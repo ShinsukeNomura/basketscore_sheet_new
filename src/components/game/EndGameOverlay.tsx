@@ -1,15 +1,16 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Team, StatsLog, Player } from '@/types';
+import { Team, StatsLog, Player, Game } from '@/types';
 import { cn } from '@/lib/utils';
-import { Home, Plus, Trophy, BarChart2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Plus, Trophy, BarChart2, RotateCcw, ChevronDown, ChevronUp, FileText, Sparkles, Loader2 } from 'lucide-react';
 import { RunningScoreSheet } from '@/components/game/RunningScoreSheet';
 
 // ================================================================
 // 型
 // ================================================================
 interface EndGameOverlayProps {
+  game:       Game;
   ourTeam:    Team;
   theirTeam:  Team;
   allPlayers: Player[];
@@ -41,7 +42,7 @@ function teamLabel(team: Team, isOurs: boolean): string {
 // メインコンポーネント
 // ================================================================
 export function EndGameOverlay({
-  ourTeam, theirTeam, allPlayers,
+  game, ourTeam, theirTeam, allPlayers,
   ourScore, theirScore,
   logs,
   onGoHome, onNewGame, onShowStats, onResume,
@@ -66,6 +67,50 @@ export function EndGameOverlay({
 
   // ランニングスコアデータ
   const [showRunning, setShowRunning] = useState(false);
+
+  // PDF出力
+  const handlePDF = async () => {
+    const { generateGamePDF } = await import('@/lib/generatePDF');
+    generateGamePDF(game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore);
+  };
+
+  // AI分析
+  const [aiReport,   setAiReport]   = useState<string | null>(null);
+  const [aiLoading,  setAiLoading]  = useState(false);
+  const [showReport, setShowReport] = useState(false);
+
+  const handleAI = async () => {
+    if (aiReport) { setShowReport((v) => !v); return; }
+    setAiLoading(true);
+    setShowReport(true);
+
+    const buildStats = (teamId: string) =>
+      allPlayers.filter((p) => p.team_id === teamId).map((p) => {
+        const pl = logs.filter((l) => l.player_id === p.id && !l.is_deleted);
+        const c  = (t: string) => pl.filter((l) => l.action_type === t).length;
+        return { num: p.back_number, pts: c('2PT_MADE')*2+c('3PT_MADE')*3+c('FT_MADE'),
+          fg2: c('2PT_MADE'), fg2a: c('2PT_MADE')+c('2PT_MISS'),
+          fg3: c('3PT_MADE'), fg3a: c('3PT_MADE')+c('3PT_MISS'),
+          ft:  c('FT_MADE'),  fta:  c('FT_MADE')+c('FT_MISS'),
+          orbd: c('ORBD'), drbd: c('DRBD'), ast: c('AST'),
+          stl: c('STL'), blk: c('BLK'), tov: c('TOV'), foul: c('FOUL') };
+      }).filter((r) => r.pts+r.fg2a+r.fg3a+r.fta+r.orbd+r.drbd+r.ast+r.stl+r.blk+r.tov+r.foul > 0);
+
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gameName: game.game_name, date: game.date,
+        ourTeamName: ourTeam.team_name, theirTeamName: theirTeam.team_name,
+        ourScore, theirScore,
+        periodScores: periodRows,
+        playerStats: { our: buildStats(ourTeam.id), their: buildStats(theirTeam.id) },
+      }),
+    });
+    const { report, error } = await res.json();
+    setAiReport(error ? `エラー: ${error}` : report);
+    setAiLoading(false);
+  };
 
   return (
     <div className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
@@ -167,8 +212,40 @@ export function EndGameOverlay({
       {/* スペーサー */}
       <div className="flex-1" />
 
+      {/* ── AI分析レポート ── */}
+      {showReport && (
+        <div className="mx-6 mb-5 rounded-2xl bg-white/4 border border-white/8 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={14} className="text-violet-400" />
+            <span className="text-white font-bold text-sm">AI分析レポート</span>
+          </div>
+          {aiLoading ? (
+            <div className="flex items-center gap-2 text-white/40">
+              <Loader2 size={14} className="animate-spin" />
+              <span className="text-xs">分析中...</span>
+            </div>
+          ) : (
+            <p className="text-white/70 text-xs leading-relaxed whitespace-pre-wrap">{aiReport}</p>
+          )}
+        </div>
+      )}
+
+      {/* スペーサー */}
+      <div className="flex-1" />
+
       {/* ── アクションボタン ── */}
       <div className="flex flex-col gap-3 px-6 pb-10">
+        {/* AI分析 */}
+        <button onClick={handleAI}
+          className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
+          <Sparkles size={18} />
+          {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : 'AIでスタッツを分析'}
+        </button>
+        {/* PDF出力 */}
+        <button onClick={handlePDF}
+          className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
+          <FileText size={18} />スコアシートをPDF出力
+        </button>
         <button onClick={onShowStats}
           className="flex items-center justify-center gap-2 w-full bg-white/10 active:bg-white/8 text-white font-bold rounded-2xl py-4 text-base transition-colors border border-white/10">
           <BarChart2 size={18} />スタッツ詳細を見る
