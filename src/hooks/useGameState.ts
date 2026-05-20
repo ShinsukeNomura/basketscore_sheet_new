@@ -175,9 +175,10 @@ function reducer(state: InternalState, action: GameAction): InternalState {
     case 'ADD_PLAYER': {
       const { teamId, backNumber } = action.payload;
       if (state.allPlayers.some((p) => p.team_id === teamId && p.back_number === backNumber)) return state;
+      const courtCount = state.allPlayers.filter((p) => p.team_id === teamId && p.is_on_court).length;
       const newPlayer: Player = {
         id: makeId(), team_id: teamId, back_number: backNumber,
-        name: '', is_on_court: false, created_at: new Date().toISOString(),
+        name: '', is_on_court: courtCount < 5, created_at: new Date().toISOString(),
       };
       return { ...state, allPlayers: [...state.allPlayers, newPlayer] };
     }
