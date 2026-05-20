@@ -168,15 +168,17 @@ export function TeamSection({
             />
           ))}
           {Array.from({ length: Math.max(0, 5 - courtPlayers.length) }).map((_, i) => (
-            <div
+            <button
               key={`empty-${i}`}
+              onClick={() => onRoster(team)}
               className={cn(
                 'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[52px]',
+                'active:opacity-60 transition-opacity',
                 cfg.emptyBorder,
               )}
             >
-              <span className="text-white/12 text-lg">+</span>
-            </div>
+              <span className="text-white/20 text-lg">+</span>
+            </button>
           ))}
         </div>
       )}
