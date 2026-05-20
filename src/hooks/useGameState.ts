@@ -4,12 +4,15 @@ import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Game, Team, Player, StatsLog, ActionType, Period, GameStatus, PersistedGameState, TimelineEntry } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
+import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 // ============================================================
 // ユーティリティ
 // ============================================================
 
 function makeId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Math.random().toString(36).slice(2, 10);
 }
 
@@ -229,15 +232,23 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
+  const { user } = useAuth();
 
-  // --- localStorage から初期ロード（クライアントのみ） ---
+  // --- ロード: localStorage → なければクラウド ---
   useEffect(() => {
     const persisted = loadPersistedGame(gameId);
-    if (persisted) dispatch({ type: 'LOAD_PERSISTED', payload: persisted });
-    else dispatch({ type: 'LOAD_PERSISTED', payload: { game: createPlaceholderState(gameId).game, ourTeam: createPlaceholderState(gameId).ourTeam, theirTeam: createPlaceholderState(gameId).theirTeam, allPlayers: [], logs: [] } });
+    if (persisted) {
+      dispatch({ type: 'LOAD_PERSISTED', payload: persisted });
+    } else {
+      // localStorage になければクラウドから取得
+      loadGameFromCloud(gameId).then((cloud) => {
+        if (cloud) dispatch({ type: 'LOAD_PERSISTED', payload: cloud });
+        else dispatch({ type: 'LOAD_PERSISTED', payload: { game: createPlaceholderState(gameId).game, ourTeam: createPlaceholderState(gameId).ourTeam, theirTeam: createPlaceholderState(gameId).theirTeam, allPlayers: [], logs: [] } });
+      });
+    }
   }, [gameId]);
 
-  // --- 変更があるたびに localStorage へ保存（デバウンス 300ms） ---
+  // --- localStorage + クラウド への同期（デバウンス 300ms） ---
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!state.isLoaded) return;
@@ -246,14 +257,13 @@ export function useGameState(gameId: string) {
       const activeLogs = state.logs.filter((l) => !l.is_deleted);
       const ourScore   = activeLogs.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0);
       const theirScore = activeLogs.filter((l) => l.team_id === state.theirTeam.id).reduce((s, l) => s + l.points, 0);
-      savePersistedGame(
-        { game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam, allPlayers: state.allPlayers, logs: state.logs },
-        ourScore,
-        theirScore,
-      );
+      const gameState  = { game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam, allPlayers: state.allPlayers, logs: state.logs };
+      savePersistedGame(gameState, ourScore, theirScore);
+      // ログイン済みならクラウドにも同期
+      if (user?.id) syncToCloud(gameState, user.id);
     }, 300);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [state]);
+  }, [state, user?.id]);
 
   // --- 派生値 ---
   const activeLogs = useMemo(() => state.logs.filter((l) => !l.is_deleted), [state.logs]);

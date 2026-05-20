@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { getGamesIndex, deleteGame, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
+import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -99,22 +100,28 @@ export default function HomePage() {
     }
   }, [user, loading]);
 
-  // クライアントサイドで localStorage から読み込む
-  useEffect(() => {
+  // ゲーム一覧: クラウド優先 → localStorage フォールバック
+  const loadGames = useCallback(async () => {
+    if (user?.id) {
+      const cloud = await fetchGamesFromCloud(user.id);
+      if (cloud.length > 0) { setGames(cloud); return; }
+    }
     setGames(getGamesIndex());
-  }, []);
+  }, [user?.id]);
 
-  // ウィンドウフォーカス時に更新（試合から戻ったとき）
+  useEffect(() => { if (!loading) loadGames(); }, [loading, loadGames]);
+
+  // ウィンドウフォーカス時に更新
   useEffect(() => {
-    const handler = () => setGames(getGamesIndex());
-    window.addEventListener('focus', handler);
-    return () => window.removeEventListener('focus', handler);
-  }, []);
+    window.addEventListener('focus', loadGames);
+    return () => window.removeEventListener('focus', loadGames);
+  }, [loadGames]);
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm('この試合を削除しますか？')) return;
     deleteGame(id);
-    setGames(getGamesIndex());
+    if (user?.id) await deleteGameFromCloud(id);
+    loadGames();
   }
 
   const activeGames   = games.filter((g) => g.status === 'progress');
