@@ -28,20 +28,34 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    if (mode === 'signup') {
-      const { error } = await signUp(email, password);
-      if (error) {
-        setError(error);
+    // 10秒タイムアウト
+    const timeout = setTimeout(() => {
+      setLoading(false);
+      setError('接続タイムアウト。Supabaseの設定を確認してください。URL: ' +
+        (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '未設定'));
+    }, 10000);
+
+    try {
+      if (mode === 'signup') {
+        const { error } = await signUp(email, password);
+        clearTimeout(timeout);
+        if (error) {
+          setError(error);
+        } else {
+          setDone(true);
+        }
       } else {
-        setDone(true);
+        const { error } = await signIn(email, password);
+        clearTimeout(timeout);
+        if (error) {
+          setError(`エラー: ${error}`);
+        } else {
+          router.push('/');
+        }
       }
-    } else {
-      const { error } = await signIn(email, password);
-      if (error) {
-        setError('メールアドレスまたはパスワードが正しくありません');
-      } else {
-        router.push('/');
-      }
+    } catch (e) {
+      clearTimeout(timeout);
+      setError(`例外: ${e instanceof Error ? e.message : String(e)}`);
     }
     setLoading(false);
   }, [mode, email, password, signIn, signUp, router]);
