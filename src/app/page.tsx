@@ -111,11 +111,11 @@ export default function HomePage() {
     }
   }, [user, loading]);
 
-  // ゲーム一覧: クラウド優先 → localStorage フォールバック
+  // ゲーム一覧: クラウド優先 → エラー時のみ localStorage フォールバック
   const loadGames = useCallback(async () => {
     if (user?.id) {
       const cloud = await fetchGamesFromCloud(user.id);
-      if (cloud.length > 0) { setGames(cloud); return; }
+      if (cloud !== null) { setGames(cloud); return; } // nullはエラー、[]はゲームなし（どちらもSupabaseを信頼）
     }
     setGames(getGamesIndex());
   }, [user?.id]);
