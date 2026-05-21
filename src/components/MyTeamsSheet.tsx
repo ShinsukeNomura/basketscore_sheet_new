@@ -22,9 +22,8 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
   const [mode,    setMode]    = useState<'list' | 'edit'>('list');
 
   // チーム一覧読み込み
-  const load = useCallback(async () => {
-    const data = await fetchUserTeams(userId);
-    setTeams(data);
+  const load = useCallback(() => {
+    setTeams(fetchUserTeams(userId));
   }, [userId]);
 
   useEffect(() => { if (open) { load(); setMode('list'); } }, [open, load]);
@@ -42,20 +41,20 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
   }
 
   // 保存
-  async function handleSave() {
+  function handleSave() {
     if (!editing || !editing.team_name.trim()) return;
-    const result = await saveUserTeam(userId, editing, editing.id || undefined);
+    const result = saveUserTeam(userId, editing, editing.id || undefined);
     if (result) {
-      await load();
+      load();
       setMode('list');
     }
   }
 
   // 削除
-  async function handleDelete(id: string) {
+  function handleDelete(id: string) {
     if (!confirm('このチームを削除しますか？')) return;
-    await deleteUserTeam(id);
-    await load();
+    deleteUserTeam(id);
+    load();
   }
 
   return (

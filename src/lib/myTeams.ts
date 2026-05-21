@@ -26,15 +26,15 @@ function saveAll(teams: UserTeam[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(teams));
 }
 
-export async function fetchUserTeams(_userId: string): Promise<UserTeam[]> {
+export function fetchUserTeams(_userId: string): UserTeam[] {
   return loadAll();
 }
 
-export async function saveUserTeam(
+export function saveUserTeam(
   _userId: string,
   team: Omit<UserTeam, 'id'>,
   existingId?: string,
-): Promise<string | null> {
+): string | null {
   const teams = loadAll();
   if (existingId) {
     const idx = teams.findIndex((t) => t.id === existingId);
@@ -51,6 +51,6 @@ export async function saveUserTeam(
   }
 }
 
-export async function deleteUserTeam(teamId: string): Promise<void> {
+export function deleteUserTeam(teamId: string): void {
   saveAll(loadAll().filter((t) => t.id !== teamId));
 }
