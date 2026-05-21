@@ -1,7 +1,7 @@
 'use client';
 
 import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry } from '@/types';
+import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
@@ -39,7 +39,7 @@ type GameAction =
   | { type: 'LOAD_PERSISTED';  payload: PersistedGameState }
   | { type: 'SELECT_STAT';     payload: ActionType }
   | { type: 'LOG_STAT';        payload: { player: Player; courtLocation?: CourtLocation } }
-  | { type: 'LOG_TEAM_TOV';   payload: { teamId: string } }  // チーム単位 TOV（スティール不要のミス）
+  | { type: 'LOG_TEAM_TOV';   payload: { teamId: string; tovReason?: TovReason; playerId?: string } }  // チーム単位 TOV
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
   | { type: 'END_GAME' }
@@ -124,15 +124,16 @@ function reducer(state: InternalState, action: GameAction): InternalState {
     }
 
     case 'LOG_TEAM_TOV': {
-      // スティールを伴わない単独ターンオーバー（個人特定不要）
       const ts = new Date().toISOString();
       const tovLog: StatsLog = {
         id: makeId(), is_auto: false,
         game_id: state.game.id, team_id: action.payload.teamId,
-        player_id: null, period: state.game.current_period,
+        player_id: action.payload.playerId ?? null,
+        period: state.game.current_period,
         timestamp: ts, action_type: 'TOV',
         points: 0, is_deleted: false,
         created_at: ts,
+        ...(action.payload.tovReason ? { tov_reason: action.payload.tovReason } : {}),
       };
       return { ...state, logs: [...state.logs, tovLog] };
     }
@@ -329,8 +330,8 @@ export function useGameState(gameId: string) {
   const renameTeam   = useCallback((teamId: string, name: string)  => dispatch({ type: 'RENAME_TEAM',  payload: { teamId, name } }),  []);
   const renameGame   = useCallback((name: string)                  => dispatch({ type: 'RENAME_GAME',  payload: name }),              []);
   const recolorTeam  = useCallback((teamId: string, color: string) => dispatch({ type: 'RECOLOR_TEAM', payload: { teamId, color } }), []);
-  const logTeamTov   = useCallback((teamId: string) => {
-    dispatch({ type: 'LOG_TEAM_TOV', payload: { teamId } });
+  const logTeamTov   = useCallback((teamId: string, tovReason?: TovReason, playerId?: string) => {
+    dispatch({ type: 'LOG_TEAM_TOV', payload: { teamId, tovReason, playerId } });
     if (navigator.vibrate) navigator.vibrate(30);
   }, []);
 

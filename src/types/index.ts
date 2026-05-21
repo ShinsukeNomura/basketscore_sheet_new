@@ -11,6 +11,26 @@ export type ActionType =
   | 'FT_MADE'  | 'FT_MISS'
   | 'ORBD' | 'DRBD' | 'AST' | 'STL' | 'BLK' | 'TOV' | 'FOUL';
 
+// TOV モード（簡略=従来通り / 6-grid=厳選6カテゴリー / 12-grid=公式12カテゴリー）
+export type TovMode = 'simple' | '6-grid' | '12-grid';
+
+// TOV 詳細理由（6カテゴリー＋12カテゴリーの合体型）
+export type TovReason =
+  | 'steal'           // スチールされた（6のみ）
+  | 'bad-pass'        // パスミス / バッドパス
+  | 'traveling'       // トラベリング
+  | 'offensive-foul'  // オフェンスファウル
+  | 'violation'       // 時間・その他違反（6のみ）
+  | 'lost-ball'       // ハンドリングミス（12のみ）
+  | 'double-dribble'  // ダブルドリブル（12のみ）
+  | 'out-of-bounds'   // アウトオブバウンズ（12のみ）
+  | '24sec'           // 24秒違反（12のみ）
+  | '8sec'            // 8秒違反（12のみ）
+  | '5sec'            // 5秒違反（12のみ）
+  | 'backcourt'       // バックコート（12のみ）
+  | '3sec'            // 3秒違反（12のみ）
+  | 'other';          // その他
+
 export type CourtLocation =
   | 'restricted'
   | 'paint-left'       | 'paint-right'
@@ -65,6 +85,8 @@ export interface StatsLog {
   is_auto?:       boolean;
   /** シュートエリア（2PT/3PT系のみ。ヒートマップ分析用） */
   court_location?: CourtLocation;
+  /** TOV 詳細理由（プレミアム機能）*/
+  tov_reason?: TovReason;
 }
 
 /** タイムライン表示用エントリ（primary + 連動ログを1セットに束ねる） */

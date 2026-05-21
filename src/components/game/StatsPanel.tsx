@@ -1,6 +1,6 @@
 'use client';
 
-import { ActionType, StatDef } from '@/types';
+import { ActionType, StatDef, TovMode } from '@/types';
 import { STAT_DEFS, ACTION_LABEL_JA } from '@/lib/stats';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
@@ -13,14 +13,17 @@ const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
 const NEG     = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV');
 
 interface StatsPanelProps {
-  selectedStat:  ActionType | null;
-  onSelectStat:  (action: ActionType) => void;
-  ourTeamName:   string;
-  theirTeamName: string;
-  ourTov:        number;
-  theirTov:      number;
-  onOurTov:      () => void;
-  onTheirTov:    () => void;
+  selectedStat:    ActionType | null;
+  onSelectStat:    (action: ActionType) => void;
+  ourTeamName:     string;
+  theirTeamName:   string;
+  ourTov:          number;
+  theirTov:        number;
+  onOurTov:        () => void;
+  onTheirTov:      () => void;
+  isPremium?:      boolean;
+  tovMode?:        TovMode;
+  onTovModeChange?: (mode: TovMode) => void;
 }
 
 // ────────── 個別ボタン ──────────
@@ -97,6 +100,7 @@ function Btn({
 export function StatsPanel({
   selectedStat, onSelectStat,
   ourTeamName, theirTeamName, ourTov, theirTov, onOurTov, onTheirTov,
+  isPremium = false, tovMode = 'simple', onTovModeChange,
 }: StatsPanelProps) {
   function tap(action: ActionType) {
     if (navigator.vibrate) navigator.vibrate(18);
@@ -108,7 +112,31 @@ export function StatsPanel({
   return (
     <div className="h-full flex flex-col gap-1.5 px-2 py-1.5 bg-neutral-950 overflow-hidden">
 
-      {/* ── チームTOV（最上段・左右2カラム） ── */}
+      {/* ── プレミアム TOV モード切替 ── */}
+      {isPremium && (
+        <div className="grid grid-cols-3 gap-1 shrink-0">
+          {([['simple', '簡略'], ['6-grid', '厳選6'], ['12-grid', '公式12']] as [TovMode, string][]).map(([mode, label]) => (
+            <button
+              key={mode}
+              onPointerDown={() => onTovModeChange?.(mode)}
+              className={cn(
+                'py-1 rounded-lg text-[10px] font-bold transition-all border',
+                tovMode === mode
+                  ? mode === 'simple'
+                    ? 'bg-neutral-700 border-neutral-500 text-neutral-100'
+                    : mode === '6-grid'
+                    ? 'bg-sky-900/70 border-sky-600/60 text-sky-200'
+                    : 'bg-amber-900/70 border-amber-600/60 text-amber-200'
+                  : 'bg-neutral-900/60 border-neutral-700/40 text-neutral-500 active:bg-neutral-800/60',
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── チームTOV（左右2カラム） ── */}
       <div className="grid grid-cols-2 gap-2 shrink-0">
         {/* 自チームTOV（左） */}
         <button

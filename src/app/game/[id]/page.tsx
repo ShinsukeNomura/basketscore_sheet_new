@@ -14,7 +14,9 @@ import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
 import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
-import { Team, Player, CourtLocation } from '@/types';
+import { Team, Player, CourtLocation, TovMode, TovReason } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 
 export default function GamePage() {
   const params = useParams();
@@ -32,6 +34,8 @@ export default function GamePage() {
     renameTeam, renameGame, recolorTeam, logTeamTov,
   } = useGameState(gameId);
 
+  const { isPremium } = useAuth();
+
   const [subTeam,        setSubTeam]        = useState<Team | null>(null);
   const [subOpen,        setSubOpen]        = useState(false);
   const [rosterTeam,     setRosterTeam]     = useState<Team | null>(null);
@@ -39,6 +43,8 @@ export default function GamePage() {
   const [createOpen,     setCreateOpen]     = useState(false);
   const [statsOpen,      setStatsOpen]      = useState(false);
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
+  const [tovMode,        setTovMode]        = useState<TovMode>('simple');
+  const [tovPending,     setTovPending]     = useState<{ teamId: string; isOurs: boolean } | null>(null);
 
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
@@ -66,6 +72,28 @@ export default function GamePage() {
   function handleCourtCancel() {
     setCourtMapPlayer(null);
     if (selectedStat) selectStat(selectedStat); // トグルで解除
+  }
+
+  function handleOurTov() {
+    if (isPremium && tovMode !== 'simple') {
+      setTovPending({ teamId: ourTeam.id, isOurs: true });
+    } else {
+      logTeamTov(ourTeam.id);
+    }
+  }
+
+  function handleTheirTov() {
+    if (isPremium && tovMode !== 'simple') {
+      setTovPending({ teamId: theirTeam.id, isOurs: false });
+    } else {
+      logTeamTov(theirTeam.id);
+    }
+  }
+
+  function handleTovConfirm(reason: TovReason, playerId: string | null) {
+    if (!tovPending) return;
+    logTeamTov(tovPending.teamId, reason, playerId ?? undefined);
+    setTovPending(null);
   }
 
   if (!isLoaded) {
@@ -120,8 +148,11 @@ export default function GamePage() {
           theirTeamName={theirTeam.team_name || '相手'}
           ourTov={teamTovCounts[ourTeam.id] ?? 0}
           theirTov={teamTovCounts[theirTeam.id] ?? 0}
-          onOurTov={() => logTeamTov(ourTeam.id)}
-          onTheirTov={() => logTeamTov(theirTeam.id)}
+          onOurTov={handleOurTov}
+          onTheirTov={handleTheirTov}
+          isPremium={isPremium}
+          tovMode={tovMode}
+          onTovModeChange={setTovMode}
         />
       </div>
 
@@ -151,6 +182,18 @@ export default function GamePage() {
           onUndo={undoLog}
         />
       </div>
+
+      {/* TOV カテゴリーシート（プレミアム厳選/公式モード時） */}
+      {tovPending && tovMode !== 'simple' && (
+        <TovCategorySheet
+          mode={tovMode as Exclude<TovMode, 'simple'>}
+          teamName={tovPending.isOurs ? (ourTeam.team_name || '自チーム') : (theirTeam.team_name || '相手')}
+          isOurs={tovPending.isOurs}
+          players={allPlayers.filter((p) => p.team_id === tovPending.teamId)}
+          onConfirm={handleTovConfirm}
+          onCancel={() => setTovPending(null)}
+        />
+      )}
 
       {/* コートマップオーバーレイ（2PT/3PT選択後） */}
       {courtMapPlayer && selectedStat && (
