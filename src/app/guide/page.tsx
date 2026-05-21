@@ -131,7 +131,7 @@ export default function GuidePage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {[
                   ['2PT / 3PT / FT', '得点（成功）', 'text-emerald-400'],
-                  ['2PT失敗 / 3PT失敗', 'シュートミス', 'text-red-400'],
+                  ['2PT不成功 / 3PT不成功 / FT不成功', 'シュートミス', 'text-red-400'],
                   ['ORbd / DRbd', 'リバウンド', 'text-blue-400'],
                   ['Ast / Stl', 'アシスト・スティール', 'text-violet-400'],
                   ['Blk / Foul', 'ブロック・ファウル', 'text-amber-400'],

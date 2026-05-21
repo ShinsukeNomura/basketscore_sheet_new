@@ -153,11 +153,11 @@ export function GameHeader({
       </div>
 
       {/* ── スコア行（点数のみ・大きく） ── */}
-      <div className="flex items-center justify-between pb-2">
-        <span className="text-white font-black text-[42px] tabular-nums leading-none">
+      <div className="flex items-center justify-between pb-2 min-w-0">
+        <span className="text-white font-black text-[36px] tabular-nums leading-none shrink-0">
           {ourScore}
         </span>
-        <span className="text-white font-black text-[42px] tabular-nums leading-none">
+        <span className="text-white font-black text-[36px] tabular-nums leading-none shrink-0">
           {theirScore}
         </span>
       </div>

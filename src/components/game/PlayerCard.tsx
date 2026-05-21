@@ -69,12 +69,12 @@ export function PlayerCard({
       )}
     >
       {/* 背番号 */}
-      <span className="text-white font-black text-3xl tabular-nums leading-none">
+      <span className="text-white font-black text-xl tabular-nums leading-none truncate w-full text-center px-1">
         #{player.back_number}
       </span>
 
       {/* ファウル数 */}
-      <span className={cn('text-sm leading-none tabular-nums font-bold', foulColor)}>
+      <span className={cn('text-xs leading-none tabular-nums font-bold', foulColor)}>
         F:{fouls}
       </span>
 
