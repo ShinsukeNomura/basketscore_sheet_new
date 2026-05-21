@@ -97,7 +97,7 @@ export default function GamePage() {
       />
 
       {/* 自チーム（白） */}
-      <div className="flex-[2] min-h-0">
+      <div className="flex-[2] min-h-0 overflow-hidden">
         <TeamSection
           team={ourTeam}
           courtPlayers={ourCourtPlayers}
@@ -115,7 +115,7 @@ export default function GamePage() {
       </div>
 
       {/* スタッツパネル（TOV最上段・STL連動あり） */}
-      <div className="flex-[4.5] min-h-0">
+      <div className="flex-[4.3] min-h-0">
         <StatsPanel
           selectedStat={selectedStat}
           onSelectStat={selectStat}
@@ -129,7 +129,7 @@ export default function GamePage() {
       </div>
 
       {/* 相手チーム（濃） */}
-      <div className="flex-[2] min-h-0">
+      <div className="flex-[2] min-h-0 overflow-hidden">
         <TeamSection
           team={theirTeam}
           courtPlayers={theirCourtPlayers}
@@ -147,7 +147,7 @@ export default function GamePage() {
       </div>
 
       {/* タイムライン（連動バッジ付き） */}
-      <div className="flex-[1] min-h-0 flex flex-col justify-end">
+      <div className="flex-[1.2] min-h-0 flex flex-col justify-end bg-neutral-950 border-t border-white/5">
         <Timeline
           entries={recentEntries}
           allPlayers={allPlayers}
