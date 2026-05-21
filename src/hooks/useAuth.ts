@@ -6,6 +6,9 @@ import { supabase } from '@/lib/supabase';
 
 export type UserPlan = 'free' | 'premium';
 
+// 管理者メール（常にpremium扱い）
+const ADMIN_EMAILS = ['miyazakiselene@gmail.com'];
+
 export interface AuthState {
   user:    User | null;
   session: Session | null;
@@ -25,7 +28,12 @@ export function useAuth(): AuthState & {
   const [plan,    setPlan]    = useState<UserPlan>('free');
   const [loading, setLoading] = useState(true);
 
-  const fetchPlan = useCallback(async (userId: string) => {
+  const fetchPlan = useCallback(async (userId: string, email?: string) => {
+    // 管理者メールは常にpremium
+    if (email && ADMIN_EMAILS.includes(email)) {
+      setPlan('premium');
+      return;
+    }
     const { data } = await supabase
       .from('user_plans')
       .select('plan')
@@ -38,14 +46,14 @@ export function useAuth(): AuthState & {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchPlan(session.user.id);
+      if (session?.user) fetchPlan(session.user.id, session.user.email);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) fetchPlan(session.user.id);
+      if (session?.user) fetchPlan(session.user.id, session.user.email);
       else setPlan('free');
     });
 
@@ -75,7 +83,7 @@ export function useAuth(): AuthState & {
 
   const refetchPlan = useCallback(async () => {
     if (!user) return;
-    await fetchPlan(user.id);
+    await fetchPlan(user.id, user.email);
   }, [user, fetchPlan]);
 
   return {
