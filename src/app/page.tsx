@@ -136,9 +136,9 @@ export default function HomePage() {
     <div className="bg-neutral-950 min-h-dvh">
 
       {/* ── ヘッダー ── */}
-      <div className="flex flex-col items-center pt-safe pt-14 pb-6 px-6">
-        <div className="w-16 h-16 rounded-2xl overflow-hidden mb-4 shadow-lg shadow-blue-900/30">
-          <Image src="/icon-512.png" alt="Basketball Score" width={64} height={64} className="w-full h-full object-cover" priority />
+      <div className="flex flex-col items-center pt-safe pt-8 pb-5 px-6">
+        <div className="w-28 h-28 rounded-3xl overflow-hidden mb-4 shadow-2xl shadow-blue-900/40">
+          <Image src="/icon-512.png" alt="Basketball Score" width={112} height={112} className="w-full h-full object-cover" priority />
         </div>
         <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
         <p className="text-white/30 text-sm mt-1">片手でリアルタイム記録</p>

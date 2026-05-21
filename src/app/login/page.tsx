@@ -89,13 +89,13 @@ export default function LoginPage() {
     <div className="min-h-dvh bg-neutral-950 flex flex-col px-6 pt-safe">
 
       {/* ヘッダー */}
-      <div className="flex flex-col items-center pt-16 pb-10 gap-4">
-        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-900/30">
-          <Image src="/icon-512.png" alt="Basketball Score" width={64} height={64} className="w-full h-full object-cover" priority />
+      <div className="flex flex-col items-center pt-10 pb-8 gap-5">
+        <div className="w-36 h-36 rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/40">
+          <Image src="/icon-512.png" alt="Basketball Score" width={144} height={144} className="w-full h-full object-cover" priority />
         </div>
         <div className="text-center">
-          <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
-          <p className="text-white/30 text-sm mt-1">
+          <h1 className="text-white font-black text-3xl tracking-tight">Basketball Score</h1>
+          <p className="text-white/30 text-sm mt-1.5">
             {mode === 'signin' ? 'ログインして記録を続ける' : '無料アカウントを作成'}
           </p>
         </div>
