@@ -49,7 +49,7 @@ export function PlayerCard({
       disabled={!hasStatSelected || isFouledOut}
       className={cn(
         // レイアウト
-        'relative flex flex-col items-center justify-center gap-1.5 rounded-xl',
+        'relative flex flex-col items-center justify-center gap-1 rounded-xl',
         'min-w-0 flex-1',
         // 色
         colorConfig.cardBg,
@@ -69,12 +69,12 @@ export function PlayerCard({
       )}
     >
       {/* 背番号 */}
-      <span className="text-white font-black text-xl tabular-nums leading-none truncate w-full text-center px-1">
+      <span className="text-white font-black text-lg tabular-nums leading-none truncate w-full text-center px-1">
         #{player.back_number}
       </span>
 
       {/* ファウル数 */}
-      <span className={cn('text-xs leading-none tabular-nums font-bold', foulColor)}>
+      <span className={cn('text-[11px] leading-none tabular-nums font-bold', foulColor)}>
         F:{fouls}
       </span>
 

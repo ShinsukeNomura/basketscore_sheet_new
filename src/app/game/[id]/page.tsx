@@ -112,7 +112,7 @@ export default function GamePage() {
       </div>
 
       {/* スタッツパネル（TOV最上段・STL連動あり） */}
-      <div className="flex-[4.3] min-h-0">
+      <div className="flex-[4] min-h-0">
         <StatsPanel
           selectedStat={selectedStat}
           onSelectStat={selectStat}

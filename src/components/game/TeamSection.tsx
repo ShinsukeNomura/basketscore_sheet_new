@@ -46,10 +46,10 @@ export function TeamSection({
   }, [editVal, onRenameTeam, team.id]);
 
   return (
-    <div className={cn('flex flex-col h-full px-2 py-1.5', cfg.sectionBg)}>
+    <div className={cn('flex flex-col h-full px-2 py-1', cfg.sectionBg)}>
 
       {/* チーム名行 */}
-      <div className="flex items-center justify-between mb-1.5 shrink-0">
+      <div className="flex items-center justify-between mb-1 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
           <div className={cn('w-1 h-3.5 rounded-full shrink-0', cfg.accentDot)} />
 
@@ -86,7 +86,7 @@ export function TeamSection({
               key={label}
               onClick={() => label === 'メンバー' ? onRoster(team) : onSubstitute(team)}
               className={cn(
-                'text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors min-h-[32px]',
+                'text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors min-h-[26px]',
                 cfg.btnText, cfg.btnBg,
               )}
             >
@@ -96,22 +96,19 @@ export function TeamSection({
         </div>
       </div>
 
-      {/* チームファウル帯（背番号の上の空白部分） */}
+      {/* チームファウル帯 */}
       {(() => {
         const isBonus = teamFoulCount >= 5;
         return (
-          <div className="flex items-center justify-between shrink-0 mb-1 px-0.5">
+          <div className="flex items-center justify-between shrink-0 mb-0.5 px-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-white/25 text-[10px] font-semibold tracking-wide">
-                チームファウル
-              </span>
-              {/* ドット x 最大7個（7以上はダブルボーナス目安） */}
+              <span className="text-white/25 text-[10px] font-semibold tracking-wide">チームF</span>
               <div className="flex gap-0.5 items-center">
                 {Array.from({ length: Math.min(teamFoulCount, 7) }).map((_, i) => (
                   <span
                     key={i}
                     className={cn(
-                      'w-1.5 h-1.5 rounded-full',
+                      'w-1 h-1 rounded-full',
                       i < 4
                         ? 'bg-white/30'          // 1〜4: 通常
                         : i < 6
@@ -127,12 +124,12 @@ export function TeamSection({
             </div>
             <span
               className={cn(
-                'text-[11px] font-black tabular-nums',
+                'text-[10px] font-black tabular-nums',
                 isBonus ? 'text-orange-400' : 'text-white/25',
               )}
             >
               {teamFoulCount}
-              {isBonus && <span className="text-[9px] font-semibold ml-0.5">ペナルティ</span>}
+              {isBonus && <span className="text-[8px] font-semibold ml-0.5">ペナルティ</span>}
             </span>
           </div>
         );
