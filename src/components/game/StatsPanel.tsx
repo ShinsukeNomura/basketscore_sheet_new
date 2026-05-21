@@ -158,15 +158,15 @@ export function StatsPanel({
         )}
       </div>
 
-      {/* ── Made（成功・大） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[3]">
+      {/* ── Made（成功） ── */}
+      <div className="grid grid-cols-3 gap-2 flex-[2]">
         {MADE.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="lg" onClick={() => tap(def.action)} />
         ))}
       </div>
 
-      {/* ── Miss（不成功・小） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[1.5]">
+      {/* ── Miss（不成功） ── */}
+      <div className="grid grid-cols-3 gap-2 flex-[2]">
         {MISS.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="sm" onClick={() => tap(def.action)} />
         ))}

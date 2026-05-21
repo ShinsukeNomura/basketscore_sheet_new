@@ -147,7 +147,7 @@ export default function GamePage() {
       </div>
 
       {/* タイムライン（連動バッジ付き） */}
-      <div className="flex-[1.2] min-h-0 flex flex-col justify-end bg-neutral-950 border-t border-white/5">
+      <div className="flex-[1.2] min-h-0 flex flex-col justify-end bg-neutral-950 border-t border-white/5 relative z-10">
         <Timeline
           entries={recentEntries}
           allPlayers={allPlayers}
