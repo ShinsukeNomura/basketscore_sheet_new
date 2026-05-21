@@ -7,7 +7,8 @@ import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage'
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronRight, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 
 function formatDate(iso: string): string {
@@ -136,8 +137,8 @@ export default function HomePage() {
 
       {/* ── ヘッダー ── */}
       <div className="flex flex-col items-center pt-safe pt-14 pb-6 px-6">
-        <div className="w-14 h-14 bg-blue-500/15 rounded-2xl flex items-center justify-center mb-4">
-          <Trophy size={26} className="text-blue-400" />
+        <div className="w-16 h-16 rounded-2xl overflow-hidden mb-4 shadow-lg shadow-blue-900/30">
+          <Image src="/icon-512.png" alt="Basketball Score" width={64} height={64} className="w-full h-full object-cover" priority />
         </div>
         <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
         <p className="text-white/30 text-sm mt-1">片手でリアルタイム記録</p>

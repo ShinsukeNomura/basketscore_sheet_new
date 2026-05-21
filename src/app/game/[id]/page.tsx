@@ -218,7 +218,7 @@ export default function GamePage() {
         theirTov={teamTovCounts[theirTeam.id] ?? 0}
       />
       <Sheet open={runningOpen} onOpenChange={setRunningOpen}>
-        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0">
+        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0 flex flex-col">
           <RunningScoreSheet
             ourTeam={ourTeam}
             theirTeam={theirTeam}

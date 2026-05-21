@@ -177,7 +177,7 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
   const theirName = theirTeam.team_name || 'B';
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950">
+    <div className="flex-1 min-h-0 flex flex-col bg-neutral-950">
 
       {/* ── 固定ヘッダー：戻るボタン ── */}
       <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-white/8 bg-neutral-900/80">
@@ -199,8 +199,11 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         <span className="text-white/50 flex items-center gap-1"><span className="text-[8px]">●7</span>= FT</span>
       </div>
 
-      {/* ── スクロール可能なスコアエリア ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      {/* ── スクロール可能なスコアエリア（iOS対応） ── */}
+      <div
+        className="flex-1 min-h-0 overflow-y-scroll overscroll-contain"
+        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+      >
         {sections.map((section) => (
           <div key={section.startN}>
             <ColHeader

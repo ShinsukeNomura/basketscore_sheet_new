@@ -4,7 +4,8 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { Trophy, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 type Mode = 'signin' | 'signup';
 
@@ -89,8 +90,8 @@ export default function LoginPage() {
 
       {/* ヘッダー */}
       <div className="flex flex-col items-center pt-16 pb-10 gap-4">
-        <div className="w-16 h-16 bg-blue-500/15 rounded-3xl flex items-center justify-center">
-          <Trophy size={28} className="text-blue-400" />
+        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shadow-blue-900/30">
+          <Image src="/icon-512.png" alt="Basketball Score" width={64} height={64} className="w-full h-full object-cover" priority />
         </div>
         <div className="text-center">
           <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
