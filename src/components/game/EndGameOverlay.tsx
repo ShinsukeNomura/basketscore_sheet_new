@@ -202,12 +202,13 @@ export function EndGameOverlay({
   const [showReport,  setShowReport]  = useState(false);
   const [pdfConfirm,  setPdfConfirm]  = useState(false);
 
-  // キャッシュから読み込み
+  // キャッシュから読み込み（キャッシュがあれば自動表示）
   useEffect(() => {
     const cached = getCachedReport(gameReportKey(game.id));
     if (cached) {
       setAiReport(cached.report);
       setAiCachedAt(cached.cachedAt);
+      setShowReport(true);
     }
   }, [game.id]);
 

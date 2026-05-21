@@ -1,4 +1,10 @@
-const PREFIX = 'ai_report_';
+let _uid: string | null = null;
+
+export function setAiStorageUser(uid: string | null): void {
+  _uid = uid;
+}
+
+const KEY = (key: string) => _uid ? `ai_report_${_uid}_${key}` : `ai_report_${key}`;
 
 export interface AiReportCacheEntry {
   report:   string;
@@ -7,7 +13,7 @@ export interface AiReportCacheEntry {
 
 export function getCachedReport(key: string): AiReportCacheEntry | null {
   try {
-    const raw = localStorage.getItem(PREFIX + key);
+    const raw = localStorage.getItem(KEY(key));
     if (!raw) return null;
     return JSON.parse(raw) as AiReportCacheEntry;
   } catch {
@@ -18,7 +24,7 @@ export function getCachedReport(key: string): AiReportCacheEntry | null {
 export function setCachedReport(key: string, report: string): void {
   try {
     const entry: AiReportCacheEntry = { report, cachedAt: new Date().toISOString() };
-    localStorage.setItem(PREFIX + key, JSON.stringify(entry));
+    localStorage.setItem(KEY(key), JSON.stringify(entry));
   } catch {
     // localStorage 容量不足の場合は無視
   }
@@ -26,7 +32,7 @@ export function setCachedReport(key: string, report: string): void {
 
 export function clearCachedReport(key: string): void {
   try {
-    localStorage.removeItem(PREFIX + key);
+    localStorage.removeItem(KEY(key));
   } catch {}
 }
 

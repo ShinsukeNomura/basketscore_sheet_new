@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { setStorageUser } from '@/lib/storage';
+import { setAiStorageUser } from '@/lib/aiReportCache';
 
 export type UserPlan = 'free' | 'premium';
 
@@ -51,6 +52,7 @@ export function useAuth(): AuthState & {
         setSession(session);
         setUser(session?.user ?? null);
         setStorageUser(session?.user?.id ?? null);
+        setAiStorageUser(session?.user?.id ?? null);
         if (session?.user) fetchPlan(session.user.id, session.user.email);
         setLoading(false);
       })
@@ -60,6 +62,7 @@ export function useAuth(): AuthState & {
       setSession(session);
       setUser(session?.user ?? null);
       setStorageUser(session?.user?.id ?? null);
+      setAiStorageUser(session?.user?.id ?? null);
       if (session?.user) fetchPlan(session.user.id, session.user.email);
       else setPlan('free');
     });
@@ -87,12 +90,7 @@ export function useAuth(): AuthState & {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setStorageUser(null);
-    // AI キャッシュのみ削除（ゲームデータは端末に残す）
-    try {
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith('ai_report_'))
-        .forEach((k) => localStorage.removeItem(k));
-    } catch { /* ignore */ }
+    setAiStorageUser(null);
   }, []);
 
   const resetPassword = useCallback(async (email: string): Promise<{ error: string | null }> => {
