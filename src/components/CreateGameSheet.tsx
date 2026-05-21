@@ -34,10 +34,12 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userEmail, plan: selectedPlan, locale }),
       });
-      if (!res.ok) { setError(p.upgradeError); return; }
-      const { url, error: apiErr } = await res.json();
-      if (apiErr) { setError(apiErr); return; }
-      if (url) window.location.href = url;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        setError(data.error ?? p.upgradeError);
+        return;
+      }
+      if (data.url) window.location.href = data.url;
       else setError(p.upgradeError);
     } catch {
       setError(p.networkError);
