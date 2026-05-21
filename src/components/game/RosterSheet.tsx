@@ -11,7 +11,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Plus, Trash2, Users, ChevronLeft } from 'lucide-react';
+import { Plus, Trash2, Users, ChevronLeft, Download } from 'lucide-react';
+import { fetchUserTeams, UserTeam } from '@/lib/myTeams';
 
 interface RosterSheetProps {
   open:           boolean;
@@ -36,9 +37,28 @@ export function RosterSheet({
   onToggleCourt,
   onClose,
 }: RosterSheetProps) {
-  const [input, setInput]   = useState('');
-  const [error, setError]   = useState('');
-  const inputRef            = useRef<HTMLInputElement>(null);
+  const [input,       setInput]       = useState('');
+  const [error,       setError]       = useState('');
+  const [importOpen,  setImportOpen]  = useState(false);
+  const [myTeams,     setMyTeams]     = useState<UserTeam[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function openImport() {
+    setMyTeams(fetchUserTeams(''));
+    setImportOpen(true);
+  }
+
+  function handleImport(myTeam: UserTeam) {
+    if (!team) return;
+    const existing = new Set(
+      allPlayers.filter((p) => p.team_id === team.id).map((p) => p.back_number)
+    );
+    myTeam.backNumbers.forEach((num) => {
+      if (!existing.has(num)) onAddPlayer(team.id, num);
+    });
+    setImportOpen(false);
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
 
   const cfg = getColorConfig(team?.color);
 
@@ -237,8 +257,41 @@ export function RosterSheet({
           )}
         </div>
 
-        {/* 追加フォーム（固定フッター） */}
+        {/* 登録チームから読み込む */}
         <div className="shrink-0 border-t border-white/8 pt-3 mt-2">
+          {!importOpen ? (
+            <button
+              onClick={openImport}
+              className="w-full flex items-center justify-center gap-2 py-2 mb-2 rounded-xl bg-white/4 border border-white/8 text-white/40 text-xs font-semibold active:bg-white/8 transition-colors"
+            >
+              <Download size={13} />登録チームを読み込む
+            </button>
+          ) : (
+            <div className="mb-3 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/8">
+                <span className="text-white/50 text-xs font-semibold">登録チームを選択</span>
+                <button onClick={() => setImportOpen(false)} className="text-white/30 text-xs active:text-white/60">キャンセル</button>
+              </div>
+              {myTeams.length === 0 ? (
+                <p className="text-white/25 text-xs text-center py-3">登録チームがありません</p>
+              ) : (
+                myTeams.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handleImport(t)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-left active:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
+                  >
+                    <span className="text-white text-sm font-bold">{t.team_name}</span>
+                    <span className="text-white/30 text-xs">{t.backNumbers.length}人</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 追加フォーム */}
+        <div className="shrink-0 pt-0">
           <div className="flex gap-2 items-start">
             <div className="flex flex-col flex-1 gap-1">
               <div className="flex gap-2">

@@ -193,21 +193,34 @@ export default function HomePage() {
     [finishedGames, filterLabel],
   );
 
-  // 終了試合を年別にグループ化（フィルター済み・新しい年が先頭）
-  const finishedByYear = useMemo(() => {
-    const map = new Map<number, GameSummary[]>();
+  // 終了試合を 年 → 月 の2階層でグループ化（フィルター済み・新しい順）
+  const finishedGrouped = useMemo(() => {
+    const yearMap = new Map<number, Map<number, GameSummary[]>>();
     for (const g of filteredFinished) {
-      const year = new Date(g.date).getFullYear();
-      if (!map.has(year)) map.set(year, []);
-      map.get(year)!.push(g);
+      const d     = new Date(g.date);
+      const year  = d.getFullYear();
+      const month = d.getMonth() + 1;
+      if (!yearMap.has(year)) yearMap.set(year, new Map());
+      const mMap = yearMap.get(year)!;
+      if (!mMap.has(month))   mMap.set(month, []);
+      mMap.get(month)!.push(g);
     }
-    return Array.from(map.entries()).sort((a, b) => b[0] - a[0]);
-  }, [finishedGames]);
+    return Array.from(yearMap.entries())
+      .sort((a, b) => b[0] - a[0])
+      .map(([year, mMap]) => ({
+        year,
+        months: Array.from(mMap.entries())
+          .sort((a, b) => b[0] - a[0])
+          .map(([month, games]) => ({ month, games })),
+      }));
+  }, [filteredFinished]);
 
   // 現在年以外はデフォルトで折りたたむ
   const currentYear = new Date().getFullYear();
   const [collapsedYears, setCollapsedYears] = useState<Set<number>>(
-    () => new Set(finishedByYear.filter(([y]) => y !== currentYear).map(([y]) => y))
+    () => new Set(
+      finishedGrouped.filter((g) => g.year !== currentYear).map((g) => g.year)
+    )
   );
   const toggleYear = (year: number) =>
     setCollapsedYears((prev) => {
@@ -298,7 +311,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {finishedByYear.length > 0 && (
+        {finishedGrouped.length > 0 && (
           <section className="mb-6">
             <div className="flex items-center gap-2 mb-3 px-1">
               <Clock size={11} className="text-white/30" />
@@ -343,28 +356,39 @@ export default function HomePage() {
               )}
             </div>
             <div className="flex flex-col gap-4">
-              {finishedByYear.map(([year, yearGames]) => {
-                const collapsed = collapsedYears.has(year);
+              {finishedGrouped.map(({ year, months }) => {
+                const collapsed  = collapsedYears.has(year);
+                const totalGames = months.reduce((s, m) => s + m.games.length, 0);
                 return (
                   <div key={year}>
-                    {/* 年ヘッダー */}
+                    {/* 年ヘッダー（折りたたみ） */}
                     <button
                       onClick={() => toggleYear(year)}
                       className="w-full flex items-center gap-2 px-1 py-1.5 mb-2 active:opacity-70 transition-opacity"
                     >
                       <div className="flex-1 h-px bg-white/8" />
                       <span className="text-white/35 text-xs font-bold tracking-widest shrink-0">{year}年</span>
-                      <span className="text-white/20 text-[10px] shrink-0">{yearGames.length}試合</span>
-                      <ChevronDown
-                        size={12}
-                        className={cn('text-white/25 transition-transform shrink-0', collapsed && '-rotate-90')}
-                      />
+                      <span className="text-white/20 text-[10px] shrink-0">{totalGames}試合</span>
+                      <ChevronDown size={12} className={cn('text-white/25 transition-transform shrink-0', collapsed && '-rotate-90')} />
                       <div className="flex-1 h-px bg-white/8" />
                     </button>
-                    {/* 試合カード */}
+
+                    {/* 月ごとのグループ */}
                     {!collapsed && (
-                      <div className="flex flex-col gap-2">
-                        {yearGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} />)}
+                      <div className="flex flex-col gap-3">
+                        {months.map(({ month, games: mGames }) => (
+                          <div key={month}>
+                            {/* 月ヘッダー */}
+                            <div className="flex items-center gap-2 px-1 mb-1.5">
+                              <span className="text-white/20 text-[10px] font-bold tracking-wide shrink-0">{month}月</span>
+                              <div className="flex-1 h-px bg-white/5" />
+                              <span className="text-white/15 text-[10px] shrink-0">{mGames.length}試合</span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              {mGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} />)}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
