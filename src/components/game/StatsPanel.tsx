@@ -75,13 +75,6 @@ function Btn({
             成功
           </span>
         </>
-      ) : size === 'sm' && isMiss ? (
-        <>
-          <span className="leading-tight">{def.label}</span>
-          <span className="text-[10px] font-medium leading-tight mt-0.5 text-red-400/60">
-            不成功
-          </span>
-        </>
       ) : (
         <span className="leading-none">{def.label}</span>
       )}

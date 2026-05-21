@@ -24,9 +24,9 @@ export const STAT_DEFS: StatDef[] = [
   { action: '3PT_MADE', label: '3PT',   points: 3, variant: 'made',     color: 'bg-emerald-500',   textColor: 'text-white' },
   { action: 'FT_MADE',  label: 'FT',    points: 1, variant: 'made',     color: 'bg-emerald-500',   textColor: 'text-white' },
   // ── 得点 Miss ──────────────────────────────────────────
-  { action: '2PT_MISS', label: '2PT失敗', points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
-  { action: '3PT_MISS', label: '3PT失敗', points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
-  { action: 'FT_MISS',  label: 'FT失敗',  points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
+  { action: '2PT_MISS', label: '2PT', points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
+  { action: '3PT_MISS', label: '3PT', points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
+  { action: 'FT_MISS',  label: 'FT',  points: 0, variant: 'miss',     color: 'bg-transparent',   textColor: 'text-rose-400' },
   // ── ニュートラル ────────────────────────────────────────
   { action: 'ORBD',     label: 'ORbd',  points: 0, variant: 'neutral',  color: 'bg-blue-600',      textColor: 'text-white' },
   { action: 'DRBD',     label: 'DRbd',  points: 0, variant: 'neutral',  color: 'bg-blue-600',      textColor: 'text-white' },
