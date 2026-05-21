@@ -7,10 +7,6 @@ import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { ChevronLeft } from 'lucide-react';
 
-// ================================================================
-// 定数
-// ================================================================
-
 const SECTION_SIZE = 50;
 
 function getQuarterColor(quarter: number | null): { text: string; line: string } {
@@ -18,47 +14,49 @@ function getQuarterColor(quarter: number | null): { text: string; line: string }
   return { text: 'text-white/90', line: 'border-white/70' };
 }
 
-// ================================================================
-// 背番号バッジ
-// ================================================================
-
-function PlayerBadge({ num, shotType, quarterColor }: { num: string; shotType: ShotType | null; quarterColor: string }) {
+// ── 背番号バッジ ──────────────────────────────────────────────────
+function PlayerBadge({ num, shotType, quarterColor }: {
+  num: string; shotType: ShotType | null; quarterColor: string;
+}) {
   const base = cn('text-[11px] font-bold leading-none tabular-nums inline-flex items-center justify-center min-w-[16px]', quarterColor);
   if (shotType === '3PT') return <span className={cn(base, 'border-[1.5px] rounded-full px-1 py-0.5 border-current')}>{num}</span>;
   if (shotType === 'FT')  return <span className={cn(base, 'gap-0.5')}><span className="text-[7px] leading-none opacity-70">●</span>{num}</span>;
   return <span className={base}>{num}</span>;
 }
 
-// ================================================================
-// 得点セル
-// 2PT=2本 / 3PT=3本 → 斜線（クォーターカラー）
-// FT=1個              → 塗りつぶし丸（奇数Q=赤 / 偶数Q=白）
-// ================================================================
+// ── 得点セル ──────────────────────────────────────────────────────
+// hasMarking=true の場合のみ印を付ける
+//   2PT / 3PT → 斜線（クォーターカラー）
+//   FT        → 塗りつぶし丸（奇数Q=赤 / 偶数Q=白）
+// hasMarking=false（中間スロット）→ 数字のみ、何も表示しない
 
-function ScoreCell({ n, scored, shotType, quarter, qEnd }: {
-  n: number; scored: boolean;
-  shotType: ShotType | null; quarter: number | null; qEnd: number | null;
+function ScoreCell({ n, hasMarking, shotType, quarter, qEnd }: {
+  n: number;
+  hasMarking: boolean;
+  shotType:   ShotType | null;
+  quarter:    number | null;
+  qEnd:       number | null;
 }) {
-  const { line } = getQuarterColor(qEnd);
+  const { line }   = getQuarterColor(qEnd);
   const slashColor = getQuarterColor(quarter);
-  const hasQEnd   = qEnd !== null;
-
-  const isFT      = scored && shotType === 'FT';
-  const showSlash = scored && !isFT; // 2PT/3PT の intermediate + final
-  const isOddQ    = quarter === 1 || quarter === 3;
+  const hasQEnd    = qEnd !== null;
+  const isFT       = hasMarking && shotType === 'FT';
+  const showSlash  = hasMarking && !isFT;
+  const isOddQ     = quarter === 1 || quarter === 3;
 
   return (
-    <div className={cn('relative flex items-center justify-center h-[20px]', hasQEnd ? `border-b-2 ${line}` : 'border-b border-white/10')}>
+    <div className={cn(
+      'relative flex items-center justify-center h-[20px]',
+      hasQEnd ? `border-b-2 ${line}` : 'border-b border-white/10',
+    )}>
       <span className="text-[11px] font-mono tabular-nums leading-none relative z-10 text-white/90">{n}</span>
 
-      {/* 2PT / 3PT : 斜線 */}
       {showSlash && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <div className={cn('w-[150%] border-t', slashColor.line)} style={{ transform: 'rotate(-30deg)' }} />
         </div>
       )}
 
-      {/* FT : 塗りつぶし丸 */}
       {isFT && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className={cn('w-[14px] h-[14px] rounded-full opacity-85', isOddQ ? 'bg-red-500' : 'bg-white/90')} />
@@ -68,33 +66,42 @@ function ScoreCell({ n, scored, shotType, quarter, qEnd }: {
   );
 }
 
-// ================================================================
-// 1行
-// ================================================================
-
+// ── 1行 ───────────────────────────────────────────────────────────
 function ScoreRow({ cell }: { cell: RunningCell }) {
   const ourQColor   = getQuarterColor(cell.ourQuarter);
   const theirQColor = getQuarterColor(cell.theirQuarter);
+
   return (
     <div className="grid items-center" style={{ gridTemplateColumns: '28px 22px 22px 28px' }}>
+      {/* 自チーム背番号列 — 到達点のみ表示 */}
       <div className="flex items-center justify-end pr-1 h-[20px] border-b border-white/10">
-        {cell.ourScored && (
-          cell.ourIsSlash
-            ? <span className={cn('text-[11px] font-mono leading-none', ourQColor.text)}>/</span>
-            : cell.ourPlayer
-            ? <PlayerBadge num={cell.ourPlayer} shotType={cell.ourShotType} quarterColor={ourQColor.text} />
-            : null
+        {cell.ourHasMarking && cell.ourPlayer && (
+          <PlayerBadge num={cell.ourPlayer} shotType={cell.ourShotType} quarterColor={ourQColor.text} />
         )}
       </div>
-      <ScoreCell n={cell.n} scored={cell.ourScored}   shotType={cell.ourShotType}   quarter={cell.ourQuarter}   qEnd={cell.ourQEnd} />
-      <ScoreCell n={cell.n} scored={cell.theirScored} shotType={cell.theirShotType} quarter={cell.theirQuarter} qEnd={cell.theirQEnd} />
+
+      {/* 自チームスコア列 */}
+      <ScoreCell
+        n={cell.n}
+        hasMarking={cell.ourHasMarking}
+        shotType={cell.ourShotType}
+        quarter={cell.ourQuarter}
+        qEnd={cell.ourQEnd}
+      />
+
+      {/* 相手チームスコア列 */}
+      <ScoreCell
+        n={cell.n}
+        hasMarking={cell.theirHasMarking}
+        shotType={cell.theirShotType}
+        quarter={cell.theirQuarter}
+        qEnd={cell.theirQEnd}
+      />
+
+      {/* 相手チーム背番号列 — 到達点のみ表示 */}
       <div className="flex items-center justify-start pl-1 h-[20px] border-b border-white/10">
-        {cell.theirScored && (
-          cell.theirIsSlash
-            ? <span className={cn('text-[11px] font-mono leading-none', theirQColor.text)}>/</span>
-            : cell.theirPlayer
-            ? <PlayerBadge num={cell.theirPlayer} shotType={cell.theirShotType} quarterColor={theirQColor.text} />
-            : null
+        {cell.theirHasMarking && cell.theirPlayer && (
+          <PlayerBadge num={cell.theirPlayer} shotType={cell.theirShotType} quarterColor={theirQColor.text} />
         )}
       </div>
     </div>
@@ -105,17 +112,18 @@ function EmptyRow({ n }: { n: number }) {
   return (
     <div className="grid items-center" style={{ gridTemplateColumns: '28px 22px 22px 28px' }}>
       <div className="h-[20px] border-b border-white/10" />
-      <div className="flex items-center justify-center h-[20px] border-b border-white/10"><span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span></div>
-      <div className="flex items-center justify-center h-[20px] border-b border-white/10"><span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span></div>
+      <div className="flex items-center justify-center h-[20px] border-b border-white/10">
+        <span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span>
+      </div>
+      <div className="flex items-center justify-center h-[20px] border-b border-white/10">
+        <span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span>
+      </div>
       <div className="h-[20px] border-b border-white/10" />
     </div>
   );
 }
 
-// ================================================================
-// セクション（SECTION_SIZE行ずつ）
-// ================================================================
-
+// ── セクション ────────────────────────────────────────────────────
 function ScoreSection({ cells, startN }: { cells: RunningCell[]; startN: number }) {
   const cellMap = useMemo(() => {
     const map = new Map<number, RunningCell>();
@@ -126,7 +134,7 @@ function ScoreSection({ cells, startN }: { cells: RunningCell[]; startN: number 
   return (
     <div>
       {Array.from({ length: SECTION_SIZE }).map((_, i) => {
-        const n = startN + i;
+        const n    = startN + i;
         const cell = cellMap.get(n);
         return cell ? <ScoreRow key={n} cell={cell} /> : <EmptyRow key={n} n={n} />;
       })}
@@ -134,10 +142,7 @@ function ScoreSection({ cells, startN }: { cells: RunningCell[]; startN: number 
   );
 }
 
-// ================================================================
-// 列ヘッダー（各セクション先頭に表示）
-// ================================================================
-
+// ── 列ヘッダー ────────────────────────────────────────────────────
 function ColHeader({ ourName, theirName, ourCfg, theirCfg, range }: {
   ourName: string; theirName: string;
   ourCfg: { nameText: string }; theirCfg: { nameText: string };
@@ -158,10 +163,7 @@ function ColHeader({ ourName, theirName, ourCfg, theirCfg, range }: {
   );
 }
 
-// ================================================================
-// メインコンポーネント
-// ================================================================
-
+// ── メインコンポーネント ──────────────────────────────────────────
 interface RunningScoreSheetProps {
   ourTeam:    Team;
   theirTeam:  Team;
@@ -192,13 +194,10 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
     return result;
   }, [cells, sectionCount]);
 
-  const ourName   = ourTeam.team_name   || 'A';
-  const theirName = theirTeam.team_name || 'B';
-
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-neutral-950">
 
-      {/* ── 固定ヘッダー：戻るボタン ── */}
+      {/* 固定ヘッダー */}
       <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-white/8 bg-neutral-900/80">
         <button
           onClick={onClose}
@@ -210,7 +209,7 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         <span className="text-white text-sm font-bold flex-1">ランニングスコアシート</span>
       </div>
 
-      {/* ── 凡例 ── */}
+      {/* 凡例 */}
       <div className="shrink-0 flex flex-wrap gap-x-3 gap-y-0.5 px-3 py-1.5 bg-neutral-900/40 border-b border-white/[0.08] text-[9px]">
         <span className="text-white/50 flex items-center gap-1"><span className="text-red-500 font-bold">赤</span>= 1Q・3Q</span>
         <span className="text-white/50 flex items-center gap-1"><span className="text-white/90 font-bold">白</span>= 2Q・4Q</span>
@@ -218,14 +217,14 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         <span className="text-white/50 flex items-center gap-1"><span className="text-[8px]">●7</span>= FT選手</span>
         <span className="text-white/50 flex items-center gap-1">
           <span className="inline-flex items-center gap-0.5">
-            <span className="w-[10px] h-[10px] rounded-full bg-red-500 inline-block" />
-            <span className="w-[10px] h-[10px] rounded-full bg-white/90 inline-block" />
+            <span className="w-[9px] h-[9px] rounded-full bg-red-500 inline-block" />
+            <span className="w-[9px] h-[9px] rounded-full bg-white/90 inline-block" />
           </span>
           = FT得点(奇/偶Q)
         </span>
       </div>
 
-      {/* ── スクロール可能なスコアエリア（iOS対応） ── */}
+      {/* スクロールエリア */}
       <div
         className="flex-1 min-h-0 overflow-y-scroll overscroll-contain"
         style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
@@ -233,8 +232,8 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         {sections.map((section) => (
           <div key={section.startN}>
             <ColHeader
-              ourName={ourName}
-              theirName={theirName}
+              ourName={ourTeam.team_name || 'A'}
+              theirName={theirTeam.team_name || 'B'}
               ourCfg={ourCfg}
               theirCfg={theirCfg}
               range={`${section.startN} – ${section.startN + SECTION_SIZE - 1}`}
