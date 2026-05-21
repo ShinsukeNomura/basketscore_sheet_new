@@ -1,15 +1,28 @@
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import { getDictionary, hasLocale, defaultLocale, type Locale } from '@/i18n/getDictionary';
+import { getDictionary, hasLocale, defaultLocale, locales, type Locale } from '@/i18n/getDictionary';
+import { localeAlternates, baseOG, baseTwitter, PAGE_META, type SeoLocale } from '@/lib/seo';
+import type { Metadata } from 'next';
 
-export async function generateMetadata({ params }: { params: { lang: string } }) {
-  const locale = hasLocale(params.lang) ? params.lang as Locale : defaultLocale;
-  const dict = await getDictionary(locale);
-  return { title: `${dict.privacy.title} — Basketball Score` };
+export function generateStaticParams() { return locales.map((lang) => ({ lang })); }
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = (hasLocale(lang) ? lang : defaultLocale) as SeoLocale;
+  const meta   = PAGE_META.privacy[locale] ?? PAGE_META.privacy.ja;
+  return {
+    title:       meta.title,
+    description: meta.description,
+    robots:      { index: true, follow: true },
+    alternates:  localeAlternates('/privacy'),
+    openGraph:   baseOG(locale, meta.title, meta.description, '/privacy'),
+    twitter:     baseTwitter(meta.title, meta.description),
+  };
 }
 
-export default async function PrivacyPage({ params }: { params: { lang: string } }) {
-  const locale = hasLocale(params.lang) ? params.lang as Locale : defaultLocale;
+export default async function PrivacyPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = hasLocale(lang) ? lang as Locale : defaultLocale;
   const dict = await getDictionary(locale);
   const d = dict.privacy;
   const updated = locale === 'ja' ? '2026年5月21日' : 'May 21, 2026';

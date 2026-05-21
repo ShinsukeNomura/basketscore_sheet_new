@@ -1,12 +1,16 @@
 {
-  "name": "Basketball Score",
+  "name": "Basketball Score — バスケスコア記録",
   "short_name": "BScore",
-  "description": "リアルタイム バスケットボール スコア・スタッツ記録アプリ",
-  "start_url": "/",
+  "description": "リアルタイムでバスケットボールの試合スコアとスタッツを記録するPWAアプリ。2PT/3PT/FT・AI分析・PDF出力対応。",
+  "start_url": "/ja/login",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "orientation": "portrait",
+  "lang": "ja",
+  "dir": "ltr",
+  "categories": ["sports", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -19,6 +23,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
