@@ -31,16 +31,32 @@ function PlayerBadge({ num, shotType, quarterColor }: { num: string; shotType: S
 
 // ================================================================
 // 得点セル
+// 2PT/3PT → 斜線  FT → 塗りつぶし（奇数Q=赤、偶数Q=白）
 // ================================================================
 
-function ScoreCell({ n, scored, hasMarkup, quarter, qEnd }: { n: number; scored: boolean; hasMarkup: boolean; quarter: number | null; qEnd: number | null }) {
+function ScoreCell({ n, scored, isSlash, shotType, quarter, qEnd }: {
+  n: number; scored: boolean; isSlash: boolean;
+  shotType: ShotType | null; quarter: number | null; qEnd: number | null;
+}) {
   const { line } = getQuarterColor(qEnd);
   const slashColor = getQuarterColor(quarter);
   const hasQEnd = qEnd !== null;
+
+  const isFT      = scored && shotType === 'FT';
+  const showSlash = scored && (isSlash || shotType === '2PT' || shotType === '3PT');
+  const isOddQ    = quarter === 1 || quarter === 3;
+
   return (
     <div className={cn('relative flex items-center justify-center h-[20px]', hasQEnd ? `border-b-2 ${line}` : 'border-b border-white/10')}>
-      <span className="text-[11px] font-mono tabular-nums leading-none z-10 text-white/90">{n}</span>
-      {scored && hasMarkup && (
+      <span className={cn(
+        'text-[11px] font-mono tabular-nums leading-none relative z-10',
+        isFT
+          ? cn('rounded-[2px] px-[2px] font-bold', isOddQ ? 'bg-red-500 text-white' : 'bg-white/90 text-neutral-950')
+          : 'text-white/90',
+      )}>
+        {n}
+      </span>
+      {showSlash && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <div className={cn('w-[150%] border-t', slashColor.line)} style={{ transform: 'rotate(-30deg)' }} />
         </div>
@@ -67,8 +83,8 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
             : null
         )}
       </div>
-      <ScoreCell n={cell.n} scored={cell.ourScored}   hasMarkup={cell.ourIsSlash   || !!cell.ourPlayer}   quarter={cell.ourQuarter}   qEnd={cell.ourQEnd} />
-      <ScoreCell n={cell.n} scored={cell.theirScored} hasMarkup={cell.theirIsSlash || !!cell.theirPlayer} quarter={cell.theirQuarter} qEnd={cell.theirQEnd} />
+      <ScoreCell n={cell.n} scored={cell.ourScored}   isSlash={cell.ourIsSlash}   shotType={cell.ourShotType}   quarter={cell.ourQuarter}   qEnd={cell.ourQEnd} />
+      <ScoreCell n={cell.n} scored={cell.theirScored} isSlash={cell.theirIsSlash} shotType={cell.theirShotType} quarter={cell.theirQuarter} qEnd={cell.theirQEnd} />
       <div className="flex items-center justify-start pl-1 h-[20px] border-b border-white/10">
         {cell.theirScored && (
           cell.theirIsSlash
@@ -196,7 +212,11 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         <span className="text-white/50 flex items-center gap-1"><span className="text-red-500 font-bold">赤</span>= 1Q・3Q</span>
         <span className="text-white/50 flex items-center gap-1"><span className="text-white/90 font-bold">白</span>= 2Q・4Q</span>
         <span className="text-white/50 flex items-center gap-1"><span className="border border-white/50 rounded-full px-0.5 text-[8px] text-white/70">7</span>= 3PT</span>
-        <span className="text-white/50 flex items-center gap-1"><span className="text-[8px]">●7</span>= FT</span>
+        <span className="text-white/50 flex items-center gap-1">
+          <span className="bg-red-500 text-white rounded-[2px] px-[2px] text-[8px] font-bold">7</span>
+          <span className="bg-white/90 text-neutral-950 rounded-[2px] px-[2px] text-[8px] font-bold ml-0.5">7</span>
+          = FT(奇/偶Q)
+        </span>
       </div>
 
       {/* ── スクロール可能なスコアエリア（iOS対応） ── */}
