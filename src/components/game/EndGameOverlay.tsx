@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { cn } from '@/lib/utils';
-import { Home, Plus, Trophy, BarChart2, RotateCcw, ChevronDown, ChevronUp, FileText, Sparkles, Loader2 } from 'lucide-react';
-import { RunningScoreSheet } from '@/components/game/RunningScoreSheet';
+import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2 } from 'lucide-react';
 
 // ================================================================
 // 型
@@ -17,10 +16,11 @@ interface EndGameOverlayProps {
   ourScore:   number;
   theirScore: number;
   logs:       StatsLog[];
-  onGoHome:   () => void;
-  onNewGame:  () => void;
-  onShowStats:() => void;
-  onResume:   () => void;
+  onGoHome:       () => void;
+  onNewGame:      () => void;
+  onShowStats:    () => void;
+  onShowRunning:  () => void;
+  onResume:       () => void;
 }
 
 // ================================================================
@@ -45,7 +45,7 @@ export function EndGameOverlay({
   game, ourTeam, theirTeam, allPlayers,
   ourScore, theirScore,
   logs,
-  onGoHome, onNewGame, onShowStats, onResume,
+  onGoHome, onNewGame, onShowStats, onShowRunning, onResume,
 }: EndGameOverlayProps) {
   const diff = ourScore - theirScore;
   const winnerTeam: Team | null =
@@ -64,9 +64,6 @@ export function EndGameOverlay({
     [logs, ourTeam.id, theirTeam.id],
   );
   const hasAnyScore = ourScore > 0 || theirScore > 0;
-
-  // ランニングスコアデータ
-  const [showRunning, setShowRunning] = useState(false);
 
   // PDF出力
   const handlePDF = async () => {
@@ -181,35 +178,6 @@ export function EndGameOverlay({
         </div>
       )}
 
-      {/* ── ランニングスコアシート ── */}
-      {(ourScore > 0 || theirScore > 0) && (
-        <div className="mx-6 mb-5">
-          {/* トグルボタン */}
-          <button
-            onClick={() => setShowRunning((v) => !v)}
-            className="flex items-center justify-between w-full px-3 py-2.5 rounded-xl bg-white/6 text-white/60 text-xs font-semibold mb-1 active:bg-white/10 transition-colors"
-          >
-            <span>ランニングスコアシート</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-white/30 text-[10px]">RUNNING SCORE</span>
-              {showRunning ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </div>
-          </button>
-
-          {showRunning && (
-            <div className="rounded-xl bg-neutral-900 overflow-hidden border border-white/8">
-              <RunningScoreSheet
-                ourTeam={ourTeam}
-                theirTeam={theirTeam}
-                allPlayers={allPlayers}
-                logs={logs}
-                onClose={() => {}}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
       {/* スペーサー */}
       <div className="flex-1" />
 
@@ -250,6 +218,10 @@ export function EndGameOverlay({
         <button onClick={onShowStats}
           className="flex items-center justify-center gap-2 w-full bg-white/10 active:bg-white/8 text-white font-bold rounded-2xl py-4 text-base transition-colors border border-white/10">
           <BarChart2 size={18} />スタッツ詳細を見る
+        </button>
+        <button onClick={onShowRunning}
+          className="flex items-center justify-center gap-2 w-full bg-white/10 active:bg-white/8 text-white font-bold rounded-2xl py-4 text-base transition-colors border border-white/10">
+          <ClipboardList size={18} />ランニングスコアシート
         </button>
         <button onClick={onNewGame}
           className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">

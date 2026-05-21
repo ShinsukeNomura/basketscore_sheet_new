@@ -12,10 +12,8 @@ import { SubstitutionSheet }     from '@/components/game/SubstitutionSheet';
 import { RosterSheet }           from '@/components/game/RosterSheet';
 import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
-import { RunningScoreSheet }     from '@/components/game/RunningScoreSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
 import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Team, Player, CourtLocation } from '@/types';
 
 export default function GamePage() {
@@ -40,7 +38,6 @@ export default function GamePage() {
   const [rosterOpen,     setRosterOpen]     = useState(false);
   const [createOpen,     setCreateOpen]     = useState(false);
   const [statsOpen,      setStatsOpen]      = useState(false);
-  const [runningOpen,    setRunningOpen]    = useState(false);
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
 
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
@@ -93,7 +90,7 @@ export default function GamePage() {
         onRenameGame={renameGame}
         onGoHome={() => router.push('/')}
         onShowStats={() => setStatsOpen(true)}
-        onShowRunning={() => setRunningOpen(true)}
+        onShowRunning={() => router.push(`/game/${gameId}/running`)}
       />
 
       {/* 自チーム（白） */}
@@ -179,6 +176,7 @@ export default function GamePage() {
           onGoHome={() => router.push('/')}
           onNewGame={() => setCreateOpen(true)}
           onShowStats={() => setStatsOpen(true)}
+          onShowRunning={() => router.push(`/game/${gameId}/running`)}
           onResume={resumeGame}
         />
       )}
@@ -217,17 +215,6 @@ export default function GamePage() {
         ourTov={teamTovCounts[ourTeam.id] ?? 0}
         theirTov={teamTovCounts[theirTeam.id] ?? 0}
       />
-      <Sheet open={runningOpen} onOpenChange={setRunningOpen}>
-        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0 flex flex-col">
-          <RunningScoreSheet
-            ourTeam={ourTeam}
-            theirTeam={theirTeam}
-            allPlayers={allPlayers}
-            logs={activeLogs}
-            onClose={() => setRunningOpen(false)}
-          />
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
