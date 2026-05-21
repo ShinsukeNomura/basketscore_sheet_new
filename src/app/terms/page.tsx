@@ -57,7 +57,16 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-white font-bold text-base mb-2">7. お問い合わせ</h2>
+          <h2 className="text-white font-bold text-base mb-2">7. 特定商取引法に基づく表記</h2>
+          <p className="text-white/60">
+            販売事業者・価格・支払方法などの詳細は
+            <Link href="/legal" className="text-sky-400 underline mx-1">特定商取引法に基づく表記</Link>
+            をご覧ください。
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-white font-bold text-base mb-2">8. お問い合わせ</h2>
           <p className="text-white/60"><a href="mailto:info@medirealize.jp" className="text-sky-400 underline">info@medirealize.jp</a></p>
         </section>
       </div>

@@ -445,6 +445,7 @@ export default function HomePage() {
       <div className="fixed bottom-[80px] inset-x-0 flex justify-center gap-4 pb-1 pointer-events-none">
         <Link href="/privacy" className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">プライバシーポリシー</Link>
         <Link href="/terms"   className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">利用規約</Link>
+        <Link href="/legal"   className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">特商法</Link>
       </div>
 
       <CreateGameSheet
