@@ -151,3 +151,39 @@ export function buildTeamAnalysis(teamName: string): TeamAnalysis {
 
   return result;
 }
+
+/** 分析画面用: 指定チーム・背番号の全試合シュートログを返す */
+export function getPlayerShotLogs(teamName: string, backNumber: string): StatsLog[] {
+  const result: StatsLog[] = [];
+  const norm = teamName.toLowerCase().trim();
+  const gameIndex = getGamesIndex();
+
+  for (const summary of gameIndex) {
+    const game = loadPersistedGame(summary.id);
+    if (!game) continue;
+
+    const matchedTeam = [game.ourTeam, game.theirTeam].find(
+      (t) => t.team_name.toLowerCase().trim() === norm,
+    );
+    if (!matchedTeam) continue;
+
+    const player = game.allPlayers.find(
+      (p) => p.team_id === matchedTeam.id && p.back_number === backNumber,
+    );
+    if (!player) continue;
+
+    const shotLogs = game.logs.filter(
+      (l) =>
+        !l.is_deleted &&
+        l.player_id === player.id &&
+        l.court_location !== undefined &&
+        (l.action_type === '2PT_MADE' ||
+          l.action_type === '2PT_MISS' ||
+          l.action_type === '3PT_MADE' ||
+          l.action_type === '3PT_MISS'),
+    );
+    result.push(...shotLogs);
+  }
+
+  return result;
+}

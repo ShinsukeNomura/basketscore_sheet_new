@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { fetchUserTeams, saveUserTeam, UserTeam } from '@/lib/myTeams';
 import {
   buildTeamAnalysis, getAllTeamNamesFromHistory,
+  getPlayerShotLogs,
   TeamAnalysis, PlayerAnalysis, pct, avg,
 } from '@/lib/analysis';
 import { printTeamReport, printPlayerReport } from '@/lib/printReport';
@@ -22,6 +23,8 @@ import {
 } from '@/lib/aiReportCache';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
+import { ShotHeatmap } from '@/components/ShotHeatmap';
+import type { StatsLog } from '@/types';
 
 function ShotCell({ made, attempted }: { made: number; attempted: number }) {
   if (!attempted) return <span className="text-white/25 tabular-nums text-xs">-</span>;
@@ -258,7 +261,12 @@ function PlayerDetailView({
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiError,    setAiError]    = useState('');
   const [pdfConfirm, setPdfConfirm] = useState(false);
+  const [shotLogs,   setShotLogs]   = useState<StatsLog[]>([]);
   const g = player.games;
+
+  useEffect(() => {
+    setShotLogs(getPlayerShotLogs(teamName, player.backNumber));
+  }, [teamName, player.backNumber]);
 
   useEffect(() => {
     const cached = getCachedReport(playerReportKey(teamName, player.backNumber));
@@ -324,6 +332,15 @@ function PlayerDetailView({
         <ShootingBar label="3PT" made={player.fg3m} attempted={player.fg3a} color="bg-blue-500" />
         <ShootingBar label="FT"  made={player.ftm}  attempted={player.fta}  color="bg-amber-500" />
       </div>
+
+      {/* シュートヒートマップ */}
+      {(player.fg2a > 0 || player.fg3a > 0) && (
+        <div className="rounded-2xl bg-white/4 border border-white/8 p-4 flex flex-col gap-2">
+          <p className="text-white/40 text-xs font-semibold tracking-wider uppercase">シュートマップ</p>
+          <ShotHeatmap logs={shotLogs} />
+        </div>
+      )}
+
       <div className="rounded-2xl bg-white/4 border border-white/8 p-4">
         <p className="text-white/40 text-xs font-semibold tracking-wider uppercase mb-3">{a.avgStats}</p>
         <div className="grid grid-cols-3 gap-2">

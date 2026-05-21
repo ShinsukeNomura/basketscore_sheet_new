@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StatsLog, Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { BarChart2, ChevronLeft } from 'lucide-react';
+import { BarChart2, ChevronLeft, MapPin } from 'lucide-react';
+import { ShotHeatmap } from '@/components/ShotHeatmap';
 
 // ────────── 型 ──────────
 interface PlayerStatRow {
@@ -79,8 +80,8 @@ function cellValue(row: PlayerStatRow, key: typeof COLS[number]['key']): CellRes
 
 // ────────── チームテーブル ──────────
 function TeamTable({
-  team, rows, teamTov,
-}: { team: Team; rows: PlayerStatRow[]; teamTov: number }) {
+  team, rows, teamTov, logs,
+}: { team: Team; rows: PlayerStatRow[]; teamTov: number; logs: StatsLog[] }) {
   const cfg = getColorConfig(team.color);
 
   // チーム合計行
@@ -99,6 +100,16 @@ function TeamTable({
     { pts:0, fg2m:0, fg2a:0, fg3m:0, fg3a:0, ftm:0, fta:0, orbd:0, drbd:0, ast:0, stl:0, blk:0, foul:0 }
   );
   const totalRow: PlayerStatRow = { player: { id:'', team_id:'', back_number:'計', name:'チーム合計', is_on_court:false, color:'', created_at:'' } as Player & { color: string }, ...total };
+
+  // シュートマップ用: シュートデータのある選手だけ対象
+  const [mapPlayer, setMapPlayer] = useState<string | null>(null);
+  const shotPlayers = rows.filter((r) => r.fg2a > 0 || r.fg3a > 0);
+  const selectedMapPlayer = mapPlayer ?? (shotPlayers[0]?.player.back_number ?? null);
+  const mapLogs = useMemo(() => {
+    const p = rows.find((r) => r.player.back_number === selectedMapPlayer)?.player;
+    if (!p) return [];
+    return logs.filter((l) => l.player_id === p.id);
+  }, [logs, rows, selectedMapPlayer]);
 
   if (rows.length === 0) {
     return (
@@ -197,6 +208,33 @@ function TeamTable({
           </tbody>
         </table>
       </div>
+      {/* シュートマップ */}
+      {shotPlayers.length > 0 && (
+        <div className="mt-4 rounded-2xl bg-white/3 border border-white/6 p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin size={13} className="text-white/40" />
+            <span className="text-white/50 text-xs font-semibold">シュートマップ</span>
+            {/* 選手セレクター */}
+            <div className="flex gap-1.5 ml-2 flex-wrap">
+              {shotPlayers.map((r) => (
+                <button
+                  key={r.player.back_number}
+                  onClick={() => setMapPlayer(r.player.back_number)}
+                  className={cn(
+                    'px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors',
+                    selectedMapPlayer === r.player.back_number
+                      ? 'bg-white text-neutral-900'
+                      : 'bg-white/10 text-white/50 active:bg-white/20',
+                  )}
+                >
+                  #{r.player.back_number}
+                </button>
+              ))}
+            </div>
+          </div>
+          <ShotHeatmap logs={mapLogs} />
+        </div>
+      )}
     </div>
   );
 }
@@ -239,8 +277,8 @@ export function StatsSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto sheet-scroll">
-          <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov} />
-          <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} />
+          <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov}   logs={logs} />
+          <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} logs={logs} />
 
           {/* 凡例 */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 pb-4">
