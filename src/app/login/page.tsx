@@ -11,15 +11,17 @@ type Mode = 'signin' | 'signup';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
 
-  const [mode,     setMode]     = useState<Mode>('signin');
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw,   setShowPw]   = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState<string | null>(null);
-  const [done,     setDone]     = useState(false); // サインアップ完了
+  const [mode,        setMode]        = useState<Mode>('signin');
+  const [email,       setEmail]       = useState('');
+  const [password,    setPassword]    = useState('');
+  const [showPw,      setShowPw]      = useState(false);
+  const [loading,     setLoading]     = useState(false);
+  const [error,       setError]       = useState<string | null>(null);
+  const [done,        setDone]        = useState(false);
+  const [resetSent,   setResetSent]   = useState(false);
+  const [resetLoading,setResetLoading]= useState(false);
 
   const handleSubmit = useCallback(async () => {
     if (!email.trim() || !password.trim()) {
@@ -60,6 +62,15 @@ export default function LoginPage() {
     }
     setLoading(false);
   }, [mode, email, password, signIn, signUp, router]);
+
+  const handleReset = useCallback(async () => {
+    if (!email.trim()) { setError('パスワードリセット用のメールアドレスを入力してください'); return; }
+    setResetLoading(true); setError(null);
+    const { error } = await resetPassword(email.trim());
+    setResetLoading(false);
+    if (error) setError(`エラー: ${error}`);
+    else setResetSent(true);
+  }, [email, resetPassword]);
 
   // サインアップ完了画面
   if (done) {
@@ -159,6 +170,13 @@ export default function LoginPage() {
           <p className="text-red-400 text-sm px-1">{error}</p>
         )}
 
+        {/* リセット完了メッセージ */}
+        {resetSent && (
+          <p className="text-emerald-400 text-sm px-1 text-center">
+            パスワードリセットのメールを送信しました。メールをご確認ください。
+          </p>
+        )}
+
         {/* 送信ボタン */}
         <button
           onClick={handleSubmit}
@@ -168,6 +186,18 @@ export default function LoginPage() {
           {loading && <Loader2 size={18} className="animate-spin" />}
           {mode === 'signin' ? 'ログイン' : 'アカウントを作成'}
         </button>
+
+        {/* パスワードリセットリンク（ログインモード時のみ） */}
+        {mode === 'signin' && !resetSent && (
+          <button
+            onClick={handleReset}
+            disabled={resetLoading}
+            className="text-white/30 text-xs text-center active:text-white/60 transition-colors flex items-center justify-center gap-1"
+          >
+            {resetLoading && <Loader2 size={11} className="animate-spin" />}
+            パスワードを忘れた方はこちら
+          </button>
+        )}
 
       </div>
 

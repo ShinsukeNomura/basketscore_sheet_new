@@ -17,11 +17,12 @@ export interface AuthState {
 }
 
 export function useAuth(): AuthState & {
-  signUp:      (email: string, password: string) => Promise<{ error: string | null }>;
-  signIn:      (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut:     () => Promise<void>;
-  refetchPlan: () => Promise<void>;
-  isPremium:   boolean;
+  signUp:         (email: string, password: string) => Promise<{ error: string | null }>;
+  signIn:         (email: string, password: string) => Promise<{ error: string | null }>;
+  signOut:        () => Promise<void>;
+  refetchPlan:    () => Promise<void>;
+  resetPassword:  (email: string) => Promise<{ error: string | null }>;
+  isPremium:      boolean;
 } {
   const [user,    setUser]    = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -81,6 +82,13 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut();
   }, []);
 
+  const resetPassword = useCallback(async (email: string): Promise<{ error: string | null }> => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    return { error: error?.message ?? null };
+  }, []);
+
   const refetchPlan = useCallback(async () => {
     if (!user) return;
     await fetchPlan(user.id, user.email);
@@ -89,6 +97,6 @@ export function useAuth(): AuthState & {
   return {
     user, session, plan, loading,
     isPremium: plan === 'premium',
-    signUp, signIn, signOut, refetchPlan,
+    signUp, signIn, signOut, refetchPlan, resetPassword,
   };
 }
