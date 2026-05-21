@@ -39,7 +39,6 @@ function printWindow(title: string, html: string) {
   win.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${title}</title><style>${BASE_STYLE}</style></head><body>${html}</body></html>`);
   win.document.close();
   win.focus();
-  setTimeout(() => win.print(), 800);
 }
 
 export function printTeamReport(

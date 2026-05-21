@@ -15,6 +15,7 @@ import {
   ChevronLeft, Crown, Users, User, BarChart2,
   ArrowRight, BookmarkPlus, Check, Sparkles, FileText, Loader2,
 } from 'lucide-react';
+import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 
 // ================================================================
 // 汎用 UI
@@ -71,6 +72,7 @@ function TeamAnalysisView({
   const [aiReport,   setAiReport]   = useState('');
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiError,    setAiError]    = useState('');
+  const [pdfConfirm, setPdfConfirm] = useState(false);
 
   // チームが変わったらAIレポートをリセット
   useEffect(() => { setAiReport(''); setAiError(''); }, [teamName]);
@@ -103,6 +105,13 @@ function TeamAnalysisView({
 
   return (
     <div className="flex flex-col gap-5 px-4 pb-8">
+      {pdfConfirm && (
+        <PdfConfirmDialog
+          title="チーム分析レポートをPDF出力"
+          onConfirm={() => { setPdfConfirm(false); printTeamReport(analysis, aiReport); }}
+          onCancel={() => setPdfConfirm(false)}
+        />
+      )}
 
       {/* 登録状態 */}
       {!isRegistered ? (
@@ -191,7 +200,7 @@ function TeamAnalysisView({
               <p className="text-white/70 text-sm font-bold flex-1">AI分析（Gemini）</p>
               {aiReport && (
                 <button
-                  onClick={() => printTeamReport(analysis, aiReport)}
+                  onClick={() => setPdfConfirm(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold active:bg-emerald-700"
                 >
                   <FileText size={12} />PDFレポート
@@ -224,9 +233,10 @@ function TeamAnalysisView({
 function PlayerDetailView({
   player, teamName, onBack,
 }: { player: PlayerAnalysis; teamName: string; onBack: () => void }) {
-  const [aiReport,  setAiReport]  = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError,   setAiError]   = useState('');
+  const [aiReport,   setAiReport]   = useState('');
+  const [aiLoading,  setAiLoading]  = useState(false);
+  const [aiError,    setAiError]    = useState('');
+  const [pdfConfirm, setPdfConfirm] = useState(false);
   const g = player.games;
 
   async function handleAiAnalyze() {
@@ -246,6 +256,13 @@ function PlayerDetailView({
 
   return (
     <div className="flex flex-col gap-5 px-4 pb-8">
+      {pdfConfirm && (
+        <PdfConfirmDialog
+          title="個人分析レポートをPDF出力"
+          onConfirm={() => { setPdfConfirm(false); printPlayerReport(player, teamName, aiReport); }}
+          onCancel={() => setPdfConfirm(false)}
+        />
+      )}
       <button onClick={onBack} className="flex items-center gap-1 text-sky-400 active:text-sky-200 self-start -ml-1 py-1">
         <ChevronLeft size={18} /><span className="text-xs font-medium">チーム分析に戻る</span>
       </button>
@@ -288,7 +305,7 @@ function PlayerDetailView({
           <p className="text-white/70 text-sm font-bold flex-1">AI個人分析（Gemini）</p>
           {aiReport && (
             <button
-              onClick={() => printPlayerReport(player, teamName, aiReport)}
+              onClick={() => setPdfConfirm(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold active:bg-emerald-700"
             >
               <FileText size={12} />PDFレポート

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { cn } from '@/lib/utils';
 import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2 } from 'lucide-react';
+import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 
 // ================================================================
 // 型
@@ -65,16 +66,17 @@ export function EndGameOverlay({
   );
   const hasAnyScore = ourScore > 0 || theirScore > 0;
 
-  // PDF出力
-  const handlePDF = async () => {
+  // PDF出力（確認後に実行）
+  const executePDF = async () => {
     const { generateGamePDF } = await import('@/lib/generatePDF');
     generateGamePDF(game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore);
   };
 
   // AI分析
-  const [aiReport,   setAiReport]   = useState<string | null>(null);
-  const [aiLoading,  setAiLoading]  = useState(false);
-  const [showReport, setShowReport] = useState(false);
+  const [aiReport,    setAiReport]    = useState<string | null>(null);
+  const [aiLoading,   setAiLoading]   = useState(false);
+  const [showReport,  setShowReport]  = useState(false);
+  const [pdfConfirm,  setPdfConfirm]  = useState(false);
 
   const handleAI = async () => {
     if (aiReport) { setShowReport((v) => !v); return; }
@@ -111,6 +113,13 @@ export function EndGameOverlay({
 
   return (
     <div className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
+      {pdfConfirm && (
+        <PdfConfirmDialog
+          title="スコアシートをPDF出力"
+          onConfirm={() => { setPdfConfirm(false); executePDF(); }}
+          onCancel={() => setPdfConfirm(false)}
+        />
+      )}
 
       {/* ── ヘッダー ── */}
       <div className="flex flex-col items-center pt-10 pb-4 px-6">
@@ -211,7 +220,7 @@ export function EndGameOverlay({
           {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : 'AIでスタッツを分析'}
         </button>
         {/* PDF出力 */}
-        <button onClick={handlePDF}
+        <button onClick={() => setPdfConfirm(true)}
           className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <FileText size={18} />スコアシートをPDF出力
         </button>
