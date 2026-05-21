@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { periodLabel } from '@/lib/period';
 import { cn } from '@/lib/utils';
-import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2 } from 'lucide-react';
+import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2, Crown } from 'lucide-react';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
 
@@ -43,6 +43,114 @@ function teamLabel(team: Team, isOurs: boolean): string {
 }
 
 // ================================================================
+// MVP算出
+// ================================================================
+interface PlayerMVPStats {
+  player:  Player;
+  pts:     number;
+  rbd:     number;
+  ast:     number;
+  stl:     number;
+  blk:     number;
+  tov:     number;
+  fgm:     number;
+  fga:     number;
+  score:   number;  // MVP スコア
+}
+
+function computeMVP(logs: StatsLog[], players: Player[], teamId: string): PlayerMVPStats | null {
+  const teamPlayers = players.filter((p) => p.team_id === teamId);
+  if (teamPlayers.length === 0) return null;
+
+  const activeLogs = logs.filter((l) => !l.is_deleted);
+
+  const stats: PlayerMVPStats[] = teamPlayers.map((player) => {
+    const pl  = activeLogs.filter((l) => l.player_id === player.id);
+    const cnt = (type: string) => pl.filter((l) => l.action_type === type).length;
+
+    const pts  = pl.reduce((s, l) => s + l.points, 0);
+    const orbd = cnt('ORBD');
+    const drbd = cnt('DRBD');
+    const ast  = cnt('AST');
+    const stl  = cnt('STL');
+    const blk  = cnt('BLK');
+    const tov  = pl.filter((l) => l.action_type === 'TOV').length;
+    const fg2m = cnt('2PT_MADE');
+    const fg2a = fg2m + cnt('2PT_MISS');
+    const fg3m = cnt('3PT_MADE');
+    const fg3a = fg3m + cnt('3PT_MISS');
+    const ftm  = cnt('FT_MADE');
+    const fta  = ftm + cnt('FT_MISS');
+    const fgm  = fg2m + fg3m;
+    const fga  = fg2a + fg3a;
+
+    // 総合貢献スコア
+    // 得点 + 攻撃リバウンド(高価値) + 守備リバウンド + アシスト + スティール + ブロック
+    // − ターンオーバー − シュートミス − FTミス
+    const score =
+      pts * 1.0
+      + orbd * 1.5
+      + drbd * 1.0
+      + ast  * 1.5
+      + stl  * 2.0
+      + blk  * 2.0
+      - tov  * 1.5
+      - (fga - fgm) * 0.5
+      - (fta - ftm) * 0.5;
+
+    return { player, pts, rbd: orbd + drbd, ast, stl, blk, tov, fgm, fga, score };
+  });
+
+  // スタッツが全くない選手は除外
+  const active = stats.filter((s) => s.score !== 0 || s.pts > 0 || s.rbd > 0 || s.ast > 0);
+  if (active.length === 0) return null;
+
+  return active.reduce((best, cur) => cur.score > best.score ? cur : best);
+}
+
+// ================================================================
+// MVPカード
+// ================================================================
+function MvpCard({ mvp, teamName, color }: { mvp: PlayerMVPStats; teamName: string; color: string }) {
+  // チームカラーに応じたアクセント
+  const accent = color === 'white' || color === 'gray' || color === 'light-gray'
+    ? 'border-white/20 bg-white/5'
+    : 'border-amber-500/30 bg-amber-500/8';
+
+  const statItems = [
+    { label: 'PTS', value: mvp.pts },
+    { label: 'RBD', value: mvp.rbd },
+    { label: 'AST', value: mvp.ast },
+    { label: 'STL', value: mvp.stl },
+  ];
+
+  return (
+    <div className={cn('flex-1 rounded-2xl border p-3 flex flex-col gap-2', accent)}>
+      {/* ヘッダー */}
+      <div className="flex items-center gap-1.5">
+        <Crown size={11} className="text-amber-400 shrink-0" />
+        <span className="text-amber-400 text-[10px] font-black tracking-wider uppercase">MVP</span>
+        <span className="text-white/30 text-[10px] ml-auto truncate max-w-[80px]">{teamName}</span>
+      </div>
+      {/* 背番号 */}
+      <div className="flex items-baseline gap-1">
+        <span className="text-white/40 text-sm font-bold">#</span>
+        <span className="text-white font-black text-3xl leading-none tracking-tight">{mvp.player.back_number}</span>
+      </div>
+      {/* スタッツ行 */}
+      <div className="flex gap-2 mt-0.5">
+        {statItems.map(({ label, value }) => (
+          <div key={label} className="flex flex-col items-center">
+            <span className="text-white font-black text-sm tabular-nums leading-none">{value}</span>
+            <span className="text-white/30 text-[9px] font-semibold mt-0.5">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ================================================================
 // メインコンポーネント
 // ================================================================
 export function EndGameOverlay({
@@ -76,6 +184,10 @@ export function EndGameOverlay({
     [activePeriods, logs, ourTeam.id, theirTeam.id],
   );
   const hasAnyScore = ourScore > 0 || theirScore > 0;
+
+  // MVP算出
+  const ourMVP   = useMemo(() => computeMVP(logs, allPlayers, ourTeam.id),   [logs, allPlayers, ourTeam.id]);
+  const theirMVP = useMemo(() => computeMVP(logs, allPlayers, theirTeam.id), [logs, allPlayers, theirTeam.id]);
 
   // PDF出力（確認後に実行）
   const executePDF = async () => {
@@ -219,6 +331,14 @@ export function EndGameOverlay({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* ── MVP カード ── */}
+      {(ourMVP || theirMVP) && (
+        <div className="mx-6 mb-5 flex gap-3">
+          {ourMVP   && <MvpCard mvp={ourMVP}   teamName={ourName}   color={ourTeam.color ?? ''} />}
+          {theirMVP && <MvpCard mvp={theirMVP} teamName={theirName} color={theirTeam.color ?? ''} />}
         </div>
       )}
 
