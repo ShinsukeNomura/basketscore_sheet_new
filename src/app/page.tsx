@@ -249,6 +249,7 @@ export default function HomePage() {
         <MyTeamsSheet
           open={myTeamsOpen}
           userId={user.id}
+          userEmail={user.email}
           isPremium={isPremium}
           onClose={() => setMyTeamsOpen(false)}
         />

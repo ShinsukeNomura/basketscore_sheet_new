@@ -64,6 +64,7 @@ function Field({
 // ────────────────────────────────────
 const PREMIUM_FEATURES = [
   { icon: Zap,       text: '試合記録が無制限に' },
+  { icon: Users,     text: '複数チームの登録・管理' },
   { icon: BarChart2, text: 'AIによるスタッツ分析レポート' },
   { icon: Cloud,     text: 'クラウド同期・複数端末対応' },
   { icon: FileText,  text: 'スコアシートのPDF出力' },
@@ -232,6 +233,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
       <MyTeamsSheet
         open={myTeamsOpen}
         userId={user.id}
+        userEmail={user.email}
         isPremium={isPremium}
         onClose={() => setMyTeamsOpen(false)}
         onSelect={handleSelectTeam}
