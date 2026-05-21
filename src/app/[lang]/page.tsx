@@ -165,10 +165,11 @@ export default function HomePage() {
 
   const loadGames = useCallback(async () => {
     if (!user?.id) {
-      setGames(getGamesIndex());
+      setGames([]);
       return;
     }
-    const local = getGamesIndex().filter((g) => g.user_id === user.id);
+    // getGamesIndex() はすでにユーザー固有キーを参照するため追加フィルタ不要
+    const local = getGamesIndex();
     setGames(local);
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
@@ -189,7 +190,7 @@ export default function HomePage() {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
-    const local = getGamesIndex().filter((g) => g.user_id === user.id);
+    const local = getGamesIndex();
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
       const localIds = new Set(local.map((g) => g.id));

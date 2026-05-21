@@ -116,9 +116,11 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
 // クラウドから特定ゲームをロード
 // ================================================================
 
-export async function loadGameFromCloud(gameId: string): Promise<PersistedGameState | null> {
+export async function loadGameFromCloud(gameId: string, userId?: string): Promise<PersistedGameState | null> {
+  let gameQuery = supabase.from('games').select('*').eq('id', gameId);
+  if (userId) gameQuery = gameQuery.eq('user_id', userId);
   const [gameRes, teamsRes, playersRes, logsRes] = await Promise.all([
-    supabase.from('games').select('*').eq('id', gameId).single(),
+    gameQuery.single(),
     supabase.from('teams').select('*').eq('game_id', gameId),
     supabase.from('players').select('*').eq('game_id', gameId),
     supabase.from('stats_logs').select('*').eq('game_id', gameId),

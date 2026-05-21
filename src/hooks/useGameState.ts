@@ -282,13 +282,14 @@ export function useGameState(gameId: string) {
   const { user } = useAuth();
 
   // --- ロード: localStorage → なければクラウド ---
+  const userId = user?.id;
   useEffect(() => {
     const persisted = loadPersistedGame(gameId);
     if (persisted) {
       dispatch({ type: 'LOAD_PERSISTED', payload: persisted });
     } else {
-      // localStorage になければクラウドから取得
-      loadGameFromCloud(gameId)
+      // localStorage になければクラウドから取得（ユーザー認証必須）
+      loadGameFromCloud(gameId, userId)
         .then((cloud) => {
           const placeholder = createPlaceholderState(gameId);
           dispatch({ type: 'LOAD_PERSISTED', payload: cloud ?? { game: placeholder.game, ourTeam: placeholder.ourTeam, theirTeam: placeholder.theirTeam, allPlayers: [], logs: [] } });
@@ -298,7 +299,7 @@ export function useGameState(gameId: string) {
           dispatch({ type: 'LOAD_PERSISTED', payload: { game: p.game, ourTeam: p.ourTeam, theirTeam: p.theirTeam, allPlayers: [], logs: [] } });
         });
     }
-  }, [gameId]);
+  }, [gameId, userId]);
 
   // --- localStorage + クラウド への同期（デバウンス 300ms） ---
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

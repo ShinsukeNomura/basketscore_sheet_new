@@ -6,34 +6,42 @@ import {
 // re-export so callers can import GameSummary from '@/lib/storage'
 export type { GameSummary };
 
-const GAMES_INDEX_KEY  = 'bball_games';
-const LABELS_LIST_KEY  = 'bball_label_list';
-const gameKey = (id: string) => `bball_game_${id}`;
+// ============================================================
+// ユーザー分離: ログイン中ユーザーの ID をモジュール変数で管理
+// useAuth.ts から setStorageUser() を呼び出してセットする
+// ============================================================
+
+let _uid: string | null = null;
+
+export function setStorageUser(uid: string | null): void {
+  _uid = uid;
+}
+
+// キー生成: userId がセットされていればユーザー固有キーを使用
+const IDX_KEY   = () => _uid ? `bball_games_${_uid}`       : 'bball_games';
+const LABEL_KEY = () => _uid ? `bball_labels_${_uid}`      : 'bball_label_list';
+const GAME_KEY  = (id: string) => _uid ? `bball_game_${_uid}_${id}` : `bball_game_${id}`;
 
 // ============================================================
 // ラベル管理
 // ============================================================
 
-/** デフォルトで用意するラベル候補 */
 export const DEFAULT_LABELS = [
   '公式戦', '練習試合', 'リーグ戦', 'カップ戦',
   '春季大会', '夏季大会', '秋季大会', '冬季大会',
 ];
 
-/** カスタム追加ラベルを取得 */
 export function getCustomLabels(): string[] {
   if (typeof window === 'undefined') return [];
-  try { return JSON.parse(localStorage.getItem(LABELS_LIST_KEY) ?? '[]'); }
+  try { return JSON.parse(localStorage.getItem(LABEL_KEY()) ?? '[]'); }
   catch { return []; }
 }
 
-/** カスタムラベルを保存 */
 export function saveCustomLabels(labels: string[]): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(LABELS_LIST_KEY, JSON.stringify(labels));
+  localStorage.setItem(LABEL_KEY(), JSON.stringify(labels));
 }
 
-/** 特定ゲームのラベルを更新（インデックスのみ更新） */
 export function setGameLabels(gameId: string, labels: string[]): void {
   if (typeof window === 'undefined') return;
   const index = getGamesIndex();
@@ -60,14 +68,14 @@ function makeId(): string {
 export function getGamesIndex(): GameSummary[] {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(localStorage.getItem(GAMES_INDEX_KEY) ?? '[]');
+    return JSON.parse(localStorage.getItem(IDX_KEY()) ?? '[]');
   } catch {
     return [];
   }
 }
 
 function setGamesIndex(index: GameSummary[]): void {
-  localStorage.setItem(GAMES_INDEX_KEY, JSON.stringify(index));
+  localStorage.setItem(IDX_KEY(), JSON.stringify(index));
 }
 
 // ============================================================
@@ -77,7 +85,7 @@ function setGamesIndex(index: GameSummary[]): void {
 export function loadPersistedGame(id: string): PersistedGameState | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(gameKey(id));
+    const raw = localStorage.getItem(GAME_KEY(id));
     return raw ? (JSON.parse(raw) as PersistedGameState) : null;
   } catch {
     return null;
@@ -91,9 +99,8 @@ export function savePersistedGame(
   userId?: string,
 ): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(gameKey(state.game.id), JSON.stringify(state));
+  localStorage.setItem(GAME_KEY(state.game.id), JSON.stringify(state));
 
-  // インデックスを最新状態に更新
   const index = getGamesIndex();
   const existing = index.find((g) => g.id === state.game.id);
   const summary: GameSummary = {
@@ -116,7 +123,7 @@ export function savePersistedGame(
 
 export function deleteGame(id: string): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(gameKey(id));
+  localStorage.removeItem(GAME_KEY(id));
   const index = getGamesIndex().filter((g) => g.id !== id);
   setGamesIndex(index);
 }
@@ -132,9 +139,9 @@ export interface CreateGameParams {
   whiteTeamColor: string;
   blueTeamName:   string;
   blueTeamColor:  string;
-  whitePlayers?:  string[]; // 背番号リスト（マイチームから選択時）
-  bluePlayers?:   string[]; // 背番号リスト（マイチームから選択時）
-  userId?:        string;   // 作成者のユーザーID
+  whitePlayers?:  string[];
+  bluePlayers?:   string[];
+  userId?:        string;
 }
 
 export function createNewGame(params: CreateGameParams): string {
@@ -166,7 +173,6 @@ export function createNewGame(params: CreateGameParams): string {
     created_at: now,
   };
 
-  // マイチームの背番号を初期選手として登録
   const allPlayers: Player[] = [];
   const addPlayers = (teamId: string, numbers: string[]) => {
     numbers.forEach((num, i) => {
@@ -175,7 +181,7 @@ export function createNewGame(params: CreateGameParams): string {
         team_id:     teamId,
         back_number: num,
         name:        '',
-        is_on_court: i < 5,   // 最初の5人はコート入り
+        is_on_court: i < 5,
         created_at:  now,
       });
     });
