@@ -34,8 +34,7 @@ export default function LoginPage() {
     // 10秒タイムアウト
     const timeout = setTimeout(() => {
       setLoading(false);
-      setError('接続タイムアウト。Supabaseの設定を確認してください。URL: ' +
-        (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '未設定'));
+      setError('接続タイムアウト。インターネット接続を確認して再度お試しください。');
     }, 10000);
 
     try {
@@ -204,7 +203,11 @@ export default function LoginPage() {
       {/* 注意書き */}
       {mode === 'signup' && (
         <p className="text-white/20 text-xs text-center mt-6 leading-relaxed px-4">
-          登録することで利用規約およびプライバシーポリシーに同意したものとみなします。
+          登録することで
+          <a href="/terms" className="text-sky-400/70 underline underline-offset-2 mx-0.5">利用規約</a>
+          および
+          <a href="/privacy" className="text-sky-400/70 underline underline-offset-2 mx-0.5">プライバシーポリシー</a>
+          に同意したものとみなします。
         </p>
       )}
     </div>

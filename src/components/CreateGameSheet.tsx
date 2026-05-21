@@ -13,6 +13,48 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { ChevronRight, ChevronLeft, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check, Users } from 'lucide-react';
 
 // ────────────────────────────────────
+// アップグレードボタン（エラーハンドル付き）
+// ────────────────────────────────────
+function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: string }) {
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+
+  async function handleUpgrade() {
+    if (!userId) return;
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, userEmail }),
+      });
+      if (!res.ok) { setError('決済の準備に失敗しました。再度お試しください。'); return; }
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+      else setError('決済URLの取得に失敗しました。');
+    } catch {
+      setError('ネットワークエラーが発生しました。接続を確認してください。');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={handleUpgrade}
+        disabled={loading}
+        className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 disabled:opacity-60 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
+      >
+        {loading ? <span className="w-5 h-5 border-2 border-neutral-900/30 border-t-neutral-900 rounded-full animate-spin" /> : <Crown size={18} />}
+        {loading ? '処理中...' : 'プレミアムにアップグレード'}
+      </button>
+      {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+    </div>
+  );
+}
+
+// ────────────────────────────────────
 // 試合種別チップ
 // ────────────────────────────────────
 const GAME_TYPES = ['練習試合', '公式戦', 'カップ戦', 'その他'] as const;
@@ -123,22 +165,7 @@ function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; e
 
       {/* CTAボタン */}
       <div className="w-full flex flex-col gap-2">
-        <button
-          onClick={async () => {
-            if (!user) return;
-            const res = await fetch('/api/stripe/checkout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: user.id, userEmail: user.email }),
-            });
-            const { url } = await res.json();
-            if (url) window.location.href = url;
-          }}
-          className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
-        >
-          <Crown size={18} />
-          プレミアムにアップグレード
-        </button>
+        <UpgradeButton userId={user?.id} userEmail={user?.email} />
         <button
           onClick={onClose}
           className="text-white/30 text-sm py-2 active:text-white/60 transition-colors"

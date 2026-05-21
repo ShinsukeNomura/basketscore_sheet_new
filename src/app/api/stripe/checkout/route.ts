@@ -28,6 +28,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error('Stripe checkout error:', error);
-    return NextResponse.json({ error: 'Checkout session creation failed' }, { status: 500 });
+    return NextResponse.json({ error: '決済の準備に失敗しました。しばらくしてから再度お試しください。' }, { status: 500 });
   }
 }

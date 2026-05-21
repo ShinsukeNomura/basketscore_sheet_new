@@ -83,27 +83,32 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
   if (!games?.length) return [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (games as any[]).map((g) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ourTeam   = g.teams?.find((t: any) =>  t.is_ours);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const theirTeam = g.teams?.find((t: any) => !t.is_ours);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const active     = (g.stats_logs ?? []).filter((l: any) => !l.is_deleted);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ourScore   = active.filter((l: any) => l.team_id === ourTeam?.id).reduce((s: number, l: any) => s + l.points, 0);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const theirScore = active.filter((l: any) => l.team_id === theirTeam?.id).reduce((s: number, l: any) => s + l.points, 0);
-    return {
-      id:            g.id,
-      game_name:     g.game_name,
-      date:          g.date,
-      status:        g.status,
-      ourTeamName:   ourTeam?.team_name  || '自チーム',
-      theirTeamName: theirTeam?.team_name || '相手',
-      ourScore,
-      theirScore,
-    } as GameSummary;
+  return (games as any[]).flatMap((g) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ourTeam   = g.teams?.find((t: any) =>  t.is_ours);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const theirTeam = g.teams?.find((t: any) => !t.is_ours);
+      if (!ourTeam || !theirTeam) return []; // チームデータが不完全なゲームはスキップ
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const active     = (g.stats_logs ?? []).filter((l: any) => !l.is_deleted);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ourScore   = active.filter((l: any) => l.team_id === ourTeam.id).reduce((s: number, l: any) => s + (l.points ?? 0), 0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const theirScore = active.filter((l: any) => l.team_id === theirTeam.id).reduce((s: number, l: any) => s + (l.points ?? 0), 0);
+      return [{
+        id:            g.id,
+        game_name:     g.game_name ?? '練習試合',
+        date:          g.date ?? new Date().toISOString().split('T')[0],
+        status:        g.status ?? 'progress',
+        ourTeamName:   ourTeam.team_name  || '自チーム',
+        theirTeamName: theirTeam.team_name || '相手',
+        ourScore,
+        theirScore,
+      } as GameSummary];
+    } catch {
+      return []; // 破損データは無視
+    }
   });
 }
 

@@ -288,10 +288,15 @@ export function useGameState(gameId: string) {
       dispatch({ type: 'LOAD_PERSISTED', payload: persisted });
     } else {
       // localStorage になければクラウドから取得
-      loadGameFromCloud(gameId).then((cloud) => {
-        if (cloud) dispatch({ type: 'LOAD_PERSISTED', payload: cloud });
-        else dispatch({ type: 'LOAD_PERSISTED', payload: { game: createPlaceholderState(gameId).game, ourTeam: createPlaceholderState(gameId).ourTeam, theirTeam: createPlaceholderState(gameId).theirTeam, allPlayers: [], logs: [] } });
-      });
+      loadGameFromCloud(gameId)
+        .then((cloud) => {
+          const placeholder = createPlaceholderState(gameId);
+          dispatch({ type: 'LOAD_PERSISTED', payload: cloud ?? { game: placeholder.game, ourTeam: placeholder.ourTeam, theirTeam: placeholder.theirTeam, allPlayers: [], logs: [] } });
+        })
+        .catch(() => {
+          const p = createPlaceholderState(gameId);
+          dispatch({ type: 'LOAD_PERSISTED', payload: { game: p.game, ourTeam: p.ourTeam, theirTeam: p.theirTeam, allPlayers: [], logs: [] } });
+        });
     }
   }, [gameId]);
 

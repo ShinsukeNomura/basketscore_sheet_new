@@ -6,8 +6,9 @@ import { supabase } from '@/lib/supabase';
 
 export type UserPlan = 'free' | 'premium';
 
-// 管理者メール（常にpremium扱い）
-const ADMIN_EMAILS = ['miyazakiselene@gmail.com'];
+// 管理者メール（常にpremium扱い）- 本番では環境変数推奨
+const ADMIN_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? 'miyazakiselene@gmail.com')
+  .split(',').map((e) => e.trim()).filter(Boolean);
 
 export interface AuthState {
   user:    User | null;
@@ -44,12 +45,14 @@ export function useAuth(): AuthState & {
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) fetchPlan(session.user.id, session.user.email);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) fetchPlan(session.user.id, session.user.email);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -80,6 +83,12 @@ export function useAuth(): AuthState & {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    // AI キャッシュのみ削除（ゲームデータは端末に残す）
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('ai_report_'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch { /* ignore */ }
   }, []);
 
   const resetPassword = useCallback(async (email: string): Promise<{ error: string | null }> => {
