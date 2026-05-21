@@ -116,21 +116,27 @@ export default function HomePage() {
   }, [user, loading]);
 
   // ゲーム一覧ロード
-  // ローカルストレージを即時表示（スコアは300msデバウンスで常に最新）
-  // クラウドはローカルにないゲーム（別端末作成分）を補完するためだけに使用
+  // ログイン済み: クラウドを正とし、このユーザーIDのローカルゲームだけ補完
+  //   → 他ユーザーのローカルデータを混入させない
+  // 未ログイン: ローカルのみ表示
   const loadGames = useCallback(async () => {
-    const local = getGamesIndex();
-    setGames(local);
-
-    if (!user?.id) return;
+    if (!user?.id) {
+      setGames(getGamesIndex());
+      return;
+    }
 
     const cloud = await fetchGamesFromCloud(user.id);
-    if (!cloud) return; // エラー時はローカルのまま
-
-    const localIds = new Set(local.map((g) => g.id));
-    const cloudOnly = cloud.filter((g) => !localIds.has(g.id));
-    if (cloudOnly.length > 0) {
-      setGames((prev) => [...prev, ...cloudOnly]);
+    if (cloud !== null) {
+      // クラウドにないが自分のユーザーIDが付いたローカルゲーム（オフライン作成分）を補完
+      const cloudIds   = new Set(cloud.map((g) => g.id));
+      const myLocalOnly = getGamesIndex().filter(
+        (g) => g.user_id === user.id && !cloudIds.has(g.id)
+      );
+      setGames([...cloud, ...myLocalOnly]);
+    } else {
+      // クラウド取得失敗時: 自分のゲームのみ表示（user_id が一致 or 未設定の既存ゲーム）
+      const local = getGamesIndex();
+      setGames(local.filter((g) => !g.user_id || g.user_id === user.id));
     }
   }, [user?.id]);
 
@@ -141,20 +147,18 @@ export default function HomePage() {
     return () => window.removeEventListener('focus', loadGames);
   }, [loadGames]);
 
-  // 手動同期: クラウドとローカルをマージ（ローカルのスコアを優先）
+  // 手動同期: クラウドを正として取得、自分のローカルオンリーゲームを補完
   const handleSync = useCallback(async () => {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
-      const local    = getGamesIndex();
-      const localMap = new Map(local.map((g) => [g.id, g]));
-      // ローカルにあるものはローカルのスコアを優先、ないものはクラウドから補完
-      const merged = [
-        ...local,
-        ...cloud.filter((g) => !localMap.has(g.id)),
-      ];
+      const cloudIds    = new Set(cloud.map((g) => g.id));
+      const myLocalOnly = getGamesIndex().filter(
+        (g) => g.user_id === user.id && !cloudIds.has(g.id)
+      );
+      const merged = [...cloud, ...myLocalOnly];
       setGames(merged);
       setSyncMsg(`同期完了（${merged.length}件）`);
     } else {

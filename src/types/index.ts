@@ -136,6 +136,7 @@ export interface GameSummary {
   ourScore:     number;
   theirScore:   number;
   labels?:      string[];
+  user_id?:     string;   // ゲーム作成者のユーザーID（未ログイン作成分は undefined）
 }
 
 /** localStorage に保存するゲーム本体データ */

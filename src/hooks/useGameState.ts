@@ -305,7 +305,7 @@ export function useGameState(gameId: string) {
       const ourScore   = activeLogs.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0);
       const theirScore = activeLogs.filter((l) => l.team_id === state.theirTeam.id).reduce((s, l) => s + l.points, 0);
       const gameState  = { game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam, allPlayers: state.allPlayers, logs: state.logs };
-      savePersistedGame(gameState, ourScore, theirScore);
+      savePersistedGame(gameState, ourScore, theirScore, user?.id);
       // ログイン済みならクラウドにも同期
       if (user?.id) syncToCloud(gameState, user.id);
     }, 300);

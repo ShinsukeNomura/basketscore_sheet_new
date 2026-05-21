@@ -88,12 +88,14 @@ export function savePersistedGame(
   state: PersistedGameState,
   ourScore: number,
   theirScore: number,
+  userId?: string,
 ): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(gameKey(state.game.id), JSON.stringify(state));
 
   // インデックスを最新状態に更新
   const index = getGamesIndex();
+  const existing = index.find((g) => g.id === state.game.id);
   const summary: GameSummary = {
     id:            state.game.id,
     game_name:     state.game.game_name,
@@ -103,6 +105,8 @@ export function savePersistedGame(
     theirTeamName: state.theirTeam.team_name,
     ourScore,
     theirScore,
+    labels:        existing?.labels,
+    user_id:       userId ?? existing?.user_id,
   };
   const idx = index.findIndex((g) => g.id === state.game.id);
   if (idx >= 0) index[idx] = summary;
@@ -130,6 +134,7 @@ export interface CreateGameParams {
   blueTeamColor:  string;
   whitePlayers?:  string[]; // 背番号リスト（マイチームから選択時）
   bluePlayers?:   string[]; // 背番号リスト（マイチームから選択時）
+  userId?:        string;   // 作成者のユーザーID
 }
 
 export function createNewGame(params: CreateGameParams): string {
@@ -179,6 +184,6 @@ export function createNewGame(params: CreateGameParams): string {
   if (params.bluePlayers?.length)  addPlayers(theirTeam.id, params.bluePlayers);
 
   const persisted: PersistedGameState = { game, ourTeam, theirTeam, allPlayers, logs: [] };
-  savePersistedGame(persisted, 0, 0);
+  savePersistedGame(persisted, 0, 0, params.userId);
   return id;
 }

@@ -231,6 +231,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
       blueTeamColor:  darkColor,
       whitePlayers:   whitePlayers,
       bluePlayers:    darkPlayers,
+      userId:         user?.id,
     });
     setGameType('練習試合'); setDate(todayString());
     setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
