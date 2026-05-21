@@ -116,28 +116,33 @@ export default function HomePage() {
   }, [user, loading]);
 
   // ゲーム一覧ロード
-  // ログイン済み: クラウドを正とし、このユーザーIDのローカルゲームだけ補完
-  //   → 他ユーザーのローカルデータを混入させない
-  // 未ログイン: ローカルのみ表示
+  //
+  // 設計原則:
+  //   localStorage のスコアは 300ms デバウンスで常に最新。
+  //   クラウドは非同期同期のため遅延があり、スコアが古い場合がある。
+  //   → ローカルに存在するゲームは必ずローカルのデータ（スコア）を使う。
+  //   → クラウドは「このユーザーのローカルに存在しないゲーム」(別端末作成分) の補完にのみ使う。
+  //   → user_id フィルターで他ユーザーのローカルデータを混入させない。
   const loadGames = useCallback(async () => {
     if (!user?.id) {
       setGames(getGamesIndex());
       return;
     }
 
+    // Step 1: 自分の user_id が付いたローカルゲームを即時表示（スコア最新）
+    const local = getGamesIndex().filter((g) => g.user_id === user.id);
+    setGames(local);
+
+    // Step 2: クラウドから「ローカルにないゲーム」(別端末作成分) だけを補完
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
-      // クラウドにないが自分のユーザーIDが付いたローカルゲーム（オフライン作成分）を補完
-      const cloudIds   = new Set(cloud.map((g) => g.id));
-      const myLocalOnly = getGamesIndex().filter(
-        (g) => g.user_id === user.id && !cloudIds.has(g.id)
-      );
-      setGames([...cloud, ...myLocalOnly]);
-    } else {
-      // クラウド取得失敗時: 自分の user_id が付いたゲームのみ（他ユーザーのデータを混入させない）
-      const local = getGamesIndex();
-      setGames(local.filter((g) => g.user_id === user.id));
+      const localIds       = new Set(local.map((g) => g.id));
+      const cloudOnlyGames = cloud.filter((g) => !localIds.has(g.id));
+      if (cloudOnlyGames.length > 0) {
+        setGames((prev) => [...prev, ...cloudOnlyGames]);
+      }
     }
+    // cloud === null でもローカルは既に表示済みのためエラーなし
   }, [user?.id]);
 
   useEffect(() => { if (!loading) loadGames(); }, [loading, loadGames]);
@@ -147,22 +152,22 @@ export default function HomePage() {
     return () => window.removeEventListener('focus', loadGames);
   }, [loadGames]);
 
-  // 手動同期: クラウドを正として取得、自分のローカルオンリーゲームを補完
+  // 手動同期: ローカルスコアを優先しつつ、クラウドにしかないゲームを補完
   const handleSync = useCallback(async () => {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
+    const local = getGamesIndex().filter((g) => g.user_id === user.id);
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
-      const cloudIds    = new Set(cloud.map((g) => g.id));
-      const myLocalOnly = getGamesIndex().filter(
-        (g) => g.user_id === user.id && !cloudIds.has(g.id)
-      );
-      const merged = [...cloud, ...myLocalOnly];
+      const localIds       = new Set(local.map((g) => g.id));
+      const cloudOnlyGames = cloud.filter((g) => !localIds.has(g.id));
+      const merged         = [...local, ...cloudOnlyGames];
       setGames(merged);
       setSyncMsg(`同期完了（${merged.length}件）`);
     } else {
-      setSyncMsg('同期に失敗しました');
+      setGames(local);
+      setSyncMsg('クラウド取得失敗。ローカルデータを表示中。');
     }
     setSyncing(false);
     setTimeout(() => setSyncMsg(null), 3000);
