@@ -42,7 +42,12 @@ export function buildRunningScore(
        l.action_type === '3PT_MADE' ||
        l.action_type === 'FT_MADE'),
     )
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    .sort((a, b) => {
+      // period 優先でソートすることで、後から過去Qに遡って入力した得点も
+      // 正しいQ位置（Q境界線の前）に挿入される
+      if (a.period !== b.period) return a.period - b.period;
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    });
 
   const playerMap = Object.fromEntries(allPlayers.map((p) => [p.id, p]));
 
