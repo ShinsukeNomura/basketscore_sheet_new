@@ -6,8 +6,42 @@ import {
 // re-export so callers can import GameSummary from '@/lib/storage'
 export type { GameSummary };
 
-const GAMES_INDEX_KEY = 'bball_games';
+const GAMES_INDEX_KEY  = 'bball_games';
+const LABELS_LIST_KEY  = 'bball_label_list';
 const gameKey = (id: string) => `bball_game_${id}`;
+
+// ============================================================
+// ラベル管理
+// ============================================================
+
+/** デフォルトで用意するラベル候補 */
+export const DEFAULT_LABELS = [
+  '公式戦', '練習試合', 'リーグ戦', 'カップ戦',
+  '春季大会', '夏季大会', '秋季大会', '冬季大会',
+];
+
+/** カスタム追加ラベルを取得 */
+export function getCustomLabels(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(LABELS_LIST_KEY) ?? '[]'); }
+  catch { return []; }
+}
+
+/** カスタムラベルを保存 */
+export function saveCustomLabels(labels: string[]): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LABELS_LIST_KEY, JSON.stringify(labels));
+}
+
+/** 特定ゲームのラベルを更新（インデックスのみ更新） */
+export function setGameLabels(gameId: string, labels: string[]): void {
+  if (typeof window === 'undefined') return;
+  const index = getGamesIndex();
+  const idx   = index.findIndex((g) => g.id === gameId);
+  if (idx < 0) return;
+  index[idx] = { ...index[idx], labels };
+  setGamesIndex(index);
+}
 
 export const FREE_GAME_LIMIT = 3;
 

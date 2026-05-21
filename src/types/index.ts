@@ -135,6 +135,7 @@ export interface GameSummary {
   theirTeamName:string;
   ourScore:     number;
   theirScore:   number;
+  labels?:      string[];
 }
 
 /** localStorage に保存するゲーム本体データ */

@@ -8,63 +8,96 @@ import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { ChevronRight, ChevronDown, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2, Tag, ChevronUp } from 'lucide-react';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
+import { GameLabelSheet } from '@/components/GameLabelSheet';
+import { setGameLabels, DEFAULT_LABELS, getCustomLabels } from '@/lib/storage';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
 }
 
-function GameCard({ game, onDelete }: { game: GameSummary; onDelete: (id: string) => void }) {
+function GameCard({ game, onDelete, onLabel }: {
+  game: GameSummary;
+  onDelete: (id: string) => void;
+  onLabel:  (game: GameSummary) => void;
+}) {
   const isFinished = game.status === 'finished';
   const diff       = game.ourScore - game.theirScore;
   const weWon      = isFinished && diff > 0;
   const theyWon    = isFinished && diff < 0;
+  const hasLabels  = (game.labels?.length ?? 0) > 0;
 
   return (
-    <div className="flex items-center gap-2 rounded-2xl bg-white/5 active:bg-white/8 transition-colors">
-      <Link
-        href={`/game/${game.id}`}
-        className="flex items-center gap-4 flex-1 min-w-0 px-4 py-3.5"
-      >
-        <div className={cn('w-2 h-2 rounded-full shrink-0', isFinished ? 'bg-white/20' : 'bg-emerald-400 animate-pulse')} />
-        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-white font-bold text-sm truncate">{game.game_name}</span>
-            {isFinished ? (
-              <span className="text-[10px] text-white/30 font-medium shrink-0">終了</span>
-            ) : (
-              <span className="text-[10px] text-emerald-400 font-semibold shrink-0">進行中</span>
-            )}
+    <div className="rounded-2xl bg-white/5 transition-colors overflow-hidden">
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/game/${game.id}`}
+          className="flex items-center gap-4 flex-1 min-w-0 px-4 py-3.5 active:bg-white/5"
+        >
+          <div className={cn('w-2 h-2 rounded-full shrink-0', isFinished ? 'bg-white/20' : 'bg-emerald-400 animate-pulse')} />
+          <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-white font-bold text-sm truncate">{game.game_name}</span>
+              {isFinished ? (
+                <span className="text-[10px] text-white/30 font-medium shrink-0">終了</span>
+              ) : (
+                <span className="text-[10px] text-emerald-400 font-semibold shrink-0">進行中</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={cn('text-xs truncate max-w-[80px]', weWon ? 'text-blue-300 font-bold' : 'text-white/50')}>{game.ourTeamName}</span>
+              <span className="text-white/20 text-xs">{game.ourScore} - {game.theirScore}</span>
+              <span className={cn('text-xs truncate max-w-[80px]', theyWon ? 'text-white font-bold' : 'text-white/50')}>{game.theirTeamName}</span>
+            </div>
+            <span className="text-[11px] text-white/25">{formatDate(game.date)}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={cn('text-xs truncate max-w-[80px]', weWon ? 'text-blue-300 font-bold' : 'text-white/50')}>{game.ourTeamName}</span>
-            <span className="text-white/20 text-xs">{game.ourScore} - {game.theirScore}</span>
-            <span className={cn('text-xs truncate max-w-[80px]', theyWon ? 'text-white font-bold' : 'text-white/50')}>{game.theirTeamName}</span>
-          </div>
-          <span className="text-[11px] text-white/25">{formatDate(game.date)}</span>
+          <ChevronRight size={16} className="text-white/20 shrink-0" />
+        </Link>
+        {/* ラベルボタン */}
+        <button
+          onClick={() => onLabel(game)}
+          className={cn(
+            'p-3 rounded-xl transition-colors shrink-0',
+            hasLabels ? 'text-amber-400/70 active:text-amber-300' : 'text-white/15 active:text-amber-400 active:bg-amber-950/30',
+          )}
+          aria-label="ラベル"
+        >
+          <Tag size={14} />
+        </button>
+        {/* 削除ボタン */}
+        <button
+          onClick={() => onDelete(game.id)}
+          className="p-3 mr-1 rounded-xl text-white/20 active:text-red-400 active:bg-red-950/40 transition-colors shrink-0"
+          aria-label="削除"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+      {/* ラベルピル */}
+      {hasLabels && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-2.5">
+          {game.labels!.map((l) => (
+            <span key={l} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-400/80">
+              {l}
+            </span>
+          ))}
         </div>
-        <ChevronRight size={16} className="text-white/20 shrink-0" />
-      </Link>
-      {/* 削除ボタン（常時表示・モバイル対応） */}
-      <button
-        onClick={() => onDelete(game.id)}
-        className="p-3 mr-1 rounded-xl text-white/20 active:text-red-400 active:bg-red-950/40 transition-colors shrink-0"
-        aria-label="削除"
-      >
-        <Trash2 size={15} />
-      </button>
+      )}
     </div>
   );
 }
 
 export default function HomePage() {
   const { user, isPremium, signOut, loading } = useAuth();
-  const [games,      setGames]      = useState<GameSummary[]>([]);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [syncing,       setSyncing]       = useState(false);
-  const [syncMsg,       setSyncMsg]       = useState<string | null>(null);
-  const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
+  const [games,        setGames]        = useState<GameSummary[]>([]);
+  const [createOpen,   setCreateOpen]   = useState(false);
+  const [syncing,      setSyncing]      = useState(false);
+  const [syncMsg,      setSyncMsg]      = useState<string | null>(null);
+  const [myTeamsOpen,  setMyTeamsOpen]  = useState(false);
+  const [labelTarget,  setLabelTarget]  = useState<GameSummary | null>(null);
+  const [filterLabel,  setFilterLabel]  = useState<string>('');
+  const [filterOpen,   setFilterOpen]   = useState(false);
 
   // プレミアム登録後に自動で試合作成シートを開く
   useEffect(() => {
@@ -131,6 +164,12 @@ export default function HomePage() {
     setTimeout(() => setSyncMsg(null), 3000);
   }, [syncing, user?.id]);
 
+  function handleSaveLabels(labels: string[]) {
+    if (!labelTarget) return;
+    setGameLabels(labelTarget.id, labels);
+    setGames((prev) => prev.map((g) => g.id === labelTarget.id ? { ...g, labels } : g));
+  }
+
   async function handleDelete(id: string) {
     if (!confirm('この試合を削除しますか？')) return;
     deleteGame(id);
@@ -141,10 +180,23 @@ export default function HomePage() {
   const activeGames   = games.filter((g) => g.status === 'progress');
   const finishedGames = games.filter((g) => g.status === 'finished');
 
-  // 終了試合を年別にグループ化（新しい年が先頭）
+  // 使用中ラベル一覧（フィルター候補）
+  const usedLabels = useMemo(() => {
+    const set = new Set<string>();
+    finishedGames.forEach((g) => g.labels?.forEach((l) => set.add(l)));
+    return Array.from(set).sort();
+  }, [finishedGames]);
+
+  // フィルター適用済みの終了試合
+  const filteredFinished = useMemo(() =>
+    filterLabel ? finishedGames.filter((g) => g.labels?.includes(filterLabel)) : finishedGames,
+    [finishedGames, filterLabel],
+  );
+
+  // 終了試合を年別にグループ化（フィルター済み・新しい年が先頭）
   const finishedByYear = useMemo(() => {
     const map = new Map<number, GameSummary[]>();
-    for (const g of finishedGames) {
+    for (const g of filteredFinished) {
       const year = new Date(g.date).getFullYear();
       if (!map.has(year)) map.set(year, []);
       map.get(year)!.push(g);
@@ -241,7 +293,7 @@ export default function HomePage() {
               <p className="text-white/40 text-xs font-semibold tracking-widest uppercase">進行中</p>
             </div>
             <div className="flex flex-col gap-2">
-              {activeGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} />)}
+              {activeGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} />)}
             </div>
           </section>
         )}
@@ -250,7 +302,45 @@ export default function HomePage() {
           <section className="mb-6">
             <div className="flex items-center gap-2 mb-3 px-1">
               <Clock size={11} className="text-white/30" />
-              <p className="text-white/40 text-xs font-semibold tracking-widest uppercase">終了した試合</p>
+              <p className="text-white/40 text-xs font-semibold tracking-widest uppercase flex-1">終了した試合</p>
+
+              {/* ラベルフィルター */}
+              {usedLabels.length > 0 && (
+                <div className="relative">
+                  <button
+                    onClick={() => setFilterOpen((v) => !v)}
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold border transition-all',
+                      filterLabel
+                        ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                        : 'bg-white/5 border-white/10 text-white/35 active:bg-white/10',
+                    )}
+                  >
+                    <Tag size={10} />
+                    {filterLabel || 'ラベル'}
+                    {filterOpen ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                  </button>
+                  {filterOpen && (
+                    <div className="absolute right-0 top-full mt-1 z-20 bg-neutral-800 border border-white/10 rounded-xl shadow-xl min-w-[130px] overflow-hidden">
+                      <button
+                        onClick={() => { setFilterLabel(''); setFilterOpen(false); }}
+                        className={cn('w-full text-left px-3 py-2 text-xs font-semibold transition-colors', !filterLabel ? 'text-white bg-white/8' : 'text-white/50 active:bg-white/5')}
+                      >
+                        すべての試合
+                      </button>
+                      {usedLabels.map((l) => (
+                        <button
+                          key={l}
+                          onClick={() => { setFilterLabel(l); setFilterOpen(false); }}
+                          className={cn('w-full text-left px-3 py-2 text-xs font-semibold transition-colors', filterLabel === l ? 'text-amber-300 bg-amber-500/15' : 'text-white/50 active:bg-white/5')}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-4">
               {finishedByYear.map(([year, yearGames]) => {
@@ -274,7 +364,7 @@ export default function HomePage() {
                     {/* 試合カード */}
                     {!collapsed && (
                       <div className="flex flex-col gap-2">
-                        {yearGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} />)}
+                        {yearGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} />)}
                       </div>
                     )}
                   </div>
@@ -322,6 +412,14 @@ export default function HomePage() {
         open={createOpen}
         onClose={() => { setCreateOpen(false); loadGames(); }}
       />
+      {labelTarget && (
+        <GameLabelSheet
+          gameName={labelTarget.game_name}
+          current={labelTarget.labels ?? []}
+          onSave={handleSaveLabels}
+          onClose={() => setLabelTarget(null)}
+        />
+      )}
       {user && (
         <MyTeamsSheet
           open={myTeamsOpen}
