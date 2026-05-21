@@ -169,7 +169,7 @@ export default function HomePage() {
             onClick={() => setMyTeamsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
           >
-            <Users size={12} />マイチーム
+            <Users size={12} />登録チーム
           </button>
           <Link
             href="/guide"

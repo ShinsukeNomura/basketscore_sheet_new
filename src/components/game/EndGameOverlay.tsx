@@ -203,6 +203,7 @@ export function EndGameOverlay({
                 theirTeam={theirTeam}
                 allPlayers={allPlayers}
                 logs={logs}
+                onClose={() => {}}
               />
             </div>
           )}

@@ -188,7 +188,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
     return Object.keys(e).length === 0;
   }, [whiteName, darkName]);
 
-  // マイチーム選択時に適用
+  // 登録チーム選択時に適用
   function handleSelectTeam(team: UserTeam) {
     if (myTeamsTarget === 'white') {
       setWhiteName(team.team_name);
@@ -199,6 +199,22 @@ export function CreateGameSheet({ open, onClose }: Props) {
       setDarkName(team.team_name);
       setDarkColor(team.color as JerseyColorId);
       setDarkPlayers(team.backNumbers);
+      setErrors((p) => ({ ...p, dark: '' }));
+    }
+    setMyTeamsOpen(false);
+  }
+
+  // 「その他」選択時 — フォームをクリアして手動入力モードへ
+  function handleSelectOther() {
+    if (myTeamsTarget === 'white') {
+      setWhiteName('');
+      setWhiteColor(DEFAULT_WHITE_COLOR);
+      setWhitePlayers([]);
+      setErrors((p) => ({ ...p, white: '' }));
+    } else {
+      setDarkName('');
+      setDarkColor(DEFAULT_DARK_COLOR);
+      setDarkPlayers([]);
       setErrors((p) => ({ ...p, dark: '' }));
     }
     setMyTeamsOpen(false);
@@ -228,7 +244,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
 
   return (
     <>
-    {/* マイチーム選択シート */}
+    {/* 登録チーム選択シート */}
     {user && (
       <MyTeamsSheet
         open={myTeamsOpen}
@@ -237,6 +253,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
         isPremium={isPremium}
         onClose={() => setMyTeamsOpen(false)}
         onSelect={handleSelectTeam}
+        onSelectOther={handleSelectOther}
         selectLabel={myTeamsTarget === 'white' ? 'チーム（白）を選択' : 'チーム（濃）を選択'}
       />
     )}
@@ -322,7 +339,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
                     className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
                   >
-                    <Users size={12} />マイチームから選択
+                    <Users size={12} />登録チームから選択
                   </button>
                 </div>
                 {whitePlayers.length > 0 && (
@@ -357,7 +374,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
                     className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
                   >
-                    <Users size={12} />マイチームから選択
+                    <Users size={12} />登録チームから選択
                   </button>
                 </div>
                 {darkPlayers.length > 0 && (

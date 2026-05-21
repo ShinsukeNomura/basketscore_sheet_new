@@ -15,7 +15,7 @@ import { StatsSheet }            from '@/components/game/StatsSheet';
 import { RunningScoreSheet }     from '@/components/game/RunningScoreSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
 import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Team, Player, CourtLocation } from '@/types';
 
 export default function GamePage() {
@@ -218,25 +218,14 @@ export default function GamePage() {
         theirTov={teamTovCounts[theirTeam.id] ?? 0}
       />
       <Sheet open={runningOpen} onOpenChange={setRunningOpen}>
-        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0 flex flex-col">
-          <SheetHeader className="px-4 pt-4 pb-2 shrink-0 flex-row items-center gap-2">
-            <button
-              onClick={() => setRunningOpen(false)}
-              className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
-            >
-              <ChevronLeft size={20} />
-              <span className="text-xs font-medium">戻る</span>
-            </button>
-            <SheetTitle className="text-white text-sm font-bold flex-1">ランニングスコアシート</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto">
-            <RunningScoreSheet
-              ourTeam={ourTeam}
-              theirTeam={theirTeam}
-              allPlayers={allPlayers}
-              logs={activeLogs}
-            />
-          </div>
+        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0">
+          <RunningScoreSheet
+            ourTeam={ourTeam}
+            theirTeam={theirTeam}
+            allPlayers={allPlayers}
+            logs={activeLogs}
+            onClose={() => setRunningOpen(false)}
+          />
         </SheetContent>
       </Sheet>
     </div>

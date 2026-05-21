@@ -245,7 +245,7 @@ export default function AnalysisPage() {
           <div className="text-center">
             <h2 className="text-white font-black text-xl mb-2">プレミアム機能</h2>
             <p className="text-white/40 text-sm leading-relaxed">
-              マイチーム分析・個人分析はプレミアムプランの機能です。<br />
+              登録チーム分析・個人分析はプレミアムプランの機能です。<br />
               アップグレードして詳細なスタッツ分析を活用しましょう。
             </p>
           </div>
@@ -274,7 +274,7 @@ export default function AnalysisPage() {
 
       {/* タブ */}
       <div className="flex shrink-0 border-b border-white/8">
-        {([['team', Users, 'マイチーム'], ['player', User, '個人']] as const).map(([key, Icon, label]) => (
+        {([['team', Users, '登録チーム'], ['player', User, '個人']] as const).map(([key, Icon, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -294,12 +294,12 @@ export default function AnalysisPage() {
       {teams.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
           <Users size={32} className="text-white/15" />
-          <p className="text-white/30 text-sm text-center">マイチームが登録されていません</p>
+          <p className="text-white/30 text-sm text-center">登録チームが登録されていません</p>
           <Link
             href="/"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold"
           >
-            ホームからマイチームを登録
+            ホームから登録チームを登録
           </Link>
         </div>
       ) : (

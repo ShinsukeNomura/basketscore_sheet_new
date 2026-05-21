@@ -9,16 +9,17 @@ import { cn } from '@/lib/utils';
 import { Plus, Trash2, ChevronLeft, Pencil, Check, Users, Crown } from 'lucide-react';
 
 interface Props {
-  open:         boolean;
-  userId:       string;
-  userEmail?:   string;
-  isPremium?:   boolean;
-  onClose:      () => void;
-  onSelect?:    (team: UserTeam) => void;
-  selectLabel?: string;
+  open:            boolean;
+  userId:          string;
+  userEmail?:      string;
+  isPremium?:      boolean;
+  onClose:         () => void;
+  onSelect?:       (team: UserTeam) => void;
+  onSelectOther?:  () => void;  // 「その他」選択時
+  selectLabel?:    string;
 }
 
-export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClose, onSelect, selectLabel }: Props) {
+export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClose, onSelect, onSelectOther, selectLabel }: Props) {
   const [teams,   setTeams]   = useState<UserTeam[]>([]);
   const [editing, setEditing] = useState<UserTeam | null>(null);
   const [mode,    setMode]    = useState<'list' | 'edit' | 'premium'>('list');
@@ -68,9 +69,9 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
     if (url) window.location.href = url;
   }
 
-  const backLabel = mode === 'edit' ? 'チーム一覧' : mode === 'premium' ? 'マイチーム' : '戻る';
+  const backLabel = mode === 'edit' ? 'チーム一覧' : mode === 'premium' ? '登録チーム' : '戻る';
   const titleText = mode === 'list'
-    ? (onSelect ? selectLabel ?? 'チームを選択' : 'マイチーム')
+    ? (onSelect ? selectLabel ?? 'チームを選択' : '登録チーム')
     : mode === 'edit'
     ? (editing?.id ? 'チームを編集' : '新しいチームを登録')
     : 'プレミアムプラン';
@@ -103,6 +104,15 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
           {/* ── 一覧モード ── */}
           {mode === 'list' && (
             <div className="flex flex-col gap-2">
+              {/* 選択モード時: その他ボタン */}
+              {onSelect && onSelectOther && (
+                <button
+                  onClick={onSelectOther}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/15 text-white/50 text-sm font-semibold active:bg-white/5 transition-colors"
+                >
+                  その他（手動入力）
+                </button>
+              )}
               {teams.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <Users size={32} className="text-white/15" />
