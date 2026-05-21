@@ -134,9 +134,9 @@ export default function HomePage() {
       );
       setGames([...cloud, ...myLocalOnly]);
     } else {
-      // クラウド取得失敗時: 自分のゲームのみ表示（user_id が一致 or 未設定の既存ゲーム）
+      // クラウド取得失敗時: 自分の user_id が付いたゲームのみ（他ユーザーのデータを混入させない）
       const local = getGamesIndex();
-      setGames(local.filter((g) => !g.user_id || g.user_id === user.id));
+      setGames(local.filter((g) => g.user_id === user.id));
     }
   }, [user?.id]);
 
