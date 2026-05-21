@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, ChevronLeft } from 'lucide-react';
 
 interface SubstitutionSheetProps {
   open:          boolean;
@@ -70,10 +70,18 @@ export function SubstitutionSheet({
     <Sheet open={open} onOpenChange={(v) => { if (!v) { setOutPlayer(null); onClose(); } }}>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe max-h-[80dvh] overflow-y-auto"
       >
-        <SheetHeader className="mb-4">
-          <SheetTitle className="text-white text-sm">
+        <SheetHeader className="mb-4 flex-row items-center gap-2">
+          <button
+            onClick={() => { setOutPlayer(null); onClose(); }}
+            className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
+          >
+            <ChevronLeft size={20} />
+            <span className="text-xs font-medium">戻る</span>
+          </button>
+          <SheetTitle className="text-white text-sm flex-1">
             {team?.team_name} — メンバー交代
           </SheetTitle>
         </SheetHeader>

@@ -80,8 +80,13 @@ function Btn({
             "text-[10px] font-medium leading-tight mt-1",
             isMade ? "text-emerald-400/70" : "text-neutral-500"
           )}>
-            成功
+            success
           </span>
+        </>
+      ) : size === 'sm' ? (
+        <>
+          <span className="leading-none">{def.label}</span>
+          <span className="text-[9px] font-medium leading-none mt-0.5 opacity-50">miss</span>
         </>
       ) : (
         <span className="leading-none">{def.label}</span>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
 import { useGameState }          from '@/hooks/useGameState';
 import { GameHeader }            from '@/components/game/GameHeader';
 import { TeamSection }           from '@/components/game/TeamSection';
@@ -217,9 +218,16 @@ export default function GamePage() {
         theirTov={teamTovCounts[theirTeam.id] ?? 0}
       />
       <Sheet open={runningOpen} onOpenChange={setRunningOpen}>
-        <SheetContent side="bottom" className="h-[90dvh] bg-neutral-950 border-white/10 p-0 flex flex-col">
-          <SheetHeader className="px-4 pt-4 pb-2 shrink-0">
-            <SheetTitle className="text-white text-sm font-bold">ランニングスコアシート</SheetTitle>
+        <SheetContent side="bottom" showCloseButton={false} className="h-[90dvh] bg-neutral-950 border-white/10 p-0 flex flex-col">
+          <SheetHeader className="px-4 pt-4 pb-2 shrink-0 flex-row items-center gap-2">
+            <button
+              onClick={() => setRunningOpen(false)}
+              className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
+            >
+              <ChevronLeft size={20} />
+              <span className="text-xs font-medium">戻る</span>
+            </button>
+            <SheetTitle className="text-white text-sm font-bold flex-1">ランニングスコアシート</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto">
             <RunningScoreSheet

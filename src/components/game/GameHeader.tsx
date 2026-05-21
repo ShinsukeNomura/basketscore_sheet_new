@@ -57,7 +57,7 @@ export function GameHeader({
         {/* ホームボタン */}
         <button
           onPointerDown={onGoHome}
-          className="flex items-center gap-0.5 text-white/40 active:text-white/80 transition-colors shrink-0 p-1 -ml-1"
+          className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 p-1 -ml-1"
           aria-label="ホームへ戻る"
         >
           <ChevronLeft size={20} />

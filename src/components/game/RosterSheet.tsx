@@ -157,7 +157,7 @@ export function RosterSheet({
         <SheetHeader className="shrink-0 mb-3 flex-row items-center gap-2 p-4 pb-0">
           <button
             onClick={onClose}
-            className="flex items-center gap-0.5 text-white/50 active:text-white/90 transition-colors shrink-0 -ml-1"
+            className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
             aria-label="戻る"
           >
             <ChevronLeft size={20} />

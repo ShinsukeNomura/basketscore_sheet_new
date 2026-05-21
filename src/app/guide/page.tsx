@@ -49,7 +49,7 @@ export default function GuidePage() {
 
       {/* ヘッダー */}
       <div className="flex items-center gap-3 px-4 pt-safe pt-4 pb-4 border-b border-white/8 sticky top-0 bg-neutral-950 z-10">
-        <Link href="/" className="flex items-center gap-0.5 text-white/50 active:text-white/90 shrink-0 p-1 -ml-1">
+        <Link href="/" className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 shrink-0 p-1 -ml-1">
           <ChevronLeft size={20} />
           <span className="text-xs font-medium">ホーム</span>
         </Link>

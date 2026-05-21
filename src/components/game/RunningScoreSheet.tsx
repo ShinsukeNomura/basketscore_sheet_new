@@ -63,11 +63,13 @@ function PlayerBadge({
 function ScoreCell({
   n,
   scored,
+  hasMarkup,
   quarter,
   qEnd,
 }: {
   n: number;
   scored: boolean;
+  hasMarkup: boolean;
   quarter: number | null;
   qEnd: number | null;
 }) {
@@ -85,7 +87,7 @@ function ScoreCell({
       <span className="text-[11px] font-mono tabular-nums leading-none z-10 text-white/90">
         {n}
       </span>
-      {scored && (
+      {scored && hasMarkup && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
           <div
             className={cn('w-[150%] border-t', slashColor.line)}
@@ -122,10 +124,10 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
       </div>
 
       {/* 自チーム得点（A列） */}
-      <ScoreCell n={cell.n} scored={cell.ourScored} quarter={cell.ourQuarter} qEnd={cell.ourQEnd} />
+      <ScoreCell n={cell.n} scored={cell.ourScored} hasMarkup={cell.ourIsSlash || !!cell.ourPlayer} quarter={cell.ourQuarter} qEnd={cell.ourQEnd} />
 
       {/* 相手チーム得点（B列） */}
-      <ScoreCell n={cell.n} scored={cell.theirScored} quarter={cell.theirQuarter} qEnd={cell.theirQEnd} />
+      <ScoreCell n={cell.n} scored={cell.theirScored} hasMarkup={cell.theirIsSlash || !!cell.theirPlayer} quarter={cell.theirQuarter} qEnd={cell.theirQEnd} />
 
       {/* 相手チーム背番号（右） */}
       <div className="flex items-center justify-start pl-1 h-[20px] border-b border-white/10">
@@ -238,7 +240,7 @@ export function RunningScoreSheet({
   const theirName = theirTeam.team_name || 'B';
 
   return (
-    <div className="flex flex-col bg-neutral-950 overflow-hidden">
+    <div className="flex flex-col bg-neutral-950">
       {/* タイトル */}
       <div className="text-center py-2 bg-neutral-900/80 border-b border-white/10">
         <span className="text-[11px] text-white/60 font-medium tracking-wider">

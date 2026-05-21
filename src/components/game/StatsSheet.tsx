@@ -5,7 +5,7 @@ import { StatsLog, Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, ChevronLeft } from 'lucide-react';
 
 // ────────── 型 ──────────
 interface PlayerStatRow {
@@ -198,11 +198,19 @@ export function StatsSheet({
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="bg-neutral-950 border-t border-white/10 rounded-t-2xl max-h-[90dvh] flex flex-col pb-safe"
       >
-        <SheetHeader className="shrink-0 mb-4 flex-row items-center gap-2">
-          <BarChart2 size={16} className="text-white/50" />
-          <SheetTitle className="text-white text-sm">スタッツ詳細</SheetTitle>
+        <SheetHeader className="shrink-0 mb-4 flex-row items-center gap-2 p-4 pb-0">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
+          >
+            <ChevronLeft size={20} />
+            <span className="text-xs font-medium">戻る</span>
+          </button>
+          <BarChart2 size={15} className="text-white/40" />
+          <SheetTitle className="text-white text-sm flex-1">スタッツ詳細</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto sheet-scroll">

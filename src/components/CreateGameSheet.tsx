@@ -10,7 +10,7 @@ import { ColorPicker } from '@/components/ColorPicker';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 import { UserTeam } from '@/lib/myTeams';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ChevronRight, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check, Users } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check, Users } from 'lucide-react';
 
 // ────────────────────────────────────
 // 試合種別チップ
@@ -243,19 +243,34 @@ export function CreateGameSheet({ open, onClose }: Props) {
     <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <SheetContent
         side="bottom"
+        showCloseButton={false}
         className="bg-neutral-950 border-t border-white/10 rounded-t-2xl overflow-y-auto max-h-[92dvh]"
       >
         {limitReached ? (
           <>
-            <SheetHeader className="mb-5">
-              <SheetTitle className="text-white text-base">プレミアムプラン</SheetTitle>
+            <SheetHeader className="mb-5 flex-row items-center gap-2">
+              <button
+                onClick={handleClose}
+                className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
+              >
+                <ChevronLeft size={20} />
+                <span className="text-xs font-medium">閉じる</span>
+              </button>
+              <SheetTitle className="text-white text-base flex-1">プレミアムプラン</SheetTitle>
             </SheetHeader>
             <Paywall onClose={handleClose} user={user} />
           </>
         ) : (
           <>
-            <SheetHeader className="mb-5">
-              <SheetTitle className="text-white text-base">新しい試合を登録</SheetTitle>
+            <SheetHeader className="mb-5 flex-row items-center gap-2">
+              <button
+                onClick={handleClose}
+                className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
+              >
+                <ChevronLeft size={20} />
+                <span className="text-xs font-medium">閉じる</span>
+              </button>
+              <SheetTitle className="text-white text-base flex-1">新しい試合を登録</SheetTitle>
             </SheetHeader>
 
             <div className="flex flex-col gap-5 pb-4">

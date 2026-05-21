@@ -85,7 +85,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
         <SheetHeader className="shrink-0 flex-row items-center gap-2 p-4 pb-0">
           <button
             onClick={mode !== 'list' ? () => setMode('list') : onClose}
-            className="flex items-center gap-0.5 text-white/50 active:text-white/90 transition-colors shrink-0 -ml-1"
+            className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
           >
             <ChevronLeft size={20} />
             <span className="text-xs font-medium">{backLabel}</span>
