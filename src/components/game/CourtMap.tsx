@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { CourtLocation, ActionType, Player } from '@/types';
 
 interface CourtZone {
@@ -44,8 +43,6 @@ interface CourtMapProps {
 }
 
 export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }: CourtMapProps) {
-  const [selected, setSelected] = useState<CourtLocation | null>(null);
-
   const is3pt  = action === '3PT_MADE' || action === '3PT_MISS';
   const isMade = action === '2PT_MADE' || action === '3PT_MADE';
   const shotLabel   = is3pt ? '3PT' : '2PT';
@@ -54,11 +51,6 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }:
   function zoneClass(zone: CourtZone): string {
     const disabled = is3pt ? !zone.is3pt : zone.is3pt;
     if (disabled) return 'bg-neutral-900/30 border-neutral-800/30 text-neutral-700 cursor-not-allowed';
-    if (selected === zone.id) {
-      return isMade
-        ? 'bg-emerald-900/70 border-emerald-500 text-emerald-100 ring-2 ring-emerald-500/50 scale-[0.97]'
-        : 'bg-rose-900/70 border-rose-500 text-rose-100 ring-2 ring-rose-500/50 scale-[0.97]';
-    }
     return 'bg-neutral-800/80 border-neutral-600 text-neutral-200 active:scale-[0.95]';
   }
 
@@ -124,7 +116,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }:
                 return (
                   <button
                     key={zone.id}
-                    onClick={() => !disabled && setSelected(zone.id)}
+                    onClick={() => !disabled && onSelect(zone.id)}
                     disabled={disabled}
                     className={`flex flex-col items-center justify-center rounded-lg border-2 p-1 text-center transition-all duration-100 ${zoneClass(zone)}`}
                     style={{ gridArea: zone.gridArea }}
@@ -135,7 +127,6 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }:
                     <span className="mt-0.5 text-[10px] font-medium leading-tight">
                       {zone.label.replace(/^(ミドル|3PT|ペイント)\s?/, '')}
                     </span>
-                    {selected === zone.id && <Check size={12} className="mt-0.5" />}
                   </button>
                 );
               })}
@@ -153,23 +144,6 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }:
         </div>
       </div>
 
-      {/* 確定ボタン */}
-      <div className="shrink-0 border-t border-neutral-800 bg-neutral-900/80 p-4 backdrop-blur-sm">
-        <button
-          onClick={() => selected && onSelect(selected)}
-          disabled={!selected}
-          className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold transition-all active:scale-[0.98] ${
-            selected
-              ? isMade
-                ? 'bg-emerald-600 text-white active:bg-emerald-700'
-                : 'bg-rose-600 text-white active:bg-rose-700'
-              : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
-          }`}
-        >
-          <Check size={18} />
-          {selected ? '記録を確定する' : 'エリアを選択してください'}
-        </button>
-      </div>
     </div>
   );
 }
