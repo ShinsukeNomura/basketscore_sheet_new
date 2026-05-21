@@ -94,7 +94,7 @@ export default function GamePage() {
       />
 
       {/* 自チーム（白） */}
-      <div className="flex-[2] min-h-0 overflow-hidden">
+      <div className="flex-[1.5] min-h-0 overflow-hidden">
         <TeamSection
           team={ourTeam}
           courtPlayers={ourCourtPlayers}
@@ -126,7 +126,7 @@ export default function GamePage() {
       </div>
 
       {/* 相手チーム（濃） */}
-      <div className="flex-[2] min-h-0 overflow-hidden">
+      <div className="flex-[1.5] min-h-0 overflow-hidden">
         <TeamSection
           team={theirTeam}
           courtPlayers={theirCourtPlayers}

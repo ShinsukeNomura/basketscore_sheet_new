@@ -65,13 +65,11 @@ function Btn({
     <button
       onPointerDown={onClick}
       className={cn(
-        'flex flex-col items-center justify-center gap-0 rounded-xl',
+        'flex flex-1 min-h-0 flex-col items-center justify-center gap-0 rounded-xl',
         'transition-all duration-75 active:scale-[0.97] select-none',
         'shadow-sm shadow-black/20',
         sizeClass,
         variantClass,
-        // miss ボタンはスケールしない（隣セクションへの視覚的侵入を防止）
-        isSelected && !isMiss && 'scale-[1.03]',
       )}
     >
       {size === 'lg' ? (
@@ -159,28 +157,28 @@ export function StatsPanel({
       </div>
 
       {/* ── Made（成功） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0 [align-content:stretch]">
+      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
         {MADE.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="lg" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Miss（不成功） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0 [align-content:stretch]">
+      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
         {MISS.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="sm" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Neutral（中） ── */}
-      <div className="grid grid-cols-4 gap-2 flex-[2] min-h-0 [align-content:stretch]">
+      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
         {NEUTRAL.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Negative（中） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0 [align-content:stretch]">
+      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
         {NEG.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
         ))}

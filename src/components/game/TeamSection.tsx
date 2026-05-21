@@ -23,7 +23,7 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({
-  team, courtPlayers, totalPlayerCount, playerFouls, teamTovCount, teamFoulCount,
+  team, courtPlayers, totalPlayerCount, playerFouls, teamFoulCount,
   selectedStat, flashPlayerId,
   onPlayerClick, onSubstitute, onRoster, onRenameTeam,
 }: TeamSectionProps) {
@@ -151,8 +151,8 @@ export function TeamSection({
           </span>
         </button>
       ) : (
-        /* プレイヤーカード行 */
-        <div className="flex gap-1.5 flex-1 min-h-0 overflow-hidden">
+        /* プレイヤーカード行 — 固定高さで間延びを防止 */
+        <div className="flex gap-1.5 h-[60px] shrink-0 overflow-hidden">
           {courtPlayers.slice(0, 5).map((player) => (
             <PlayerCard
               key={player.id}
