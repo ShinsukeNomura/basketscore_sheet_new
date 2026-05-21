@@ -21,13 +21,10 @@ function GameCard({ game, onDelete }: { game: GameSummary; onDelete: (id: string
   const theyWon    = isFinished && diff < 0;
 
   return (
-    <div className="relative group">
+    <div className="flex items-center gap-2 rounded-2xl bg-white/5 active:bg-white/8 transition-colors">
       <Link
         href={`/game/${game.id}`}
-        className={cn(
-          'flex items-center gap-4 rounded-2xl px-4 py-3.5 transition-colors',
-          'bg-white/5 hover:bg-white/8 active:bg-white/10',
-        )}
+        className="flex items-center gap-4 flex-1 min-w-0 px-4 py-3.5"
       >
         <div className={cn('w-2 h-2 rounded-full shrink-0', isFinished ? 'bg-white/20' : 'bg-emerald-400 animate-pulse')} />
         <div className="flex flex-col flex-1 min-w-0 gap-0.5">
@@ -48,12 +45,13 @@ function GameCard({ game, onDelete }: { game: GameSummary; onDelete: (id: string
         </div>
         <ChevronRight size={16} className="text-white/20 shrink-0" />
       </Link>
+      {/* 削除ボタン（常時表示・モバイル対応） */}
       <button
-        onClick={(e) => { e.preventDefault(); onDelete(game.id); }}
-        className="absolute right-12 top-1/2 -translate-y-1/2 p-2 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-950/40 opacity-0 group-hover:opacity-100 transition-all"
+        onClick={() => onDelete(game.id)}
+        className="p-3 mr-1 rounded-xl text-white/20 active:text-red-400 active:bg-red-950/40 transition-colors shrink-0"
         aria-label="削除"
       >
-        <Trash2 size={14} />
+        <Trash2 size={15} />
       </button>
     </div>
   );
@@ -134,7 +132,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-dvh bg-neutral-950 flex flex-col">
+    <div className="bg-neutral-950 min-h-dvh">
 
       {/* ── ヘッダー ── */}
       <div className="flex flex-col items-center pt-14 pb-6 px-6">
@@ -193,7 +191,7 @@ export default function HomePage() {
       </div>
 
       {/* ── コンテンツ ── */}
-      <div className="flex-1 px-4 pb-32">
+      <div className="px-4 pb-36">
 
         {activeGames.length > 0 && (
           <section className="mb-6">
