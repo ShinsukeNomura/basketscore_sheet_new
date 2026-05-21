@@ -7,7 +7,8 @@ import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage'
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen } from 'lucide-react';
+import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users } from 'lucide-react';
+import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
@@ -62,8 +63,9 @@ export default function HomePage() {
   const { user, isPremium, signOut, loading } = useAuth();
   const [games,      setGames]      = useState<GameSummary[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
-  const [syncing,    setSyncing]    = useState(false);
-  const [syncMsg,    setSyncMsg]    = useState<string | null>(null);
+  const [syncing,       setSyncing]       = useState(false);
+  const [syncMsg,       setSyncMsg]       = useState<string | null>(null);
+  const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
 
   // プレミアム登録後に自動で試合作成シートを開く
   useEffect(() => {
@@ -155,8 +157,7 @@ export default function HomePage() {
         </div>
 
         {/* アクションボタン行 */}
-        <div className="flex gap-2 mt-3">
-          {/* 同期ボタン */}
+        <div className="flex gap-2 mt-3 flex-wrap justify-center">
           <button
             onClick={handleSync}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
@@ -164,13 +165,19 @@ export default function HomePage() {
             <RefreshCw size={12} className={cn(syncing && 'animate-spin')} />
             {syncing ? '同期中...' : syncMsg ?? 'クラウド同期'}
           </button>
-          {/* 使い方ガイド */}
+          {isPremium && (
+            <button
+              onClick={() => setMyTeamsOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold active:bg-amber-500/20 transition-colors"
+            >
+              <Users size={12} />マイチーム
+            </button>
+          )}
           <Link
             href="/guide"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
           >
-            <BookOpen size={12} />
-            使い方
+            <BookOpen size={12} />使い方
           </Link>
         </div>
       </div>
@@ -240,6 +247,13 @@ export default function HomePage() {
         open={createOpen}
         onClose={() => { setCreateOpen(false); loadGames(); }}
       />
+      {isPremium && user && (
+        <MyTeamsSheet
+          open={myTeamsOpen}
+          userId={user.id}
+          onClose={() => setMyTeamsOpen(false)}
+        />
+      )}
     </div>
   );
 }

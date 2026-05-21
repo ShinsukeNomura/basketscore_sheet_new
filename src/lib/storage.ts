@@ -88,12 +88,14 @@ export function deleteGame(id: string): void {
 // ============================================================
 
 export interface CreateGameParams {
-  gameType:       string;   // 試合の種類 → game_name に使用
-  date:           string;   // YYYY-MM-DD
-  whiteTeamName:  string;   // チーム名（白）→ is_ours: true
-  whiteTeamColor: string;   // JerseyColorId
-  blueTeamName:   string;   // チーム名（濃）→ is_ours: false
-  blueTeamColor:  string;   // JerseyColorId
+  gameType:       string;
+  date:           string;
+  whiteTeamName:  string;
+  whiteTeamColor: string;
+  blueTeamName:   string;
+  blueTeamColor:  string;
+  whitePlayers?:  string[]; // 背番号リスト（マイチームから選択時）
+  bluePlayers?:   string[]; // 背番号リスト（マイチームから選択時）
 }
 
 export function createNewGame(params: CreateGameParams): string {
@@ -125,14 +127,24 @@ export function createNewGame(params: CreateGameParams): string {
     created_at: now,
   };
 
-  const persisted: PersistedGameState = {
-    game,
-    ourTeam,
-    theirTeam,
-    allPlayers: [] as Player[],
-    logs:       [] as StatsLog[],
+  // マイチームの背番号を初期選手として登録
+  const allPlayers: Player[] = [];
+  const addPlayers = (teamId: string, numbers: string[]) => {
+    numbers.forEach((num, i) => {
+      allPlayers.push({
+        id:          makeId(),
+        team_id:     teamId,
+        back_number: num,
+        name:        '',
+        is_on_court: i < 5,   // 最初の5人はコート入り
+        created_at:  now,
+      });
+    });
   };
+  if (params.whitePlayers?.length) addPlayers(ourTeam.id,   params.whitePlayers);
+  if (params.bluePlayers?.length)  addPlayers(theirTeam.id, params.bluePlayers);
 
+  const persisted: PersistedGameState = { game, ourTeam, theirTeam, allPlayers, logs: [] };
   savePersistedGame(persisted, 0, 0);
   return id;
 }

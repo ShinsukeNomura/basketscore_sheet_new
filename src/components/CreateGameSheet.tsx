@@ -7,8 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { ColorPicker } from '@/components/ColorPicker';
+import { MyTeamsSheet } from '@/components/MyTeamsSheet';
+import { UserTeam } from '@/lib/myTeams';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ChevronRight, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check } from 'lucide-react';
+import { ChevronRight, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check, Users } from 'lucide-react';
 
 // ────────────────────────────────────
 // 試合種別チップ
@@ -159,14 +161,18 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const router = useRouter();
   const { isPremium, user } = useAuth();
 
-  const [limitReached, setLimitReached] = useState(false);
-  const [gameType,     setGameType]     = useState<string>('練習試合');
-  const [date,         setDate]         = useState(todayString);
-  const [whiteName,    setWhiteName]    = useState('');
-  const [whiteColor,   setWhiteColor]   = useState<JerseyColorId>(DEFAULT_WHITE_COLOR);
-  const [darkName,     setDarkName]     = useState('');
-  const [darkColor,    setDarkColor]    = useState<JerseyColorId>(DEFAULT_DARK_COLOR);
-  const [errors,       setErrors]       = useState<{ white?: string; dark?: string }>({});
+  const [limitReached,  setLimitReached]  = useState(false);
+  const [gameType,      setGameType]      = useState<string>('練習試合');
+  const [date,          setDate]          = useState(todayString);
+  const [whiteName,     setWhiteName]     = useState('');
+  const [whiteColor,    setWhiteColor]    = useState<JerseyColorId>(DEFAULT_WHITE_COLOR);
+  const [whitePlayers,  setWhitePlayers]  = useState<string[]>([]);
+  const [darkName,      setDarkName]      = useState('');
+  const [darkColor,     setDarkColor]     = useState<JerseyColorId>(DEFAULT_DARK_COLOR);
+  const [darkPlayers,   setDarkPlayers]   = useState<string[]>([]);
+  const [errors,        setErrors]        = useState<{ white?: string; dark?: string }>({});
+  const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
+  const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
 
   // シートが開くたびに上限チェック（プレミアムは無制限）
   useEffect(() => {
@@ -181,6 +187,22 @@ export function CreateGameSheet({ open, onClose }: Props) {
     return Object.keys(e).length === 0;
   }, [whiteName, darkName]);
 
+  // マイチーム選択時に適用
+  function handleSelectTeam(team: UserTeam) {
+    if (myTeamsTarget === 'white') {
+      setWhiteName(team.team_name);
+      setWhiteColor(team.color as JerseyColorId);
+      setWhitePlayers(team.backNumbers);
+      setErrors((p) => ({ ...p, white: '' }));
+    } else {
+      setDarkName(team.team_name);
+      setDarkColor(team.color as JerseyColorId);
+      setDarkPlayers(team.backNumbers);
+      setErrors((p) => ({ ...p, dark: '' }));
+    }
+    setMyTeamsOpen(false);
+  }
+
   const handleCreate = useCallback(() => {
     if (!validate()) return;
     const id = createNewGame({
@@ -190,18 +212,31 @@ export function CreateGameSheet({ open, onClose }: Props) {
       whiteTeamColor: whiteColor,
       blueTeamName:   darkName.trim(),
       blueTeamColor:  darkColor,
+      whitePlayers:   whitePlayers,
+      bluePlayers:    darkPlayers,
     });
     setGameType('練習試合'); setDate(todayString());
-    setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR);
-    setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);
+    setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
+    setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
     setErrors({});
     onClose();
     router.push(`/game/${id}`);
-  }, [gameType, date, whiteName, whiteColor, darkName, darkColor, validate, onClose, router]);
+  }, [gameType, date, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router]);
 
   function handleClose() { setErrors({}); onClose(); }
 
   return (
+    <>
+    {/* マイチーム選択シート（プレミアム） */}
+    {isPremium && user && (
+      <MyTeamsSheet
+        open={myTeamsOpen}
+        userId={user.id}
+        onClose={() => setMyTeamsOpen(false)}
+        onSelect={handleSelectTeam}
+        selectLabel={myTeamsTarget === 'white' ? 'チーム（白）を選択' : 'チーム（濃）を選択'}
+      />
+    )}
     <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <SheetContent
         side="bottom"
@@ -260,14 +295,29 @@ export function CreateGameSheet({ open, onClose }: Props) {
 
               {/* ── チーム名（白） ── */}
               <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
-                  <span className="text-white/60 text-xs font-bold tracking-wide">チーム（白）</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
+                    <span className="text-white/60 text-xs font-bold tracking-wide">チーム（白）</span>
+                  </div>
+                  {isPremium && (
+                    <button
+                      onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
+                      className="flex items-center gap-1 text-amber-400 text-xs font-bold active:opacity-70"
+                    >
+                      <Users size={12} />マイチームから選択
+                    </button>
+                  )}
                 </div>
+                {whitePlayers.length > 0 && (
+                  <p className="text-white/35 text-xs">
+                    メンバー: #{whitePlayers.join(' #')} ({whitePlayers.length}人)
+                  </p>
+                )}
                 <Field
                   label="チーム名"
                   value={whiteName}
-                  placeholder="例: Selene"
+                  placeholder="例: チームA"
                   onChange={(v) => { setWhiteName(v); setErrors((p) => ({ ...p, white: '' })); }}
                   error={errors.white}
                   autoFocus
@@ -282,14 +332,29 @@ export function CreateGameSheet({ open, onClose }: Props) {
 
               {/* ── チーム名（濃） ── */}
               <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
-                  <span className="text-white/60 text-xs font-bold tracking-wide">チーム（濃）</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
+                    <span className="text-white/60 text-xs font-bold tracking-wide">チーム（濃）</span>
+                  </div>
+                  {isPremium && (
+                    <button
+                      onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
+                      className="flex items-center gap-1 text-amber-400 text-xs font-bold active:opacity-70"
+                    >
+                      <Users size={12} />マイチームから選択
+                    </button>
+                  )}
                 </div>
+                {darkPlayers.length > 0 && (
+                  <p className="text-white/35 text-xs">
+                    メンバー: #{darkPlayers.join(' #')} ({darkPlayers.length}人)
+                  </p>
+                )}
                 <Field
                   label="チーム名"
                   value={darkName}
-                  placeholder="例: 赤江東中"
+                  placeholder="例: チームB"
                   onChange={(v) => { setDarkName(v); setErrors((p) => ({ ...p, dark: '' })); }}
                   error={errors.dark}
                 />
@@ -315,5 +380,6 @@ export function CreateGameSheet({ open, onClose }: Props) {
         )}
       </SheetContent>
     </Sheet>
+    </>
   );
 }
