@@ -12,7 +12,7 @@ import { ChevronRight, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, 
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
 }
 
 function GameCard({ game, onDelete }: { game: GameSummary; onDelete: (id: string) => void }) {
