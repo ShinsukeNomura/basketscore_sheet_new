@@ -44,9 +44,11 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
   // 保存
   async function handleSave() {
     if (!editing || !editing.team_name.trim()) return;
-    await saveUserTeam(userId, editing, editing.id || undefined);
-    await load();
-    setMode('list');
+    const result = await saveUserTeam(userId, editing, editing.id || undefined);
+    if (result) {
+      await load();
+      setMode('list');
+    }
   }
 
   // 削除
