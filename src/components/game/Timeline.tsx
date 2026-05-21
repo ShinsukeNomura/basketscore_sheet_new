@@ -20,7 +20,7 @@ export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
   const playerMap = Object.fromEntries(allPlayers.map((p) => [p.id, p]));
 
   return (
-    <div className="shrink-0 bg-neutral-950 border-t border-white/5 px-2 py-1 pb-safe flex flex-col gap-1">
+    <div className="bg-neutral-950 px-2 py-1 flex flex-col gap-1">
       {entries.length === 0 ? (
         <div className="flex items-center justify-center h-10">
           <span className="text-white/15 text-xs">記録がまだありません</span>

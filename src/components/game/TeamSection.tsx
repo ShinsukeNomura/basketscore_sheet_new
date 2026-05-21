@@ -46,10 +46,10 @@ export function TeamSection({
   }, [editVal, onRenameTeam, team.id]);
 
   return (
-    <div className={cn('flex flex-col h-full px-2 py-1', cfg.sectionBg)}>
+    <div className={cn('flex flex-col h-full px-2 py-0.5', cfg.sectionBg)}>
 
       {/* チーム名行 */}
-      <div className="flex items-center justify-between mb-1 shrink-0">
+      <div className="flex items-center justify-between mb-0.5 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
           <div className={cn('w-1 h-3.5 rounded-full shrink-0', cfg.accentDot)} />
 
@@ -86,7 +86,7 @@ export function TeamSection({
               key={label}
               onClick={() => label === 'メンバー' ? onRoster(team) : onSubstitute(team)}
               className={cn(
-                'text-[11px] font-semibold px-2 py-1 rounded-lg transition-colors min-h-[26px]',
+                'text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors min-h-[22px]',
                 cfg.btnText, cfg.btnBg,
               )}
             >
@@ -100,7 +100,7 @@ export function TeamSection({
       {(() => {
         const isBonus = teamFoulCount >= 5;
         return (
-          <div className="flex items-center justify-between shrink-0 mb-0.5 px-0.5">
+          <div className="flex items-center justify-between shrink-0 px-0.5">
             <div className="flex items-center gap-1.5">
               <span className="text-white/25 text-[10px] font-semibold tracking-wide">チームF</span>
               <div className="flex gap-0.5 items-center">
@@ -152,7 +152,7 @@ export function TeamSection({
         </button>
       ) : (
         /* プレイヤーカード行 — 固定高さで間延びを防止 */
-        <div className="flex gap-1.5 h-[60px] shrink-0 overflow-hidden">
+        <div className="flex gap-1.5 h-[52px] shrink-0 overflow-hidden mt-0.5">
           {courtPlayers.slice(0, 5).map((player) => (
             <PlayerCard
               key={player.id}

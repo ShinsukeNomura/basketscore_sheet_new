@@ -113,7 +113,7 @@ export function StatsPanel({
         {/* 自チームTOV（左） */}
         <button
           onClick={() => { onOurTov(); if (navigator.vibrate) navigator.vibrate(30); }}
-          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
+          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
           <span className="text-[11px] font-bold leading-none truncate max-w-[80px]">{ourTeamName}</span>
           <span className="text-[11px] font-black leading-none text-amber-300/70">TOV</span>
@@ -124,7 +124,7 @@ export function StatsPanel({
         {/* 相手チームTOV（右） */}
         <button
           onClick={() => { onTheirTov(); if (navigator.vibrate) navigator.vibrate(30); }}
-          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
+          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
           {theirTov > 0 && (
             <span className="text-sm font-black leading-none bg-amber-800/40 rounded-md px-1.5 py-0.5 tabular-nums">{theirTov}</span>
@@ -135,7 +135,7 @@ export function StatsPanel({
       </div>
 
       {/* ── 選択中インジケーター ── */}
-      <div className="flex items-center justify-center h-8 shrink-0">
+      <div className="flex items-center justify-center h-6 shrink-0">
         {selectedStat ? (
           <div className="flex items-center gap-2 bg-neutral-800/60 border border-neutral-700/50 rounded-full px-4 py-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
