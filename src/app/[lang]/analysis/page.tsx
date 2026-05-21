@@ -23,6 +23,17 @@ import {
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
+function ShotCell({ made, attempted }: { made: number; attempted: number }) {
+  if (!attempted) return <span className="text-white/25 tabular-nums text-xs">-</span>;
+  const p = Math.round(made / attempted * 100);
+  return (
+    <div className="flex flex-col items-end gap-0">
+      <span className="text-white/60 tabular-nums text-xs whitespace-nowrap">{made}/{attempted}</span>
+      <span className="text-[10px] text-white/30 leading-none tabular-nums">{p}%</span>
+    </div>
+  );
+}
+
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl bg-white/5 border border-white/8 px-3 py-3 gap-0.5">
@@ -182,14 +193,20 @@ function TeamAnalysisView({
                   <tbody>
                     {analysis.players.map(p=>(
                       <tr key={p.backNumber} className="border-b border-white/5 active:bg-white/5 cursor-pointer" onClick={()=>setSelectedPlayer(p)}>
-                        <td className="px-2 py-2.5 text-white font-black">#{p.backNumber}</td>
-                        <td className="px-2 py-2.5 text-white font-bold text-right tabular-nums">{p.pts}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums whitespace-nowrap">{p.fg2m}/{p.fg2a}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums whitespace-nowrap">{p.fg3m}/{p.fg3a}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums whitespace-nowrap">{p.ftm}/{p.fta}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums">{p.orbd+p.drbd}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums">{p.ast}</td>
-                        <td className="px-2 py-2.5 text-white/60 text-right tabular-nums">{p.stl}</td>
+                        <td className="px-2 py-2 text-white font-black">#{p.backNumber}</td>
+                        <td className="px-2 py-2 text-white font-bold text-right tabular-nums">{p.pts}</td>
+                        <td className="px-2 py-2 text-right">
+                          <ShotCell made={p.fg2m} attempted={p.fg2a} />
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          <ShotCell made={p.fg3m} attempted={p.fg3a} />
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          <ShotCell made={p.ftm} attempted={p.fta} />
+                        </td>
+                        <td className="px-2 py-2 text-white/60 text-right tabular-nums">{p.orbd+p.drbd}</td>
+                        <td className="px-2 py-2 text-white/60 text-right tabular-nums">{p.ast}</td>
+                        <td className="px-2 py-2 text-white/60 text-right tabular-nums">{p.stl}</td>
                       </tr>
                     ))}
                   </tbody>

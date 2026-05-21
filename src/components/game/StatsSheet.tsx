@@ -55,12 +55,20 @@ const COLS = [
   { key: 'foul', label: 'F' },
 ] as const;
 
-function cellValue(row: PlayerStatRow, key: typeof COLS[number]['key']): string {
+type ShotCell = { frac: string; pct: string };
+type CellResult = string | ShotCell;
+
+function shotPct(made: number, attempted: number): string {
+  if (!attempted) return '';
+  return `${Math.round(made / attempted * 100)}%`;
+}
+
+function cellValue(row: PlayerStatRow, key: typeof COLS[number]['key']): CellResult {
   switch (key) {
     case 'pts':  return String(row.pts);
-    case 'fg2':  return row.fg2a ? `${row.fg2m}/${row.fg2a}` : '-';
-    case 'fg3':  return row.fg3a ? `${row.fg3m}/${row.fg3a}` : '-';
-    case 'ft':   return row.fta  ? `${row.ftm}/${row.fta}`   : '-';
+    case 'fg2':  return row.fg2a ? { frac: `${row.fg2m}/${row.fg2a}`, pct: shotPct(row.fg2m, row.fg2a) } : '-';
+    case 'fg3':  return row.fg3a ? { frac: `${row.fg3m}/${row.fg3a}`, pct: shotPct(row.fg3m, row.fg3a) } : '-';
+    case 'ft':   return row.fta  ? { frac: `${row.ftm}/${row.fta}`,   pct: shotPct(row.ftm,  row.fta)  } : '-';
     case 'rbd':  return String(row.orbd + row.drbd) || '-';
     case 'ast':  return String(row.ast)  || '-';
     case 'stl':  return String(row.stl)  || '-';
@@ -139,17 +147,26 @@ function TeamTable({
                 </td>
                 {COLS.map((c) => {
                   const val = cellValue(row, c.key);
+                  const isShot = typeof val === 'object';
+                  const isEmpty = val === '-';
                   return (
                     <td
                       key={c.key}
                       className={cn(
-                        'text-[12px] tabular-nums px-1.5 py-2 whitespace-nowrap',
+                        'tabular-nums px-1.5 py-1.5 whitespace-nowrap align-middle',
                         c.key === 'pts' ? 'text-white font-black text-sm' :
-                        c.key === 'foul' && row.foul >= 4 ? 'text-red-400 font-bold' :
-                        val === '-' ? 'text-white/20' : 'text-white/70',
+                        c.key === 'foul' && row.foul >= 4 ? 'text-red-400 font-bold text-[12px]' :
+                        isEmpty ? 'text-white/20 text-[12px]' : 'text-white/70 text-[12px]',
                       )}
                     >
-                      {val}
+                      {isShot ? (
+                        <div className="flex flex-col items-end gap-0">
+                          <span>{val.frac}</span>
+                          <span className="text-[10px] text-white/35 leading-none">{val.pct}</span>
+                        </div>
+                      ) : (
+                        typeof val === 'string' ? val : ''
+                      )}
                     </td>
                   );
                 })}
@@ -162,9 +179,17 @@ function TeamTable({
               </td>
               {COLS.map((c) => {
                 const val = cellValue(totalRow, c.key);
+                const isShot = typeof val === 'object';
                 return (
-                  <td key={c.key} className="text-[12px] tabular-nums px-1.5 py-2 text-white/50 font-semibold whitespace-nowrap">
-                    {val === '-' ? '0' : val}
+                  <td key={c.key} className="text-[12px] tabular-nums px-1.5 py-1.5 text-white/50 font-semibold whitespace-nowrap align-middle">
+                    {isShot ? (
+                      <div className="flex flex-col items-end gap-0">
+                        <span>{val.frac}</span>
+                        <span className="text-[10px] text-white/30 leading-none">{val.pct}</span>
+                      </div>
+                    ) : (
+                      val === '-' ? '0' : val
+                    )}
                   </td>
                 );
               })}
