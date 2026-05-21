@@ -83,12 +83,22 @@ export default function HomePage() {
   }, [user, loading]);
 
   // ゲーム一覧ロード
+  // ローカルストレージを即時表示（スコアは300msデバウンスで常に最新）
+  // クラウドはローカルにないゲーム（別端末作成分）を補完するためだけに使用
   const loadGames = useCallback(async () => {
-    if (user?.id) {
-      const cloud = await fetchGamesFromCloud(user.id);
-      if (cloud !== null) { setGames(cloud); return; }
+    const local = getGamesIndex();
+    setGames(local);
+
+    if (!user?.id) return;
+
+    const cloud = await fetchGamesFromCloud(user.id);
+    if (!cloud) return; // エラー時はローカルのまま
+
+    const localIds = new Set(local.map((g) => g.id));
+    const cloudOnly = cloud.filter((g) => !localIds.has(g.id));
+    if (cloudOnly.length > 0) {
+      setGames((prev) => [...prev, ...cloudOnly]);
     }
-    setGames(getGamesIndex());
   }, [user?.id]);
 
   useEffect(() => { if (!loading) loadGames(); }, [loading, loadGames]);
@@ -98,15 +108,22 @@ export default function HomePage() {
     return () => window.removeEventListener('focus', loadGames);
   }, [loadGames]);
 
-  // 手動同期
+  // 手動同期: クラウドとローカルをマージ（ローカルのスコアを優先）
   const handleSync = useCallback(async () => {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
-      setGames(cloud);
-      setSyncMsg(`${cloud.length}件を同期しました`);
+      const local    = getGamesIndex();
+      const localMap = new Map(local.map((g) => [g.id, g]));
+      // ローカルにあるものはローカルのスコアを優先、ないものはクラウドから補完
+      const merged = [
+        ...local,
+        ...cloud.filter((g) => !localMap.has(g.id)),
+      ];
+      setGames(merged);
+      setSyncMsg(`同期完了（${merged.length}件）`);
     } else {
       setSyncMsg('同期に失敗しました');
     }

@@ -115,12 +115,12 @@ export function StatsPanel({
       {/* ── プレミアム TOV モード切替 ── */}
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
-          {([['simple', '簡略'], ['6-grid', '厳選6'], ['12-grid', '公式12']] as [TovMode, string][]).map(([mode, label]) => (
+          {([['simple', '簡略', false], ['6-grid', '厳選6', true], ['12-grid', '公式12', true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
             <button
               key={mode}
               onPointerDown={() => onTovModeChange?.(mode)}
               className={cn(
-                'py-1 rounded-lg text-[10px] font-bold transition-all border',
+                'py-1 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-0.5',
                 tovMode === mode
                   ? mode === 'simple'
                     ? 'bg-neutral-700 border-neutral-500 text-neutral-100'
@@ -131,6 +131,14 @@ export function StatsPanel({
               )}
             >
               {label}
+              {isPro && (
+                <span className={cn(
+                  'text-[7px] font-black leading-none px-0.5 py-0.5 rounded',
+                  tovMode === mode
+                    ? mode === '6-grid' ? 'bg-sky-500/30 text-sky-300' : 'bg-amber-500/30 text-amber-300'
+                    : 'bg-amber-500/15 text-amber-500/70',
+                )}>PRO</span>
+              )}
             </button>
           ))}
         </div>
