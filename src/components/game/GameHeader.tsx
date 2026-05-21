@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Game, Period, Team } from '@/types';
 import { cn } from '@/lib/utils';
 import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList } from 'lucide-react';
+import { periodLabel, isOT } from '@/lib/period';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
@@ -22,7 +23,7 @@ interface GameHeaderProps {
   onShowRunning:  () => void;
 }
 
-const PERIODS: Period[] = [1, 2, 3, 4];
+const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
 
 export function GameHeader({
   game, ourTeam, theirTeam, ourScore, theirScore,
@@ -131,21 +132,25 @@ export function GameHeader({
           {ourTeam.team_name}
         </span>
         <div className="shrink-0 flex gap-1">
-          {PERIODS.map((p) => (
-            <button
-              key={p}
-              onPointerDown={() => !isFinished && onChangePeriod(p)}
-              className={cn(
-                'w-10 h-8 rounded-lg text-sm font-bold transition-all duration-75 active:scale-95',
-                game.current_period === p
-                  ? 'bg-white text-neutral-900'
-                  : 'bg-white/10 text-white/45 active:bg-white/20',
-                isFinished && 'opacity-30 pointer-events-none',
-              )}
-            >
-              {p}Q
-            </button>
-          ))}
+          {PERIODS.map((p) => {
+            const ot      = isOT(p);
+            const active  = game.current_period === p;
+            return (
+              <button
+                key={p}
+                onPointerDown={() => !isFinished && onChangePeriod(p)}
+                className={cn(
+                  'w-9 h-8 rounded-lg text-xs font-bold transition-all duration-75 active:scale-95',
+                  active
+                    ? ot ? 'bg-amber-400 text-neutral-900' : 'bg-white text-neutral-900'
+                    : ot ? 'bg-amber-500/15 text-amber-400/60 active:bg-amber-500/30' : 'bg-white/10 text-white/45 active:bg-white/20',
+                  isFinished && 'opacity-30 pointer-events-none',
+                )}
+              >
+                {periodLabel(p)}
+              </button>
+            );
+          })}
         </div>
         <span className="flex-1 min-w-0 text-[12px] font-semibold text-white truncate text-right leading-none">
           {theirTeam.team_name}

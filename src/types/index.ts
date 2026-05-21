@@ -2,7 +2,7 @@
 // 基本ドメイン型
 // ============================================================
 
-export type Period = 1 | 2 | 3 | 4;
+export type Period = 1 | 2 | 3 | 4 | 5 | 6; // 5=OT1, 6=OT2
 export type GameStatus = 'progress' | 'finished';
 
 export type ActionType =

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
+import { periodLabel } from '@/lib/period';
 import { cn } from '@/lib/utils';
 import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2 } from 'lucide-react';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
@@ -28,7 +29,8 @@ interface EndGameOverlayProps {
 // ================================================================
 // ヘルパー
 // ================================================================
-const PERIODS = [1, 2, 3, 4] as const;
+// Q1-Q4は常に表示。OT1(5)/OT2(6)は得点があるときのみ表示
+const ALL_PERIODS = [1, 2, 3, 4, 5, 6] as const;
 
 function calcPeriodScore(logs: StatsLog[], teamId: string, period: number): number {
   return logs
@@ -56,14 +58,22 @@ export function EndGameOverlay({
   const ourName   = teamLabel(ourTeam,   true);
   const theirName = teamLabel(theirTeam, false);
 
+  // 表示するピリオド（OTは得点があるものだけ）
+  const activePeriods = useMemo(() => {
+    const otWithScore = new Set(
+      logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period)
+    );
+    return ALL_PERIODS.filter((p) => p <= 4 || otWithScore.has(p));
+  }, [logs]);
+
   // クォーター別スコア
   const periodRows = useMemo(() =>
-    PERIODS.map((p) => ({
+    activePeriods.map((p) => ({
       period: p,
       our:   calcPeriodScore(logs, ourTeam.id,   p),
       their: calcPeriodScore(logs, theirTeam.id, p),
     })),
-    [logs, ourTeam.id, theirTeam.id],
+    [activePeriods, logs, ourTeam.id, theirTeam.id],
   );
   const hasAnyScore = ourScore > 0 || theirScore > 0;
 
@@ -175,12 +185,20 @@ export function EndGameOverlay({
       {/* ── クォーター別スコア表 ── */}
       {hasAnyScore && (
         <div className="mx-6 rounded-2xl bg-white/4 overflow-hidden mb-5">
-          <div className="grid grid-cols-6 text-[11px] text-white/30 font-semibold border-b border-white/5">
-            <div className="col-span-2 px-3 py-2">チーム</div>
-            {PERIODS.map((p) => <div key={p} className="text-center py-2">{p}Q</div>)}
+          <div
+            className="text-[11px] text-white/30 font-semibold border-b border-white/5"
+            style={{ display: 'grid', gridTemplateColumns: `2fr repeat(${activePeriods.length}, 1fr)` }}
+          >
+            <div className="col-span-1 px-3 py-2">チーム</div>
+            {activePeriods.map((p) => (
+              <div key={p} className="text-center py-2">{periodLabel(p)}</div>
+            ))}
           </div>
-          <div className="grid grid-cols-6 border-b border-white/5">
-            <div className={cn('col-span-2 px-3 py-2.5 text-xs font-bold truncate', diff > 0 ? 'text-white' : 'text-white/50')}>
+          <div
+            className="border-b border-white/5"
+            style={{ display: 'grid', gridTemplateColumns: `2fr repeat(${activePeriods.length}, 1fr)` }}
+          >
+            <div className={cn('px-3 py-2.5 text-xs font-bold truncate', diff > 0 ? 'text-white' : 'text-white/50')}>
               {ourName}
             </div>
             {periodRows.map(({ period, our, their }) => (
@@ -190,8 +208,8 @@ export function EndGameOverlay({
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-6">
-            <div className={cn('col-span-2 px-3 py-2.5 text-xs font-bold truncate', diff < 0 ? 'text-white' : 'text-white/50')}>
+          <div style={{ display: 'grid', gridTemplateColumns: `2fr repeat(${activePeriods.length}, 1fr)` }}>
+            <div className={cn('px-3 py-2.5 text-xs font-bold truncate', diff < 0 ? 'text-white' : 'text-white/50')}>
               {theirName}
             </div>
             {periodRows.map(({ period, our, their }) => (

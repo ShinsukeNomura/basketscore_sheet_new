@@ -86,8 +86,8 @@ export function buildRunningScore(
       });
     }
 
-    // クォーター終了マーク（そのQの最後の到達点に付与）
-    for (let q = 1; q <= 3; q++) {
+    // クォーター終了マーク（そのQの最後の到達点に付与）Q4→OT1、OT1→OT2 境界も対象
+    for (let q = 1; q <= 5; q++) {
       const hasNextQ = arr.some((e) => e.period > q);
       if (!hasNextQ) continue;
       for (let i = arr.length - 1; i >= 0; i--) {

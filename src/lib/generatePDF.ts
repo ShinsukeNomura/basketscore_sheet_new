@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { Game, Team, Player, StatsLog } from '@/types';
+import { periodLabel } from '@/lib/period';
 
 // ── 日本語→英語マッピング（jsPDFはCJK非対応のため変換）
 const JP_GAME_TYPE: Record<string, string> = {
@@ -111,11 +112,14 @@ export function generateGamePDF(
   y += 12;
   line(10, y, W - 10, y); y += 6;
 
-  // ── クォーター別 ──
-  const periods = [1, 2, 3, 4];
+  // ── クォーター別（OTは得点があるときのみ含める） ──
+  const otWithScore = new Set(
+    logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period as number)
+  );
+  const periods = ([1, 2, 3, 4, 5, 6] as const).filter((p) => p <= 4 || otWithScore.has(p));
   text('Quarter', 12, y, 9, 'bold');
-  periods.forEach((p, i) => text(`${p}Q`, 50 + i * 17, y, 9, 'bold'));
-  text('Total', 122, y, 9, 'bold');
+  periods.forEach((p, i) => text(periodLabel(p), 50 + i * 17, y, 9, 'bold'));
+  text('Total', 50 + periods.length * 17, y, 9, 'bold');
   y += 5;
 
   [ourTeam, theirTeam].forEach((team, ti) => {
@@ -123,7 +127,7 @@ export function generateGamePDF(
     const total  = ti === 0 ? ourScore : theirScore;
     text(team.team_name || (ti === 0 ? 'A' : 'B'), 12, y, 9);
     scores.forEach((s, i) => text(`${s}`, 50 + i * 17, y, 9));
-    text(`${total}`, 122, y, 9, 'bold');
+    text(`${total}`, 50 + periods.length * 17, y, 9, 'bold');
     y += 6;
   });
   y += 4;

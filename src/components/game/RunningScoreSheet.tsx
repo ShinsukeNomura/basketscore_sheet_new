@@ -10,8 +10,9 @@ import { ChevronLeft } from 'lucide-react';
 const SECTION_SIZE = 50;
 
 function getQuarterColor(quarter: number | null): { text: string; line: string } {
-  if (quarter === 1 || quarter === 3) return { text: 'text-red-500', line: 'border-red-500' };
-  return { text: 'text-white/90', line: 'border-white/70' };
+  if (quarter === 1 || quarter === 3) return { text: 'text-red-500',    line: 'border-red-500' };
+  if (quarter === 5 || quarter === 6) return { text: 'text-amber-400',  line: 'border-amber-400' }; // OT
+  return                                     { text: 'text-white/90',   line: 'border-white/70' };
 }
 
 // ── 背番号バッジ ──────────────────────────────────────────────────
@@ -213,6 +214,7 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
       <div className="shrink-0 flex flex-wrap gap-x-3 gap-y-0.5 px-3 py-1.5 bg-neutral-900/40 border-b border-white/[0.08] text-[9px]">
         <span className="text-white/50 flex items-center gap-1"><span className="text-red-500 font-bold">赤</span>= 1Q・3Q</span>
         <span className="text-white/50 flex items-center gap-1"><span className="text-white/90 font-bold">白</span>= 2Q・4Q</span>
+        <span className="text-white/50 flex items-center gap-1"><span className="text-amber-400 font-bold">橙</span>= OT</span>
         <span className="text-white/50 flex items-center gap-1"><span className="border border-white/50 rounded-full px-0.5 text-[8px] text-white/70">7</span>= 3PT</span>
         <span className="text-white/50 flex items-center gap-1"><span className="text-[8px]">●7</span>= FT選手</span>
         <span className="text-white/50 flex items-center gap-1">
