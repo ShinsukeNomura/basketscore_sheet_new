@@ -15,11 +15,13 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
 // ────────────────────────────────────
-// アップグレードボタン
+// アップグレードボタン（プラン選択付き）
 // ────────────────────────────────────
 function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: string }) {
-  const dict = useDictionary();
-  const p = dict.premium;
+  const dict   = useDictionary();
+  const p      = dict.premium;
+  const locale = useLocale();
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
 
@@ -30,10 +32,11 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, userEmail }),
+        body: JSON.stringify({ userId, userEmail, plan: selectedPlan, locale }),
       });
       if (!res.ok) { setError(p.upgradeError); return; }
-      const { url } = await res.json();
+      const { url, error: apiErr } = await res.json();
+      if (apiErr) { setError(apiErr); return; }
       if (url) window.location.href = url;
       else setError(p.upgradeError);
     } catch {
@@ -44,16 +47,61 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-3 w-full">
+      {/* プラン選択カード */}
+      <div className="flex gap-2">
+        {/* 月払い */}
+        <button
+          onClick={() => setSelectedPlan('monthly')}
+          className={cn(
+            'flex-1 rounded-2xl border-2 p-3 text-left transition-all',
+            selectedPlan === 'monthly'
+              ? 'border-blue-500 bg-blue-500/10'
+              : 'border-white/10 bg-white/4 active:bg-white/8',
+          )}
+        >
+          <p className="text-white/60 text-[11px] font-bold mb-1">{p.planMonthly}</p>
+          <p className="text-white font-black text-lg leading-none">{p.priceMonthly}</p>
+        </button>
+
+        {/* 年払い（特等） */}
+        <button
+          onClick={() => setSelectedPlan('annual')}
+          className={cn(
+            'flex-1 rounded-2xl border-2 p-3 text-left transition-all relative overflow-hidden',
+            selectedPlan === 'annual'
+              ? 'border-amber-400 bg-amber-500/15'
+              : 'border-amber-500/30 bg-amber-500/8 active:bg-amber-500/15',
+          )}
+        >
+          {/* 特等バッジ */}
+          <span className="absolute top-2 right-2 bg-amber-400 text-neutral-900 text-[9px] font-black px-1.5 py-0.5 rounded-full">
+            {p.planAnnualBadge}
+          </span>
+          <p className="text-amber-300/80 text-[11px] font-bold mb-1">{p.planAnnual}</p>
+          <p className="text-amber-300 font-black text-lg leading-none">{p.priceAnnual}</p>
+          <p className="text-amber-400/60 text-[10px] mt-0.5">{p.priceAnnualMonthly}</p>
+          <p className="text-emerald-400 text-[10px] font-bold mt-0.5">{p.annualSaving}</p>
+        </button>
+      </div>
+
+      {/* CTAボタン */}
       <button
         onClick={handleUpgrade}
         disabled={loading}
-        className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 disabled:opacity-60 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
+        className={cn(
+          'flex items-center justify-center gap-2 w-full disabled:opacity-60 font-black rounded-2xl py-4 text-base transition-colors',
+          selectedPlan === 'annual'
+            ? 'bg-amber-500 active:bg-amber-600 text-neutral-900'
+            : 'bg-blue-600 active:bg-blue-700 text-white',
+        )}
       >
         {loading
-          ? <span className="w-5 h-5 border-2 border-neutral-900/30 border-t-neutral-900 rounded-full animate-spin" />
+          ? <span className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
           : <Crown size={18} />}
-        {loading ? p.processing : p.upgrade}
+        {loading
+          ? p.processing
+          : selectedPlan === 'annual' ? p.upgradeAnnual : p.upgradeMonthly}
       </button>
       {error && <p className="text-red-400 text-xs text-center">{error}</p>}
     </div>
@@ -150,13 +198,7 @@ function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; e
         ))}
       </div>
 
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-baseline gap-1 justify-center">
-          <span className="text-white font-black text-4xl">¥680</span>
-          <span className="text-white/40 text-sm">/ {dict.locale.code === 'ja' ? '月' : 'mo'}</span>
-        </div>
-        <span className="text-white/30 text-xs">{p.cancelAnytime}</span>
-      </div>
+      <div className="text-white/30 text-xs text-center">{p.cancelAnytime}</div>
 
       <div className="w-full flex flex-col gap-2">
         <UpgradeButton userId={user?.id} userEmail={user?.email} />
