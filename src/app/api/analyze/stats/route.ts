@@ -124,7 +124,7 @@ ${(players as {backNumber:string;pts:number;fg2m:number;fg2a:number;fg3m:number;
       return NextResponse.json({ error: 'invalid type' }, { status: 400 });
     }
 
-    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model  = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     return NextResponse.json({ report: result.response.text() });
 

@@ -39,7 +39,7 @@ ${playerStats.their.map((p: {num: string; pts: number; fg2: number; fg2a: number
 ## 次戦への提言
 `;
 
-    const model  = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model  = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(prompt);
     const text   = result.response.text();
 
