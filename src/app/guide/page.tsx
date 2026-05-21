@@ -233,7 +233,7 @@ export default function GuidePage() {
           </div>
           <div className="rounded-2xl bg-amber-500/8 border border-amber-500/20 p-4 flex flex-col gap-3">
             {[
-              [Sparkles,     'AIスタッツ分析',    'Geminiが試合・チーム・個人データを分析し、コーチ目線のレポートを日本語で生成。結果はキャッシュ保存されAPI節約'],
+              [Sparkles,     'AIスタッツ分析',    'Geminiが試合・チーム・個人データを分析し、コーチ目線のレポートを日本語で生成。結果はキャッシュ保存されます'],
               [FileText,     'PDF出力',           'スコアシートおよびAI分析レポートをPDFで出力・印刷'],
               [Smartphone,   'クラウド同期',      '複数端末で同じアカウントにログインすれば自動同期'],
               [Plus,         '無制限の試合記録',  '無料プランの3試合制限なく記録できる'],
