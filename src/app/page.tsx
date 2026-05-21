@@ -7,7 +7,7 @@ import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage'
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users } from 'lucide-react';
+import { ChevronRight, Plus, Trophy, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 
 function formatDate(iso: string): string {
@@ -176,6 +176,18 @@ export default function HomePage() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
           >
             <BookOpen size={12} />使い方
+          </Link>
+          <Link
+            href="/analysis"
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+              isPremium
+                ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 active:bg-amber-500/25'
+                : 'bg-white/6 border border-white/10 text-white/50 active:bg-white/10',
+            )}
+          >
+            <BarChart2 size={12} />分析
+            {isPremium && <Crown size={9} className="text-amber-400" />}
           </Link>
         </div>
       </div>
