@@ -44,7 +44,7 @@ export function saveUserTeam(
     saveAll(teams);
     return existingId;
   } else {
-    const newTeam: UserTeam = { id: makeId(), ...team };
+    const newTeam: UserTeam = { ...team, id: makeId() };
     teams.push(newTeam);
     saveAll(teams);
     return newTeam.id;
