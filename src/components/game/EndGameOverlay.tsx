@@ -259,33 +259,38 @@ export function EndGameOverlay({
 
       {/* ── アクションボタン ── */}
       <div className="flex flex-col gap-3 px-6 pb-10">
-        {/* AI分析 */}
+        {/* 1: スタッツ詳細（青）*/}
+        <button onClick={onShowStats}
+          className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
+          <BarChart2 size={18} />スタッツ詳細を見る
+        </button>
+        {/* 2: ランニングスコア（アンバー）*/}
+        <button onClick={onShowRunning}
+          className="flex items-center justify-center gap-2 w-full bg-amber-600/80 active:bg-amber-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
+          <ClipboardList size={18} />ランニングスコアシート
+        </button>
+        {/* 3: AI分析（バイオレット）*/}
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Sparkles size={18} />
           {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : aiLoading ? '' : 'AIでスタッツを分析'}
         </button>
-        {/* PDF出力 */}
+        {/* 4: PDF出力（エメラルド）*/}
         <button onClick={() => setPdfConfirm(true)}
           className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <FileText size={18} />スコアシートをPDF出力
         </button>
-        <button onClick={onShowStats}
-          className="flex items-center justify-center gap-2 w-full bg-white/10 active:bg-white/8 text-white font-bold rounded-2xl py-4 text-base transition-colors border border-white/10">
-          <BarChart2 size={18} />スタッツ詳細を見る
-        </button>
-        <button onClick={onShowRunning}
-          className="flex items-center justify-center gap-2 w-full bg-white/10 active:bg-white/8 text-white font-bold rounded-2xl py-4 text-base transition-colors border border-white/10">
-          <ClipboardList size={18} />ランニングスコアシート
-        </button>
+        {/* 5: 次の試合（スカイ）*/}
         <button onClick={onNewGame}
-          className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
+          className="flex items-center justify-center gap-2 w-full bg-sky-600 active:bg-sky-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Plus size={18} />次の試合を作成
         </button>
+        {/* 6: ホーム（ダーク）*/}
         <button onClick={onGoHome}
-          className="flex items-center justify-center gap-2 w-full bg-white/6 active:bg-white/4 text-white/60 font-semibold rounded-2xl py-4 text-base transition-colors">
+          className="flex items-center justify-center gap-2 w-full bg-white/8 active:bg-white/12 text-white/60 font-semibold rounded-2xl py-4 text-base transition-colors border border-white/10">
           <Home size={18} />ホームへ戻る
         </button>
+        {/* 7: 記録再開（テキスト）*/}
         <button onClick={onResume}
           className="flex items-center justify-center gap-1.5 text-white/30 active:text-white/60 text-sm transition-colors py-2">
           <RotateCcw size={13} />記録を再開する
