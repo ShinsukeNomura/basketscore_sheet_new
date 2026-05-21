@@ -165,14 +165,12 @@ export default function HomePage() {
             <RefreshCw size={12} className={cn(syncing && 'animate-spin')} />
             {syncing ? '同期中...' : syncMsg ?? 'クラウド同期'}
           </button>
-          {isPremium && (
-            <button
-              onClick={() => setMyTeamsOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold active:bg-amber-500/20 transition-colors"
-            >
-              <Users size={12} />マイチーム
-            </button>
-          )}
+          <button
+            onClick={() => setMyTeamsOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
+          >
+            <Users size={12} />マイチーム
+          </button>
           <Link
             href="/guide"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
@@ -247,7 +245,7 @@ export default function HomePage() {
         open={createOpen}
         onClose={() => { setCreateOpen(false); loadGames(); }}
       />
-      {isPremium && user && (
+      {user && (
         <MyTeamsSheet
           open={myTeamsOpen}
           userId={user.id}

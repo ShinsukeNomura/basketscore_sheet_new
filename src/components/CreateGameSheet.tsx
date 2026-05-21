@@ -227,8 +227,8 @@ export function CreateGameSheet({ open, onClose }: Props) {
 
   return (
     <>
-    {/* マイチーム選択シート（プレミアム） */}
-    {isPremium && user && (
+    {/* マイチーム選択シート */}
+    {user && (
       <MyTeamsSheet
         open={myTeamsOpen}
         userId={user.id}
@@ -300,14 +300,12 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
                     <span className="text-white/60 text-xs font-bold tracking-wide">チーム（白）</span>
                   </div>
-                  {isPremium && (
-                    <button
-                      onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
-                      className="flex items-center gap-1 text-amber-400 text-xs font-bold active:opacity-70"
-                    >
-                      <Users size={12} />マイチームから選択
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
+                    className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
+                  >
+                    <Users size={12} />マイチームから選択
+                  </button>
                 </div>
                 {whitePlayers.length > 0 && (
                   <p className="text-white/35 text-xs">
@@ -337,14 +335,12 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
                     <span className="text-white/60 text-xs font-bold tracking-wide">チーム（濃）</span>
                   </div>
-                  {isPremium && (
-                    <button
-                      onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
-                      className="flex items-center gap-1 text-amber-400 text-xs font-bold active:opacity-70"
-                    >
-                      <Users size={12} />マイチームから選択
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
+                    className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
+                  >
+                    <Users size={12} />マイチームから選択
+                  </button>
                 </div>
                 {darkPlayers.length > 0 && (
                   <p className="text-white/35 text-xs">
