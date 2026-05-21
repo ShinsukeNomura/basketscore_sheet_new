@@ -232,6 +232,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
       <MyTeamsSheet
         open={myTeamsOpen}
         userId={user.id}
+        isPremium={isPremium}
         onClose={() => setMyTeamsOpen(false)}
         onSelect={handleSelectTeam}
         selectLabel={myTeamsTarget === 'white' ? 'チーム（白）を選択' : 'チーム（濃）を選択'}

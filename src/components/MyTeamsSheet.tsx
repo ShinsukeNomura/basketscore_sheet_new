@@ -6,17 +6,18 @@ import { ColorPicker } from '@/components/ColorPicker';
 import { JerseyColorId, DEFAULT_WHITE_COLOR } from '@/lib/colors';
 import { UserTeam, fetchUserTeams, saveUserTeam, deleteUserTeam } from '@/lib/myTeams';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2, ChevronLeft, Pencil, Check, Users } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, Pencil, Check, Users, Crown, Lock } from 'lucide-react';
 
 interface Props {
-  open:   boolean;
-  userId: string;
-  onClose: () => void;
-  onSelect?: (team: UserTeam) => void; // 選択モード用
+  open:       boolean;
+  userId:     string;
+  isPremium?: boolean;
+  onClose:    () => void;
+  onSelect?:  (team: UserTeam) => void; // 選択モード用
   selectLabel?: string;
 }
 
-export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: Props) {
+export function MyTeamsSheet({ open, userId, isPremium = false, onClose, onSelect, selectLabel }: Props) {
   const [teams,   setTeams]   = useState<UserTeam[]>([]);
   const [editing, setEditing] = useState<UserTeam | null>(null); // null=新規, 非null=編集中
   const [mode,    setMode]    = useState<'list' | 'edit'>('list');
@@ -75,7 +76,7 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
           <SheetTitle className="text-white text-sm flex-1">
             {mode === 'list' ? (onSelect ? selectLabel ?? 'チームを選択' : 'マイチーム') : (editing?.id ? 'チームを編集' : '新しいチームを登録')}
           </SheetTitle>
-          {mode === 'list' && !onSelect && (
+          {mode === 'list' && !onSelect && (isPremium || teams.length === 0) && (
             <button onClick={handleNew} className="text-blue-400 active:text-blue-300 p-1 shrink-0">
               <Plus size={20} />
             </button>
@@ -104,10 +105,7 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
                   key={team.id}
                   className="flex items-center gap-3 rounded-2xl bg-white/5 border border-white/8 px-4 py-3"
                 >
-                  {/* カラードット */}
                   <div className={cn('w-3 h-3 rounded-full shrink-0', `bg-${team.color}-500`)} />
-
-                  {/* チーム情報 */}
                   <div
                     className="flex-1 min-w-0 cursor-pointer"
                     onClick={() => onSelect ? onSelect(team) : handleEdit(team)}
@@ -119,8 +117,6 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
                         : 'メンバー未登録'}
                     </p>
                   </div>
-
-                  {/* アクションボタン */}
                   <div className="flex gap-1 shrink-0">
                     {onSelect ? (
                       <button
@@ -143,13 +139,22 @@ export function MyTeamsSheet({ open, userId, onClose, onSelect, selectLabel }: P
                 </div>
               ))}
 
+              {/* チーム追加エリア */}
               {teams.length > 0 && !onSelect && (
-                <button
-                  onClick={handleNew}
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-dashed border-white/15 text-white/40 text-sm active:border-white/30 active:text-white/60 transition-colors"
-                >
-                  <Plus size={16} />チームを追加
-                </button>
+                isPremium ? (
+                  <button
+                    onClick={handleNew}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-dashed border-white/15 text-white/40 text-sm active:border-white/30 active:text-white/60 transition-colors"
+                  >
+                    <Plus size={16} />チームを追加
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3 w-full py-3 px-4 rounded-2xl border border-dashed border-amber-800/40 bg-amber-950/20">
+                    <Lock size={14} className="text-amber-500/60 shrink-0" />
+                    <p className="text-amber-400/60 text-xs flex-1">複数チームの登録はプレミアム機能です</p>
+                    <Crown size={14} className="text-amber-400/60 shrink-0" />
+                  </div>
+                )
               )}
             </div>
           )}
