@@ -135,7 +135,7 @@ export default function HomePage() {
     <div className="bg-neutral-950 min-h-dvh">
 
       {/* ── ヘッダー ── */}
-      <div className="flex flex-col items-center pt-14 pb-6 px-6">
+      <div className="flex flex-col items-center pt-safe pt-14 pb-6 px-6">
         <div className="w-14 h-14 bg-blue-500/15 rounded-2xl flex items-center justify-center mb-4">
           <Trophy size={26} className="text-blue-400" />
         </div>
@@ -191,7 +191,7 @@ export default function HomePage() {
       </div>
 
       {/* ── コンテンツ ── */}
-      <div className="px-4 pb-36">
+      <div className="px-4 pb-44">
 
         {activeGames.length > 0 && (
           <section className="mb-6">
@@ -227,7 +227,7 @@ export default function HomePage() {
       </div>
 
       {/* ── 新規試合ボタン（固定フッター） ── */}
-      <div className="fixed bottom-0 inset-x-0 p-4 bg-neutral-950/90 backdrop-blur-md border-t border-white/5">
+      <div className="fixed bottom-0 inset-x-0 px-4 pt-3 pb-safe bg-neutral-950/90 backdrop-blur-md border-t border-white/5" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         {!isPremium && games.length >= FREE_GAME_LIMIT ? (
           <button
             onClick={() => setCreateOpen(true)}
