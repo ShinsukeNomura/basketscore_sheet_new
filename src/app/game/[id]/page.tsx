@@ -13,8 +13,9 @@ import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
 import { RunningScoreSheet }     from '@/components/game/RunningScoreSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
+import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Team, Player }          from '@/types';
+import { Team, Player, CourtLocation } from '@/types';
 
 export default function GamePage() {
   const params = useParams();
@@ -32,20 +33,41 @@ export default function GamePage() {
     renameTeam, renameGame, recolorTeam, logTeamTov,
   } = useGameState(gameId);
 
-  const [subTeam,      setSubTeam]      = useState<Team | null>(null);
-  const [subOpen,      setSubOpen]      = useState(false);
-  const [rosterTeam,   setRosterTeam]   = useState<Team | null>(null);
-  const [rosterOpen,   setRosterOpen]   = useState(false);
-  const [createOpen,   setCreateOpen]   = useState(false);
-  const [statsOpen,    setStatsOpen]    = useState(false);
-  const [runningOpen,  setRunningOpen]  = useState(false);
+  const [subTeam,        setSubTeam]        = useState<Team | null>(null);
+  const [subOpen,        setSubOpen]        = useState(false);
+  const [rosterTeam,     setRosterTeam]     = useState<Team | null>(null);
+  const [rosterOpen,     setRosterOpen]     = useState(false);
+  const [createOpen,     setCreateOpen]     = useState(false);
+  const [statsOpen,      setStatsOpen]      = useState(false);
+  const [runningOpen,    setRunningOpen]    = useState(false);
+  const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
 
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
 
   function handlePlayerClick(player: Player) {
     if (!selectedStat) return;
-    logStat(player);
+    if (isCourtMapAction(selectedStat)) {
+      // 2PT/3PT系はコートマップを挟む
+      setCourtMapPlayer(player);
+    } else {
+      logStat(player);
+    }
+  }
+
+  function handleCourtSelect(location: CourtLocation) {
+    if (!courtMapPlayer) return;
+    logStat(courtMapPlayer, location);
+    setCourtMapPlayer(null);
+  }
+
+  function handleCourtBack() {
+    setCourtMapPlayer(null); // 選手選択に戻る（selectedStat は維持）
+  }
+
+  function handleCourtCancel() {
+    setCourtMapPlayer(null);
+    if (selectedStat) selectStat(selectedStat); // トグルで解除
   }
 
   if (!isLoaded) {
@@ -131,6 +153,18 @@ export default function GamePage() {
           onUndo={undoLog}
         />
       </div>
+
+      {/* コートマップオーバーレイ（2PT/3PT選択後） */}
+      {courtMapPlayer && selectedStat && (
+        <CourtMap
+          action={selectedStat}
+          player={courtMapPlayer}
+          isOurs={courtMapPlayer.team_id === ourTeam.id}
+          onSelect={handleCourtSelect}
+          onBack={handleCourtBack}
+          onCancel={handleCourtCancel}
+        />
+      )}
 
       {game.status === 'finished' && (
         <EndGameOverlay

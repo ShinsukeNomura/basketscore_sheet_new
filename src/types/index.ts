@@ -11,6 +11,12 @@ export type ActionType =
   | 'FT_MADE'  | 'FT_MISS'
   | 'ORBD' | 'DRBD' | 'AST' | 'STL' | 'BLK' | 'TOV' | 'FOUL';
 
+export type CourtLocation =
+  | 'restricted'
+  | 'paint-left'       | 'paint-right'
+  | 'mid-left-corner'  | 'mid-left-wing'  | 'mid-center' | 'mid-right-wing' | 'mid-right-corner'
+  | '3pt-left-corner'  | '3pt-left-wing'  | '3pt-center' | '3pt-right-wing' | '3pt-right-corner';
+
 // ============================================================
 // データベースエンティティ
 // ============================================================
@@ -43,20 +49,22 @@ export interface Player {
 }
 
 export interface StatsLog {
-  id:          string;
-  game_id:     string;
-  team_id:     string;
-  player_id:   string | null;
-  period:      Period;
-  timestamp:   string;
-  action_type: ActionType;
-  points:      number;
-  is_deleted:  boolean;
-  created_at:  string;
+  id:             string;
+  game_id:        string;
+  team_id:        string;
+  player_id:      string | null;
+  period:         Period;
+  timestamp:      string;
+  action_type:    ActionType;
+  points:         number;
+  is_deleted:     boolean;
+  created_at:     string;
   /** 連動ログのグループID。STL と自動生成 TOV は同じ link_id を持つ */
-  link_id?:    string;
+  link_id?:       string;
   /** true = STL に連動して自動生成された TOV など */
-  is_auto?:    boolean;
+  is_auto?:       boolean;
+  /** シュートエリア（2PT/3PT系のみ。ヒートマップ分析用） */
+  court_location?: CourtLocation;
 }
 
 /** タイムライン表示用エントリ（primary + 連動ログを1セットに束ねる） */

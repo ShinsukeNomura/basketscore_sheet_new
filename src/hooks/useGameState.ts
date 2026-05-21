@@ -1,7 +1,7 @@
 'use client';
 
 import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Game, Team, Player, StatsLog, ActionType, Period, GameStatus, PersistedGameState, TimelineEntry } from '@/types';
+import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
@@ -38,7 +38,7 @@ interface InternalState {
 type GameAction =
   | { type: 'LOAD_PERSISTED';  payload: PersistedGameState }
   | { type: 'SELECT_STAT';     payload: ActionType }
-  | { type: 'LOG_STAT';        payload: { player: Player } }
+  | { type: 'LOG_STAT';        payload: { player: Player; courtLocation?: CourtLocation } }
   | { type: 'LOG_TEAM_TOV';   payload: { teamId: string } }  // チーム単位 TOV（スティール不要のミス）
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
@@ -85,7 +85,7 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
     case 'LOG_STAT': {
       if (!state.selectedStat) return state;
-      const { player }  = action.payload;
+      const { player, courtLocation } = action.payload;
       const ts          = new Date().toISOString();
       const isStl       = state.selectedStat === 'STL';
       const linkId      = isStl ? makeId() : undefined;
@@ -98,6 +98,7 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         timestamp: ts, action_type: state.selectedStat,
         points: ACTION_POINTS[state.selectedStat], is_deleted: false,
         created_at: ts,
+        ...(courtLocation ? { court_location: courtLocation } : {}),
       };
 
       const newLogs: StatsLog[] = [mainLog];
@@ -316,7 +317,7 @@ export function useGameState(gameId: string) {
 
   // --- アクション ---
   const selectStat   = useCallback((a: ActionType) => dispatch({ type: 'SELECT_STAT',   payload: a }),              []);
-  const logStat      = useCallback((p: Player)     => { dispatch({ type: 'LOG_STAT', payload: { player: p } }); setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300); }, []);
+  const logStat      = useCallback((p: Player, courtLocation?: CourtLocation) => { dispatch({ type: 'LOG_STAT', payload: { player: p, courtLocation } }); setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300); }, []);
   const undoLog      = useCallback((id: string)    => dispatch({ type: 'UNDO_LOG',      payload: id }),             []);
   const changePeriod = useCallback((p: Period)     => dispatch({ type: 'CHANGE_PERIOD', payload: p }),             []);
   const endGame      = useCallback(()              => dispatch({ type: 'END_GAME' }),                              []);
