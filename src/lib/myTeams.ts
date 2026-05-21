@@ -27,7 +27,16 @@ function saveAll(teams: UserTeam[]): void {
 }
 
 export function fetchUserTeams(_userId: string): UserTeam[] {
-  return loadAll();
+  const teams = loadAll();
+  // 同名チームの重複を除去（最初の1件を残す）
+  const seen = new Set<string>();
+  const deduped = teams.filter((t) => {
+    if (seen.has(t.team_name)) return false;
+    seen.add(t.team_name);
+    return true;
+  });
+  if (deduped.length !== teams.length) saveAll(deduped);
+  return deduped;
 }
 
 export function saveUserTeam(
