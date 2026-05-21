@@ -6,7 +6,7 @@ import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { BarChart2, ChevronLeft, MapPin } from 'lucide-react';
-import { ShotHeatmap } from '@/components/ShotHeatmap';
+import { CourtHeatmap } from '@/components/game/CourtMap';
 
 // ────────── 型 ──────────
 interface PlayerStatRow {
@@ -232,7 +232,7 @@ function TeamTable({
               ))}
             </div>
           </div>
-          <ShotHeatmap logs={mapLogs} />
+          <CourtHeatmap logs={mapLogs} />
         </div>
       )}
     </div>

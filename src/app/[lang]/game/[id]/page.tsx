@@ -198,6 +198,7 @@ export default function GamePage() {
           onSelect={handleCourtSelect}
           onBack={handleCourtBack}
           onCancel={handleCourtCancel}
+          shotLogs={activeLogs.filter((l) => l.player_id === courtMapPlayer.id)}
         />
       )}
 

@@ -23,7 +23,7 @@ import {
 } from '@/lib/aiReportCache';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
-import { ShotHeatmap } from '@/components/ShotHeatmap';
+import { CourtHeatmap } from '@/components/game/CourtMap';
 import type { StatsLog } from '@/types';
 
 function ShotCell({ made, attempted }: { made: number; attempted: number }) {
@@ -337,7 +337,7 @@ function PlayerDetailView({
       {(player.fg2a > 0 || player.fg3a > 0) && (
         <div className="rounded-2xl bg-white/4 border border-white/8 p-4 flex flex-col gap-2">
           <p className="text-white/40 text-xs font-semibold tracking-wider uppercase">シュートマップ</p>
-          <ShotHeatmap logs={shotLogs} />
+          <CourtHeatmap logs={shotLogs} />
         </div>
       )}
 
