@@ -48,42 +48,51 @@ export default function PremiumSuccessPage() {
         {polling ? (
           <>
             <h1 className="text-white font-black text-2xl mb-2">
-              {locale === 'ja' ? 'プレミアムを有効化中...' : locale === 'zh' ? '正在激活高级版...' : 'Activating Premium...'}
+              {locale === 'ja' ? 'プレミアムを有効化中...'
+                : locale === 'zh'    ? '正在激活高级版...'
+                : locale === 'zh-TW' ? '正在啟用進階版...'
+                : 'Activating Premium...'}
             </h1>
             <p className="text-white/40 text-sm leading-relaxed whitespace-pre-line">
-              {locale === 'ja'
-                ? '決済を確認しています。\nそのままお待ちください。'
-                : locale === 'zh'
-                ? '正在验证支付。\n请稍候。'
+              {locale === 'ja'    ? '決済を確認しています。\nそのままお待ちください。'
+                : locale === 'zh'    ? '正在验证支付。\n请稍候。'
+                : locale === 'zh-TW' ? '正在驗證付款。\n請稍候。'
                 : 'Verifying your payment.\nPlease wait a moment.'}
             </p>
           </>
         ) : confirmed ? (
           <>
             <h1 className="text-white font-black text-2xl mb-2">
-              {locale === 'ja' ? 'プレミアム登録完了！' : locale === 'zh' ? '高级版激活成功！' : 'Premium Activated!'}
+              {locale === 'ja'    ? 'プレミアム登録完了！'
+                : locale === 'zh'    ? '高级版激活成功！'
+                : locale === 'zh-TW' ? '進階版啟用成功！'
+                : 'Premium Activated!'}
             </h1>
             <p className="text-white/40 text-sm leading-relaxed whitespace-pre-line">
-              {locale === 'ja'
-                ? 'ありがとうございます。\nすべての機能が使えるようになりました。'
-                : locale === 'zh'
-                ? '感谢您的支持。\n所有高级功能现已解锁。'
+              {locale === 'ja'    ? 'ありがとうございます。\nすべての機能が使えるようになりました。'
+                : locale === 'zh'    ? '感谢您的支持。\n所有高级功能现已解锁。'
+                : locale === 'zh-TW' ? '感謝您的支持。\n所有進階功能現已解鎖。'
                 : 'Thank you!\nAll premium features are now unlocked.'}
             </p>
             <p className="text-white/20 text-xs mt-3">
-              {locale === 'ja' ? '2秒後に試合作成画面へ移動します...' : locale === 'zh' ? '2秒后跳转至创建比赛页面...' : 'Redirecting in 2 seconds...'}
+              {locale === 'ja'    ? '2秒後に試合作成画面へ移動します...'
+                : locale === 'zh'    ? '2秒后跳转至创建比赛页面...'
+                : locale === 'zh-TW' ? '2秒後跳轉至建立比賽頁面...'
+                : 'Redirecting in 2 seconds...'}
             </p>
           </>
         ) : (
           <>
             <h1 className="text-white font-black text-xl mb-2">
-              {locale === 'ja' ? '有効化に時間がかかっています' : locale === 'zh' ? '激活时间稍长' : 'Taking a bit longer than expected'}
+              {locale === 'ja'    ? '有効化に時間がかかっています'
+                : locale === 'zh'    ? '激活时间稍长'
+                : locale === 'zh-TW' ? '啟用時間較長'
+                : 'Taking a bit longer than expected'}
             </h1>
             <p className="text-white/40 text-sm leading-relaxed whitespace-pre-line">
-              {locale === 'ja'
-                ? '決済は完了しています。\n数分後にホームページで確認してください。'
-                : locale === 'zh'
-                ? '支付已完成。\n请几分钟后在主页确认。'
+              {locale === 'ja'    ? '決済は完了しています。\n数分後にホームページで確認してください。'
+                : locale === 'zh'    ? '支付已完成。\n请几分钟后在主页确认。'
+                : locale === 'zh-TW' ? '付款已完成。\n請幾分鐘後在首頁確認。'
                 : 'Your payment was successful.\nPlease check the home screen in a few minutes.'}
             </p>
           </>
@@ -95,7 +104,7 @@ export default function PremiumSuccessPage() {
           onClick={() => { window.location.href = `/${locale}?create=true`; }}
           className="flex items-center gap-2 bg-blue-600 active:bg-blue-700 text-white font-bold rounded-2xl px-6 py-3.5 transition-colors"
         >
-          {locale === 'ja' ? '試合を作成する' : locale === 'zh' ? '创建比赛' : 'Create a game'}
+          {locale === 'ja' ? '試合を作成する' : locale === 'zh' ? '创建比赛' : locale === 'zh-TW' ? '建立比賽' : 'Create a game'}
           <ChevronRight size={18} />
         </button>
       )}

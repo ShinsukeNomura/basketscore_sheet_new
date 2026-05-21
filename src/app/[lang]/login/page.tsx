@@ -9,9 +9,10 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
 const LOCALES = [
-  { code: 'ja', label: '日本語', flag: '🇯🇵' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja',    label: '日本語',  flag: '🇯🇵' },
+  { code: 'en',    label: 'English', flag: '🇺🇸' },
+  { code: 'zh',    label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
 ] as const;
 
 function LangSwitcher({ current, path }: { current: string; path: string }) {

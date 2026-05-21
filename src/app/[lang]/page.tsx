@@ -19,18 +19,16 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
 const LOCALES = [
-  { code: 'ja', label: '日本語', flag: '🇯🇵' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'zh', label: '中文', flag: '🇨🇳' },
+  { code: 'ja',    label: '日本語',  flag: '🇯🇵' },
+  { code: 'en',    label: 'English', flag: '🇺🇸' },
+  { code: 'zh',    label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
 ] as const;
 
 function formatDate(iso: string, locale: string): string {
-  if (locale === 'en') {
-    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  }
-  if (locale === 'zh') {
-    return new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
-  }
+  if (locale === 'en')    return new Date(iso).toLocaleDateString('en-US',  { year: 'numeric', month: 'short', day: 'numeric' });
+  if (locale === 'zh')    return new Date(iso).toLocaleDateString('zh-CN',  { year: 'numeric', month: 'numeric', day: 'numeric' });
+  if (locale === 'zh-TW') return new Date(iso).toLocaleDateString('zh-TW',  { year: 'numeric', month: 'numeric', day: 'numeric' });
   return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
 }
 
