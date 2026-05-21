@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { getGamesIndex, deleteGame, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
@@ -8,7 +8,7 @@ import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { ChevronRight, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Plus, Trash2, Clock, Crown, LogOut, RefreshCw, BookOpen, Users, BarChart2 } from 'lucide-react';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 
 function formatDate(iso: string): string {
@@ -141,6 +141,29 @@ export default function HomePage() {
   const activeGames   = games.filter((g) => g.status === 'progress');
   const finishedGames = games.filter((g) => g.status === 'finished');
 
+  // 終了試合を年別にグループ化（新しい年が先頭）
+  const finishedByYear = useMemo(() => {
+    const map = new Map<number, GameSummary[]>();
+    for (const g of finishedGames) {
+      const year = new Date(g.date).getFullYear();
+      if (!map.has(year)) map.set(year, []);
+      map.get(year)!.push(g);
+    }
+    return Array.from(map.entries()).sort((a, b) => b[0] - a[0]);
+  }, [finishedGames]);
+
+  // 現在年以外はデフォルトで折りたたむ
+  const currentYear = new Date().getFullYear();
+  const [collapsedYears, setCollapsedYears] = useState<Set<number>>(
+    () => new Set(finishedByYear.filter(([y]) => y !== currentYear).map(([y]) => y))
+  );
+  const toggleYear = (year: number) =>
+    setCollapsedYears((prev) => {
+      const next = new Set(prev);
+      next.has(year) ? next.delete(year) : next.add(year);
+      return next;
+    });
+
   if (loading || !user) {
     return (
       <div className="h-dvh flex items-center justify-center bg-neutral-950">
@@ -223,14 +246,40 @@ export default function HomePage() {
           </section>
         )}
 
-        {finishedGames.length > 0 && (
+        {finishedByYear.length > 0 && (
           <section className="mb-6">
             <div className="flex items-center gap-2 mb-3 px-1">
               <Clock size={11} className="text-white/30" />
               <p className="text-white/40 text-xs font-semibold tracking-widest uppercase">終了した試合</p>
             </div>
-            <div className="flex flex-col gap-2">
-              {finishedGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} />)}
+            <div className="flex flex-col gap-4">
+              {finishedByYear.map(([year, yearGames]) => {
+                const collapsed = collapsedYears.has(year);
+                return (
+                  <div key={year}>
+                    {/* 年ヘッダー */}
+                    <button
+                      onClick={() => toggleYear(year)}
+                      className="w-full flex items-center gap-2 px-1 py-1.5 mb-2 active:opacity-70 transition-opacity"
+                    >
+                      <div className="flex-1 h-px bg-white/8" />
+                      <span className="text-white/35 text-xs font-bold tracking-widest shrink-0">{year}年</span>
+                      <span className="text-white/20 text-[10px] shrink-0">{yearGames.length}試合</span>
+                      <ChevronDown
+                        size={12}
+                        className={cn('text-white/25 transition-transform shrink-0', collapsed && '-rotate-90')}
+                      />
+                      <div className="flex-1 h-px bg-white/8" />
+                    </button>
+                    {/* 試合カード */}
+                    {!collapsed && (
+                      <div className="flex flex-col gap-2">
+                        {yearGames.map((g) => <GameCard key={g.id} game={g} onDelete={handleDelete} />)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
