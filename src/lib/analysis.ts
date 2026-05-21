@@ -1,4 +1,4 @@
-import { getGamesIndex, loadPersistedGame } from './storage';
+import { getGamesIndex, loadPersistedGame, GameSummary } from './storage';
 import { StatsLog } from '@/types';
 
 // ============================================================
@@ -38,6 +38,17 @@ export interface TeamAnalysis {
 
 function cnt(logs: StatsLog[], type: string): number {
   return logs.filter((l) => l.action_type === type).length;
+}
+
+/** 全試合履歴からユニークなチーム名一覧を取得 */
+export function getAllTeamNamesFromHistory(): string[] {
+  const gameIndex = getGamesIndex();
+  const names = new Set<string>();
+  for (const summary of gameIndex) {
+    if (summary.ourTeamName)   names.add(summary.ourTeamName);
+    if (summary.theirTeamName) names.add(summary.theirTeamName);
+  }
+  return Array.from(names).sort((a, b) => a.localeCompare(b));
 }
 
 export function pct(made: number, attempted: number): string {

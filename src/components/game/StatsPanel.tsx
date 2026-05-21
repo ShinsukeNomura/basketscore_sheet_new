@@ -158,35 +158,35 @@ export function StatsPanel({
       </div>
 
       {/* ── Made ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2]">
+      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0">
         {MADE.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="lg" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Miss ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2]">
+      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0">
         {MISS.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="sm" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Neutral（中） ── */}
-      <div className="grid grid-cols-4 gap-2 flex-[2]">
+      <div className="grid grid-cols-4 gap-2 flex-[2] min-h-0">
         {NEUTRAL.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
         ))}
       </div>
 
       {/* ── Negative（中） ── */}
-      <div className="grid grid-cols-3 gap-2 flex-[2]">
+      <div className="grid grid-cols-3 gap-2 flex-[2] min-h-0">
         {NEG.map((def) => (
           <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
         ))}
       </div>
 
-      {/* ── 略語一覧（非常に控えめ） ── */}
-      <div className="shrink-0 flex flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">
+      {/* ── 略語一覧（スマホ非表示） ── */}
+      <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">
         {[
           ['ORbd', 'OFリバウンド'], ['DRbd', 'DFリバウンド'], ['AST', 'アシスト'],
           ['STL', 'スティール'],    ['BLK', 'ブロック'],      ['FOUL', 'ファウル'], ['TOV', 'ターンオーバー'],
