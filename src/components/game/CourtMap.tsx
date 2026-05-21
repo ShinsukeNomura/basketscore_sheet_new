@@ -141,8 +141,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel }:
               })}
             </div>
 
-            {/* 3PTラインヒント */}
-            <div className="pointer-events-none absolute inset-x-3 bottom-[calc(25%+10px)] border-t-2 border-dashed border-amber-600/25" />
+
           </div>
 
           {/* 凡例 */}
