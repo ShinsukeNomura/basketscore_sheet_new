@@ -1,7 +1,7 @@
 'use client';
 
 import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason } from '@/types';
+import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
@@ -35,6 +35,37 @@ interface InternalState {
 // Action 型
 // ============================================================
 
+// ============================================================
+// TOV 理由マッピング（モード切替時）
+// ============================================================
+
+// 6カテゴリーから12カテゴリーへ
+const MAP_TO_12: Partial<Record<TovReason, TovReason>> = {
+  steal:     'lost-ball',  // 被スティール → ロストボール
+  violation: 'other',      // 時間・違反（総称）→ 特定不能なため other
+};
+
+// 12カテゴリーから6カテゴリーへ
+const MAP_TO_6: Partial<Record<TovReason, TovReason>> = {
+  'lost-ball':      'other',     // ハンドリングミス → 6では直接対応なし
+  'double-dribble': 'violation', // ダブルドリブル → 違反系
+  'out-of-bounds':  'bad-pass',  // OOB → パスミス系
+  '24sec':          'violation',
+  '8sec':           'violation',
+  '5sec':           'violation',
+  backcourt:        'violation',
+  '3sec':           'violation',
+};
+
+function remapReason(reason: TovReason, newMode: Exclude<TovMode, 'simple'>): TovReason {
+  const map = newMode === '6-grid' ? MAP_TO_6 : MAP_TO_12;
+  return map[reason] ?? reason;
+}
+
+// ============================================================
+// Action 型
+// ============================================================
+
 type GameAction =
   | { type: 'LOAD_PERSISTED';  payload: PersistedGameState }
   | { type: 'SELECT_STAT';     payload: ActionType }
@@ -51,7 +82,8 @@ type GameAction =
   | { type: 'TOGGLE_COURT';    payload: string }
   | { type: 'RENAME_TEAM';     payload: { teamId: string; name: string } }
   | { type: 'RENAME_GAME';     payload: string }
-  | { type: 'RECOLOR_TEAM';   payload: { teamId: string; color: string } };
+  | { type: 'RECOLOR_TEAM';    payload: { teamId: string; color: string } }
+  | { type: 'REMAP_TOV_REASONS'; payload: { newMode: Exclude<TovMode, 'simple'> } };
 
 // ============================================================
 // 空の初期 State（localStorage 読込前のプレースホルダ）
@@ -224,6 +256,18 @@ function reducer(state: InternalState, action: GameAction): InternalState {
       return state;
     }
 
+    case 'REMAP_TOV_REASONS': {
+      const { newMode } = action.payload;
+      return {
+        ...state,
+        logs: state.logs.map((l) => {
+          if (l.action_type !== 'TOV' || !l.tov_reason || l.is_deleted) return l;
+          const mapped = remapReason(l.tov_reason, newMode);
+          return mapped !== l.tov_reason ? { ...l, tov_reason: mapped } : l;
+        }),
+      };
+    }
+
     default:
       return state;
   }
@@ -330,9 +374,12 @@ export function useGameState(gameId: string) {
   const renameTeam   = useCallback((teamId: string, name: string)  => dispatch({ type: 'RENAME_TEAM',  payload: { teamId, name } }),  []);
   const renameGame   = useCallback((name: string)                  => dispatch({ type: 'RENAME_GAME',  payload: name }),              []);
   const recolorTeam  = useCallback((teamId: string, color: string) => dispatch({ type: 'RECOLOR_TEAM', payload: { teamId, color } }), []);
-  const logTeamTov   = useCallback((teamId: string, tovReason?: TovReason, playerId?: string) => {
+  const logTeamTov      = useCallback((teamId: string, tovReason?: TovReason, playerId?: string) => {
     dispatch({ type: 'LOG_TEAM_TOV', payload: { teamId, tovReason, playerId } });
     if (navigator.vibrate) navigator.vibrate(30);
+  }, []);
+  const remapTovReasons = useCallback((newMode: Exclude<TovMode, 'simple'>) => {
+    dispatch({ type: 'REMAP_TOV_REASONS', payload: { newMode } });
   }, []);
 
   return {
@@ -344,6 +391,7 @@ export function useGameState(gameId: string) {
     recentEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
-    addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam, logTeamTov,
+    addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
+    logTeamTov, remapTovReasons,
   };
 }

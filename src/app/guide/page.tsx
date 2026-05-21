@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, Plus, Users, BarChart2, ClipboardList, Trophy, RefreshCw, Crown, Sparkles, FileText, Smartphone } from 'lucide-react';
+import { ChevronLeft, Plus, Users, BarChart2, ClipboardList, Trophy, RefreshCw, Crown, Sparkles, FileText, Smartphone, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ── セクションヘッダー
@@ -218,6 +218,7 @@ export default function GuidePage() {
               [FileText, 'PDF出力', 'スコアシートをPDFでエクスポート・印刷'],
               [Smartphone, 'クラウド同期', '複数端末で同じアカウントにログインすれば自動同期'],
               [Plus, '無制限の試合記録', '3試合の制限なく何試合でも記録できる'],
+              [AlertCircle, 'TOV詳細分類', 'ターンオーバーを厳選6・公式12カテゴリーで記録（詳細は下記）'],
             ].map(([Icon, title, desc]) => (
               <div key={title as string} className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
@@ -229,6 +230,41 @@ export default function GuidePage() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* TOV詳細分類の説明 */}
+          <div className="rounded-2xl bg-white/4 border border-white/8 p-4 flex flex-col gap-3 mt-2">
+            <p className="text-white/50 text-xs font-semibold tracking-wider uppercase">TOV詳細分類モード</p>
+            <p className="text-white/55 text-xs leading-relaxed">
+              スタッツパネルの TOV ボタン上部に <span className="text-neutral-200 font-bold">簡略 / 厳選6 / 公式12</span> の切替ボタンが表示されます。
+            </p>
+            <div className="flex flex-col gap-2">
+              {[
+                ['簡略', 'bg-neutral-700', 'TOVボタンを押すと即座に記録（従来通り）'],
+                ['厳選6', 'bg-sky-900/70', 'スチール・パスミス・トラベリング・オフェンスファウル・時間違反・その他 の6分類'],
+                ['公式12', 'bg-amber-900/70', 'バッドパス・ハンドリング・OOB・ダブドリ・24秒など JBA公式の12分類'],
+              ].map(([label, color, desc]) => (
+                <div key={label} className="flex items-start gap-2">
+                  <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded shrink-0 text-white/90', color)}>{label}</span>
+                  <span className="text-white/35 text-xs leading-relaxed">{desc}</span>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl bg-white/4 border border-white/6 p-3 flex flex-col gap-1.5">
+              <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">モード切替時の自動変換</p>
+              <p className="text-white/40 text-xs leading-relaxed">
+                試合中にモードを切り替えると、記録済みの TOV 理由が自動的に変換されます。
+              </p>
+              {[
+                ['厳選6 → 公式12', 'スチール → ロストボール、時間違反 → その他'],
+                ['公式12 → 厳選6', '24秒/8秒/5秒/バックコート/3秒 → 時間違反、OOB → パスミス、ダブドリ → 時間違反'],
+              ].map(([dir, rule]) => (
+                <div key={dir} className="flex items-start gap-2 mt-0.5">
+                  <span className="text-amber-400/70 text-[10px] font-bold shrink-0 min-w-[90px]">{dir}</span>
+                  <span className="text-white/30 text-[10px] leading-relaxed">{rule}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

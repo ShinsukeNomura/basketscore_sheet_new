@@ -31,7 +31,7 @@ export default function GamePage() {
     selectStat, logStat, undoLog,
     changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt,
-    renameTeam, renameGame, recolorTeam, logTeamTov,
+    renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons,
   } = useGameState(gameId);
 
   const { isPremium } = useAuth();
@@ -152,7 +152,10 @@ export default function GamePage() {
           onTheirTov={handleTheirTov}
           isPremium={isPremium}
           tovMode={tovMode}
-          onTovModeChange={setTovMode}
+          onTovModeChange={(newMode) => {
+            setTovMode(newMode);
+            if (newMode !== 'simple') remapTovReasons(newMode);
+          }}
         />
       </div>
 
