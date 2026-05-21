@@ -18,11 +18,51 @@ import { setGameLabels } from '@/lib/storage';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
+const LOCALES = [
+  { code: 'ja', label: '日本語', flag: '🇯🇵' },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'zh', label: '中文', flag: '🇨🇳' },
+] as const;
+
 function formatDate(iso: string, locale: string): string {
   if (locale === 'en') {
     return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
+  if (locale === 'zh') {
+    return new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+  }
   return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' });
+}
+
+function LangSwitcher({ current, basePath }: { current: string; basePath: string }) {
+  const [open, setOpen] = useState(false);
+  const cur = LOCALES.find((l) => l.code === current) ?? LOCALES[0];
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/40 text-xs font-semibold active:bg-white/10 transition-colors"
+      >
+        <Globe size={12} />
+        <span>{cur.flag} {cur.label}</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-30 bg-neutral-800 border border-white/10 rounded-xl shadow-xl overflow-hidden min-w-[120px]">
+          {LOCALES.filter((l) => l.code !== current).map((l) => (
+            <a
+              key={l.code}
+              href={`/${l.code}${basePath}`}
+              className="flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              <span>{l.flag}</span>
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function GameCard({ game, onDelete, onLabel, locale, dict }: {
@@ -226,8 +266,6 @@ export default function HomePage() {
       return next;
     });
 
-  const otherLocale = locale === 'ja' ? 'en' : 'ja';
-  const otherLocaleName = locale === 'ja' ? 'English' : '日本語';
 
   if (loading || !user) {
     return (
@@ -294,12 +332,7 @@ export default function HomePage() {
             {isPremium && <Crown size={9} className="text-amber-400" />}
           </Link>
           {/* 言語切替 */}
-          <Link
-            href={`/${otherLocale}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/40 text-xs font-semibold active:bg-white/10 transition-colors"
-          >
-            <Globe size={12} />{otherLocaleName}
-          </Link>
+          <LangSwitcher current={locale} basePath="" />
         </div>
       </div>
 

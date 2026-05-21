@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const locales = ['ja', 'en'] as const;
+export const locales = ['ja', 'en', 'zh'] as const;
 export type Locale = typeof locales[number];
 export const defaultLocale: Locale = 'ja';
 
@@ -10,6 +10,7 @@ function getLocale(request: NextRequest): Locale {
   for (const lang of languages) {
     if (lang.startsWith('en')) return 'en';
     if (lang.startsWith('ja')) return 'ja';
+    if (lang.startsWith('zh')) return 'zh';
   }
   return defaultLocale;
 }
