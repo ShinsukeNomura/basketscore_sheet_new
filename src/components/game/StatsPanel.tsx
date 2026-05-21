@@ -44,13 +44,21 @@ function Btn({
   }[size];
 
   const variantClass = isMiss
-    ? 'border border-neutral-600/60 text-neutral-400 bg-neutral-900/50 active:bg-neutral-800/70 active:border-neutral-500'
+    ? isSelected
+      ? 'border-2 border-rose-500 text-rose-300 bg-rose-950/60'
+      : 'border border-neutral-600/60 text-neutral-400 bg-neutral-900/50 active:bg-neutral-800/70 active:border-neutral-500'
     : isMade
-    ? 'bg-neutral-800 text-neutral-100 border border-neutral-700/50 active:bg-neutral-700 active:border-neutral-600'
+    ? isSelected
+      ? 'bg-emerald-700 text-white border-2 border-emerald-400'
+      : 'bg-neutral-800 text-neutral-100 border border-neutral-700/50 active:bg-neutral-700 active:border-neutral-600'
     : isNeutral
-    ? 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/40 active:bg-neutral-700/80'
+    ? isSelected
+      ? 'bg-blue-700/80 text-white border-2 border-blue-400'
+      : 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/40 active:bg-neutral-700/80'
     : isNegative
-    ? 'bg-neutral-800/60 text-amber-200/90 border border-amber-900/40 active:bg-neutral-700/70'
+    ? isSelected
+      ? 'bg-amber-700/80 text-white border-2 border-amber-400'
+      : 'bg-neutral-800/60 text-amber-200/90 border border-amber-900/40 active:bg-neutral-700/70'
     : 'bg-neutral-800 text-neutral-200';
 
   return (
@@ -62,7 +70,7 @@ function Btn({
         'shadow-sm shadow-black/20',
         sizeClass,
         variantClass,
-        isSelected && 'ring-2 ring-white/40 ring-offset-1 ring-offset-neutral-950',
+        isSelected && 'scale-[1.03]',
       )}
     >
       {size === 'lg' ? (
