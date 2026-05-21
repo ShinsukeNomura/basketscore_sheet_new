@@ -16,6 +16,10 @@ import {
   ArrowRight, BookmarkPlus, Check, Sparkles, FileText, Loader2,
 } from 'lucide-react';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
+import {
+  getCachedReport, setCachedReport,
+  teamReportKey, playerReportKey, formatCacheDate,
+} from '@/lib/aiReportCache';
 
 // ================================================================
 // 汎用 UI
@@ -47,12 +51,15 @@ function ShootingBar({ label, made, attempted, color }: { label: string; made: n
 }
 
 // ── AIレポート表示エリア
-function AiReportBox({ report }: { report: string }) {
+function AiReportBox({ report, cachedAt }: { report: string; cachedAt?: string }) {
   return (
     <div className="rounded-2xl bg-blue-950/30 border border-blue-500/20 p-4">
       <div className="flex items-center gap-1.5 mb-3">
         <Sparkles size={13} className="text-blue-400" />
-        <span className="text-blue-400 text-xs font-bold tracking-wider uppercase">AI分析レポート</span>
+        <span className="text-blue-400 text-xs font-bold tracking-wider uppercase flex-1">AI分析レポート</span>
+        {cachedAt && (
+          <span className="text-white/25 text-[10px]">{formatCacheDate(cachedAt)} 生成</span>
+        )}
       </div>
       <p className="text-white/75 text-xs leading-relaxed whitespace-pre-wrap">{report}</p>
     </div>
@@ -70,12 +77,17 @@ function TeamAnalysisView({
 }) {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerAnalysis | null>(null);
   const [aiReport,   setAiReport]   = useState('');
+  const [aiCachedAt, setAiCachedAt] = useState('');
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiError,    setAiError]    = useState('');
   const [pdfConfirm, setPdfConfirm] = useState(false);
 
-  // チームが変わったらAIレポートをリセット
-  useEffect(() => { setAiReport(''); setAiError(''); }, [teamName]);
+  // チームが変わったらリセット→キャッシュ確認
+  useEffect(() => {
+    setAiReport(''); setAiError(''); setAiCachedAt('');
+    const cached = getCachedReport(teamReportKey(teamName));
+    if (cached) { setAiReport(cached.report); setAiCachedAt(cached.cachedAt); }
+  }, [teamName]);
 
   if (selectedPlayer) {
     return <PlayerDetailView player={selectedPlayer} teamName={teamName} onBack={() => setSelectedPlayer(null)} />;
@@ -85,8 +97,7 @@ function TeamAnalysisView({
   const winRate = g > 0 ? Math.round(analysis.wins / g * 100) : 0;
 
   async function handleAiAnalyze() {
-    setAiLoading(true);
-    setAiError('');
+    setAiLoading(true); setAiError('');
     try {
       const res = await fetch('/api/analyze/stats', {
         method: 'POST',
@@ -94,8 +105,14 @@ function TeamAnalysisView({
         body: JSON.stringify({ type: 'team', ...analysis, teamName }),
       });
       const data = await res.json();
-      if (data.error) setAiError(data.error);
-      else setAiReport(data.report);
+      if (data.error) {
+        setAiError(data.error);
+      } else {
+        setAiReport(data.report);
+        const now = new Date().toISOString();
+        setAiCachedAt(now);
+        setCachedReport(teamReportKey(teamName), data.report);
+      }
     } catch {
       setAiError('通信エラーが発生しました');
     } finally {
@@ -211,13 +228,13 @@ function TeamAnalysisView({
               <p className="text-white/30 text-xs">チームの強み・弱み・次戦への対策をAIが分析します</p>
             )}
             {aiError && <p className="text-red-400 text-xs">{aiError}</p>}
-            {aiReport && <AiReportBox report={aiReport} />}
+            {aiReport && <AiReportBox report={aiReport} cachedAt={aiCachedAt} />}
             <button
               onClick={handleAiAnalyze}
               disabled={aiLoading}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-600 active:bg-purple-700 disabled:opacity-50 text-white font-bold text-sm transition-colors"
             >
-              {aiLoading ? <><Loader2 size={15} className="animate-spin" />分析中...</> : <><Sparkles size={15} />{aiReport ? '再分析' : 'AI分析を実行'}</>}
+              {aiLoading ? <><Loader2 size={15} className="animate-spin" />分析中...</> : <><Sparkles size={15} />{aiReport ? '再分析（API再実行）' : 'AI分析を実行'}</>}
             </button>
           </div>
         </>
@@ -234,10 +251,17 @@ function PlayerDetailView({
   player, teamName, onBack,
 }: { player: PlayerAnalysis; teamName: string; onBack: () => void }) {
   const [aiReport,   setAiReport]   = useState('');
+  const [aiCachedAt, setAiCachedAt] = useState('');
   const [aiLoading,  setAiLoading]  = useState(false);
   const [aiError,    setAiError]    = useState('');
   const [pdfConfirm, setPdfConfirm] = useState(false);
   const g = player.games;
+
+  // キャッシュから読み込み
+  useEffect(() => {
+    const cached = getCachedReport(playerReportKey(teamName, player.backNumber));
+    if (cached) { setAiReport(cached.report); setAiCachedAt(cached.cachedAt); }
+  }, [teamName, player.backNumber]);
 
   async function handleAiAnalyze() {
     setAiLoading(true); setAiError('');
@@ -248,8 +272,14 @@ function PlayerDetailView({
         body: JSON.stringify({ type: 'player', ...player }),
       });
       const data = await res.json();
-      if (data.error) setAiError(data.error);
-      else setAiReport(data.report);
+      if (data.error) {
+        setAiError(data.error);
+      } else {
+        setAiReport(data.report);
+        const now = new Date().toISOString();
+        setAiCachedAt(now);
+        setCachedReport(playerReportKey(teamName, player.backNumber), data.report);
+      }
     } catch { setAiError('通信エラー'); }
     finally { setAiLoading(false); }
   }
@@ -314,13 +344,13 @@ function PlayerDetailView({
         </div>
         {!aiReport && !aiLoading && <p className="text-white/30 text-xs">選手の強み・課題・練習提案をAIが分析します</p>}
         {aiError && <p className="text-red-400 text-xs">{aiError}</p>}
-        {aiReport && <AiReportBox report={aiReport} />}
+        {aiReport && <AiReportBox report={aiReport} cachedAt={aiCachedAt} />}
         <button
           onClick={handleAiAnalyze}
           disabled={aiLoading}
           className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-600 active:bg-purple-700 disabled:opacity-50 text-white font-bold text-sm transition-colors"
         >
-          {aiLoading ? <><Loader2 size={15} className="animate-spin" />分析中...</> : <><Sparkles size={15} />{aiReport ? '再分析' : 'AI分析を実行'}</>}
+          {aiLoading ? <><Loader2 size={15} className="animate-spin" />分析中...</> : <><Sparkles size={15} />{aiReport ? '再分析（API再実行）' : 'AI分析を実行'}</>}
         </button>
       </div>
     </div>

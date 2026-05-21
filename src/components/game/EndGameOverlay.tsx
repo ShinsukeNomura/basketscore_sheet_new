@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { cn } from '@/lib/utils';
 import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2 } from 'lucide-react';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
+import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
 
 // ================================================================
 // 型
@@ -74,9 +75,19 @@ export function EndGameOverlay({
 
   // AI分析
   const [aiReport,    setAiReport]    = useState<string | null>(null);
+  const [aiCachedAt,  setAiCachedAt]  = useState<string>('');
   const [aiLoading,   setAiLoading]   = useState(false);
   const [showReport,  setShowReport]  = useState(false);
   const [pdfConfirm,  setPdfConfirm]  = useState(false);
+
+  // キャッシュから読み込み
+  useEffect(() => {
+    const cached = getCachedReport(gameReportKey(game.id));
+    if (cached) {
+      setAiReport(cached.report);
+      setAiCachedAt(cached.cachedAt);
+    }
+  }, [game.id]);
 
   const handleAI = async () => {
     if (aiReport) { setShowReport((v) => !v); return; }
@@ -107,7 +118,13 @@ export function EndGameOverlay({
       }),
     });
     const { report, error } = await res.json();
-    setAiReport(error ? `エラー: ${error}` : report);
+    if (!error && report) {
+      setAiReport(report);
+      setAiCachedAt(new Date().toISOString());
+      setCachedReport(gameReportKey(game.id), report);
+    } else {
+      setAiReport(error ? `エラー: ${error}` : report);
+    }
     setAiLoading(false);
   };
 
@@ -195,7 +212,10 @@ export function EndGameOverlay({
         <div className="mx-6 mb-5 rounded-2xl bg-white/4 border border-white/8 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={14} className="text-violet-400" />
-            <span className="text-white font-bold text-sm">AI分析レポート</span>
+            <span className="text-white font-bold text-sm flex-1">AI分析レポート</span>
+            {aiCachedAt && !aiLoading && (
+              <span className="text-white/25 text-[10px]">{formatCacheDate(aiCachedAt)} 生成</span>
+            )}
           </div>
           {aiLoading ? (
             <div className="flex items-center gap-2 text-white/40">
@@ -203,7 +223,15 @@ export function EndGameOverlay({
               <span className="text-xs">分析中...</span>
             </div>
           ) : (
-            <p className="text-white/70 text-xs leading-relaxed whitespace-pre-wrap">{aiReport}</p>
+            <>
+              <p className="text-white/70 text-xs leading-relaxed whitespace-pre-wrap">{aiReport}</p>
+              <button
+                onClick={() => { setAiReport(null); setAiCachedAt(''); setShowReport(false); }}
+                className="mt-3 text-white/25 text-[10px] active:text-white/50 underline underline-offset-2"
+              >
+                再分析する
+              </button>
+            </>
           )}
         </div>
       )}
@@ -217,7 +245,7 @@ export function EndGameOverlay({
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Sparkles size={18} />
-          {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : 'AIでスタッツを分析'}
+          {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : aiLoading ? '' : 'AIでスタッツを分析'}
         </button>
         {/* PDF出力 */}
         <button onClick={() => setPdfConfirm(true)}
