@@ -11,11 +11,15 @@ import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 import { UserTeam } from '@/lib/myTeams';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ChevronRight, ChevronLeft, Crown, Lock, Zap, Cloud, FileText, BarChart2, Check, Users } from 'lucide-react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
+import { useLocale } from '@/i18n/navigation';
 
 // ────────────────────────────────────
-// アップグレードボタン（エラーハンドル付き）
+// アップグレードボタン
 // ────────────────────────────────────
 function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: string }) {
+  const dict = useDictionary();
+  const p = dict.premium;
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
 
@@ -28,12 +32,12 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, userEmail }),
       });
-      if (!res.ok) { setError('決済の準備に失敗しました。再度お試しください。'); return; }
+      if (!res.ok) { setError(p.upgradeError); return; }
       const { url } = await res.json();
       if (url) window.location.href = url;
-      else setError('決済URLの取得に失敗しました。');
+      else setError(p.upgradeError);
     } catch {
-      setError('ネットワークエラーが発生しました。接続を確認してください。');
+      setError(p.networkError);
     } finally {
       setLoading(false);
     }
@@ -46,22 +50,14 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
         disabled={loading}
         className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 disabled:opacity-60 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
       >
-        {loading ? <span className="w-5 h-5 border-2 border-neutral-900/30 border-t-neutral-900 rounded-full animate-spin" /> : <Crown size={18} />}
-        {loading ? '処理中...' : 'プレミアムにアップグレード'}
+        {loading
+          ? <span className="w-5 h-5 border-2 border-neutral-900/30 border-t-neutral-900 rounded-full animate-spin" />
+          : <Crown size={18} />}
+        {loading ? p.processing : p.upgrade}
       </button>
       {error && <p className="text-red-400 text-xs text-center">{error}</p>}
     </div>
   );
-}
-
-// ────────────────────────────────────
-// 試合種別チップ
-// ────────────────────────────────────
-const GAME_TYPES = ['練習試合', '公式戦', 'カップ戦', 'その他'] as const;
-
-function todayString(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 // ────────────────────────────────────
@@ -76,12 +72,8 @@ function Field({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline gap-1.5 px-0.5">
-        <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">
-          {label}
-        </label>
-        {sublabel && (
-          <span className="text-white/20 text-[11px]">{sublabel}</span>
-        )}
+        <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">{label}</label>
+        {sublabel && <span className="text-white/20 text-[11px]">{sublabel}</span>}
       </div>
       <input
         type="text"
@@ -104,19 +96,23 @@ function Field({
 // ────────────────────────────────────
 // ペイウォール
 // ────────────────────────────────────
-const PREMIUM_FEATURES = [
-  { icon: Zap,       text: '試合記録が無制限に' },
-  { icon: Users,     text: '複数チームの登録・管理' },
-  { icon: BarChart2, text: 'AIによるスタッツ分析レポート' },
-  { icon: Cloud,     text: 'クラウド同期・複数端末対応' },
-  { icon: FileText,  text: 'スコアシートのPDF出力' },
-];
+const PAYWALL_ICONS = [Zap, Users, BarChart2, Cloud, FileText] as const;
 
 function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; email?: string } | null }) {
+  const dict = useDictionary();
+  const p = dict.premium;
+  const f = p.features;
+
+  const features = [
+    { icon: Zap,       text: f.unlimited },
+    { icon: Users,     text: f.cloud },
+    { icon: BarChart2, text: f.ai },
+    { icon: Cloud,     text: f.cloud },
+    { icon: FileText,  text: f.pdf },
+  ];
+
   return (
     <div className="flex flex-col items-center text-center gap-6 py-4">
-
-      {/* アイコン */}
       <div className="relative">
         <div className="w-20 h-20 rounded-3xl bg-amber-500/15 flex items-center justify-center">
           <Crown size={36} className="text-amber-400" />
@@ -126,24 +122,24 @@ function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; e
         </div>
       </div>
 
-      {/* 見出し */}
       <div className="flex flex-col gap-1.5">
-        <h2 className="text-white font-black text-xl">無料プランの上限に達しました</h2>
+        <h2 className="text-white font-black text-xl">{p.limitReached.replace('{limit}', String(FREE_GAME_LIMIT))}</h2>
         <p className="text-white/40 text-sm leading-relaxed">
-          無料では最大 <span className="text-white/70 font-bold">{FREE_GAME_LIMIT}試合</span> まで記録できます。<br />
-          プレミアムにアップグレードして制限を解除しましょう。
+          {p.paywallDesc.replace('{limit}', String(FREE_GAME_LIMIT))}
         </p>
       </div>
 
-      {/* 機能リスト */}
       <div className="w-full rounded-2xl bg-white/4 border border-white/8 overflow-hidden">
-        {PREMIUM_FEATURES.map(({ icon: Icon, text }, i) => (
+        {[
+          { Icon: Zap,       text: f.unlimited },
+          { Icon: Users,     text: f.cloud },
+          { Icon: BarChart2, text: f.ai },
+          { Icon: Cloud,     text: f.cloud },
+          { Icon: FileText,  text: f.pdf },
+        ].map(({ Icon, text }, i) => (
           <div
-            key={text}
-            className={cn(
-              'flex items-center gap-3 px-4 py-3',
-              i < PREMIUM_FEATURES.length - 1 && 'border-b border-white/6',
-            )}
+            key={i}
+            className={cn('flex items-center gap-3 px-4 py-3', i < 4 && 'border-b border-white/6')}
           >
             <div className="w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
               <Icon size={15} className="text-amber-400" />
@@ -154,23 +150,18 @@ function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; e
         ))}
       </div>
 
-      {/* 価格 */}
       <div className="flex flex-col gap-0.5">
         <div className="flex items-baseline gap-1 justify-center">
           <span className="text-white font-black text-4xl">¥680</span>
-          <span className="text-white/40 text-sm">/ 月</span>
+          <span className="text-white/40 text-sm">/ {dict.locale.code === 'ja' ? '月' : 'mo'}</span>
         </div>
-        <span className="text-white/30 text-xs">いつでもキャンセル可能</span>
+        <span className="text-white/30 text-xs">{p.cancelAnytime}</span>
       </div>
 
-      {/* CTAボタン */}
       <div className="w-full flex flex-col gap-2">
         <UpgradeButton userId={user?.id} userEmail={user?.email} />
-        <button
-          onClick={onClose}
-          className="text-white/30 text-sm py-2 active:text-white/60 transition-colors"
-        >
-          今は閉じる
+        <button onClick={onClose} className="text-white/30 text-sm py-2 active:text-white/60 transition-colors">
+          {p.close}
         </button>
       </div>
     </div>
@@ -180,6 +171,11 @@ function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; e
 // ────────────────────────────────────
 // メインコンポーネント
 // ────────────────────────────────────
+function todayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 interface Props {
   open:    boolean;
   onClose: () => void;
@@ -188,9 +184,14 @@ interface Props {
 export function CreateGameSheet({ open, onClose }: Props) {
   const router = useRouter();
   const { isPremium, user } = useAuth();
+  const dict   = useDictionary();
+  const locale = useLocale();
+  const g = dict.game;
+
+  const GAME_TYPES = [g.typePractice, g.typeOfficial, g.typeCup, g.typeOther];
 
   const [limitReached,  setLimitReached]  = useState(false);
-  const [gameType,      setGameType]      = useState<string>('練習試合');
+  const [gameType,      setGameType]      = useState(() => g.typePractice);
   const [date,          setDate]          = useState(todayString);
   const [whiteName,     setWhiteName]     = useState('');
   const [whiteColor,    setWhiteColor]    = useState<JerseyColorId>(DEFAULT_WHITE_COLOR);
@@ -202,20 +203,24 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
   const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
 
-  // シートが開くたびに上限チェック（プレミアムは無制限）
   useEffect(() => {
     if (open) setLimitReached(!isPremium && isFreeLimitReached());
   }, [open, isPremium]);
 
+  // ロケール切替時に gameType を同期
+  useEffect(() => {
+    setGameType(g.typePractice);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
+
   const validate = useCallback((): boolean => {
     const e: typeof errors = {};
-    if (!whiteName.trim()) e.white = 'チーム名（白）を入力してください';
-    if (!darkName.trim())  e.dark  = 'チーム名（濃）を入力してください';
+    if (!whiteName.trim()) e.white = g.errorWhiteRequired;
+    if (!darkName.trim())  e.dark  = g.errorDarkRequired;
     setErrors(e);
     return Object.keys(e).length === 0;
-  }, [whiteName, darkName]);
+  }, [whiteName, darkName, g]);
 
-  // 登録チーム選択時に適用
   function handleSelectTeam(team: UserTeam) {
     if (myTeamsTarget === 'white') {
       setWhiteName(team.team_name);
@@ -231,17 +236,12 @@ export function CreateGameSheet({ open, onClose }: Props) {
     setMyTeamsOpen(false);
   }
 
-  // 「その他」選択時 — フォームをクリアして手動入力モードへ
   function handleSelectOther() {
     if (myTeamsTarget === 'white') {
-      setWhiteName('');
-      setWhiteColor(DEFAULT_WHITE_COLOR);
-      setWhitePlayers([]);
+      setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
       setErrors((p) => ({ ...p, white: '' }));
     } else {
-      setDarkName('');
-      setDarkColor(DEFAULT_DARK_COLOR);
-      setDarkPlayers([]);
+      setDarkName(''); setDarkColor(DEFAULT_DARK_COLOR); setDarkPlayers([]);
       setErrors((p) => ({ ...p, dark: '' }));
     }
     setMyTeamsOpen(false);
@@ -250,195 +250,191 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const handleCreate = useCallback(() => {
     if (!validate()) return;
     const id = createNewGame({
-      gameType:       gameType,
+      gameType,
       date:           date || todayString(),
       whiteTeamName:  whiteName.trim(),
       whiteTeamColor: whiteColor,
       blueTeamName:   darkName.trim(),
       blueTeamColor:  darkColor,
-      whitePlayers:   whitePlayers,
+      whitePlayers,
       bluePlayers:    darkPlayers,
       userId:         user?.id,
     });
-    setGameType('練習試合'); setDate(todayString());
+    setGameType(g.typePractice);
+    setDate(todayString());
     setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
     setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
     setErrors({});
     onClose();
-    router.push(`/game/${id}`);
-  }, [gameType, date, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router]);
+    router.push(`/${locale}/game/${id}`);
+  }, [gameType, date, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router, locale, g]);
 
   function handleClose() { setErrors({}); onClose(); }
 
   return (
     <>
-    {/* 登録チーム選択シート */}
-    {user && (
-      <MyTeamsSheet
-        open={myTeamsOpen}
-        userId={user.id}
-        userEmail={user.email}
-        isPremium={isPremium}
-        onClose={() => setMyTeamsOpen(false)}
-        onSelect={handleSelectTeam}
-        onSelectOther={handleSelectOther}
-        selectLabel={myTeamsTarget === 'white' ? 'チーム（白）を選択' : 'チーム（濃）を選択'}
-      />
-    )}
-    <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl overflow-y-auto max-h-[92dvh]"
-      >
-        {limitReached ? (
-          <>
-            <SheetHeader className="mb-5 flex-row items-center gap-2">
-              <button
-                onClick={handleClose}
-                className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
-              >
-                <ChevronLeft size={20} />
-                <span className="text-xs font-medium">閉じる</span>
-              </button>
-              <SheetTitle className="text-white text-base flex-1">プレミアムプラン</SheetTitle>
-            </SheetHeader>
-            <Paywall onClose={handleClose} user={user} />
-          </>
-        ) : (
-          <>
-            <SheetHeader className="mb-5 flex-row items-center gap-2">
-              <button
-                onClick={handleClose}
-                className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
-              >
-                <ChevronLeft size={20} />
-                <span className="text-xs font-medium">閉じる</span>
-              </button>
-              <SheetTitle className="text-white text-base flex-1">新しい試合を登録</SheetTitle>
-            </SheetHeader>
+      {user && (
+        <MyTeamsSheet
+          open={myTeamsOpen}
+          userId={user.id}
+          userEmail={user.email}
+          isPremium={isPremium}
+          onClose={() => setMyTeamsOpen(false)}
+          onSelect={handleSelectTeam}
+          onSelectOther={handleSelectOther}
+          selectLabel={myTeamsTarget === 'white' ? g.whiteTeamLabel : g.darkTeamLabel}
+        />
+      )}
+      <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="bg-neutral-950 border-t border-white/10 rounded-t-2xl overflow-y-auto max-h-[92dvh]"
+        >
+          {limitReached ? (
+            <>
+              <SheetHeader className="mb-5 flex-row items-center gap-2">
+                <button onClick={handleClose} className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 shrink-0 -ml-1">
+                  <ChevronLeft size={20} />
+                  <span className="text-xs font-medium">{g.closeSheet}</span>
+                </button>
+                <SheetTitle className="text-white text-base flex-1">{dict.premium.title}</SheetTitle>
+              </SheetHeader>
+              <Paywall onClose={handleClose} user={user} />
+            </>
+          ) : (
+            <>
+              <SheetHeader className="mb-5 flex-row items-center gap-2">
+                <button onClick={handleClose} className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 shrink-0 -ml-1">
+                  <ChevronLeft size={20} />
+                  <span className="text-xs font-medium">{g.closeSheet}</span>
+                </button>
+                <SheetTitle className="text-white text-base flex-1">{g.createTitle}</SheetTitle>
+              </SheetHeader>
 
-            <div className="flex flex-col gap-5 pb-4">
+              <div className="flex flex-col gap-5 pb-4">
 
-              {/* ── 試合の種類 ── */}
-              <div className="flex flex-col gap-2">
-                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
-                  試合の種類
-                </label>
-                <div className="flex gap-2 flex-wrap">
-                  {GAME_TYPES.map((type) => (
+                {/* 試合の種類 */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
+                    {g.gameType}
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {GAME_TYPES.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setGameType(type)}
+                        className={cn(
+                          'px-4 py-2 rounded-xl text-sm font-semibold transition-all',
+                          gameType === type ? 'bg-blue-600 text-white' : 'bg-white/8 text-white/50 active:bg-white/12',
+                        )}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 日付 */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
+                    {g.date}
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="bg-white/8 text-white font-semibold rounded-xl px-4 py-3.5 text-base outline-none focus:ring-2 focus:ring-blue-500/60 transition-all [color-scheme:dark]"
+                  />
+                </div>
+
+                {/* チーム（白） */}
+                <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
+                      <span className="text-white/60 text-xs font-bold tracking-wide">{g.whiteTeamLabel}</span>
+                    </div>
                     <button
-                      key={type}
-                      onClick={() => setGameType(type)}
-                      className={cn(
-                        'px-4 py-2 rounded-xl text-sm font-semibold transition-all',
-                        gameType === type
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white/8 text-white/50 hover:bg-white/12',
-                      )}
+                      onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
+                      className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
                     >
-                      {type}
+                      <Users size={12} />{g.fromMyTeam}
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── 日付 ── */}
-              <div className="flex flex-col gap-2">
-                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
-                  日付
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="bg-white/8 text-white font-semibold rounded-xl px-4 py-3.5 text-base outline-none focus:ring-2 focus:ring-blue-500/60 transition-all [color-scheme:dark]"
-                />
-              </div>
-
-              {/* ── チーム名（白） ── */}
-              <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
-                    <span className="text-white/60 text-xs font-bold tracking-wide">チーム（白）</span>
                   </div>
-                  <button
-                    onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
-                    className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
-                  >
-                    <Users size={12} />登録チームから選択
-                  </button>
-                </div>
-                {whitePlayers.length > 0 && (
-                  <p className="text-white/35 text-xs">
-                    メンバー: #{whitePlayers.join(' #')} ({whitePlayers.length}人)
-                  </p>
-                )}
-                <Field
-                  label="チーム名"
-                  value={whiteName}
-                  placeholder="例: チームA"
-                  onChange={(v) => { setWhiteName(v); setErrors((p) => ({ ...p, white: '' })); }}
-                  error={errors.white}
-                  autoFocus
-                />
-                <div className="flex flex-col gap-2">
-                  <label className="text-white/35 text-xs font-semibold tracking-wider uppercase px-0.5">
-                    ユニフォームの色
-                  </label>
-                  <ColorPicker selected={whiteColor} onChange={setWhiteColor} />
-                </div>
-              </div>
-
-              {/* ── チーム名（濃） ── */}
-              <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
-                    <span className="text-white/60 text-xs font-bold tracking-wide">チーム（濃）</span>
+                  {whitePlayers.length > 0 && (
+                    <p className="text-white/35 text-xs">
+                      {g.memberList
+                        .replace('{nums}', whitePlayers.join(' #'))
+                        .replace('{count}', String(whitePlayers.length))}
+                    </p>
+                  )}
+                  <Field
+                    label={g.whiteTeam}
+                    value={whiteName}
+                    placeholder={g.whiteTeamPlaceholder}
+                    onChange={(v) => { setWhiteName(v); setErrors((p) => ({ ...p, white: '' })); }}
+                    error={errors.white}
+                    autoFocus
+                  />
+                  <div className="flex flex-col gap-2">
+                    <label className="text-white/35 text-xs font-semibold tracking-wider uppercase px-0.5">
+                      {g.uniformColor}
+                    </label>
+                    <ColorPicker selected={whiteColor} onChange={setWhiteColor} />
                   </div>
-                  <button
-                    onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
-                    className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
-                  >
-                    <Users size={12} />登録チームから選択
-                  </button>
                 </div>
-                {darkPlayers.length > 0 && (
-                  <p className="text-white/35 text-xs">
-                    メンバー: #{darkPlayers.join(' #')} ({darkPlayers.length}人)
-                  </p>
-                )}
-                <Field
-                  label="チーム名"
-                  value={darkName}
-                  placeholder="例: チームB"
-                  onChange={(v) => { setDarkName(v); setErrors((p) => ({ ...p, dark: '' })); }}
-                  error={errors.dark}
-                />
-                <div className="flex flex-col gap-2">
-                  <label className="text-white/35 text-xs font-semibold tracking-wider uppercase px-0.5">
-                    ユニフォームの色
-                  </label>
-                  <ColorPicker selected={darkColor} onChange={setDarkColor} />
+
+                {/* チーム（濃） */}
+                <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
+                      <span className="text-white/60 text-xs font-bold tracking-wide">{g.darkTeamLabel}</span>
+                    </div>
+                    <button
+                      onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
+                      className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
+                    >
+                      <Users size={12} />{g.fromMyTeam}
+                    </button>
+                  </div>
+                  {darkPlayers.length > 0 && (
+                    <p className="text-white/35 text-xs">
+                      {g.memberList
+                        .replace('{nums}', darkPlayers.join(' #'))
+                        .replace('{count}', String(darkPlayers.length))}
+                    </p>
+                  )}
+                  <Field
+                    label={g.darkTeam}
+                    value={darkName}
+                    placeholder={g.darkTeamPlaceholder}
+                    onChange={(v) => { setDarkName(v); setErrors((p) => ({ ...p, dark: '' })); }}
+                    error={errors.dark}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <label className="text-white/35 text-xs font-semibold tracking-wider uppercase px-0.5">
+                      {g.uniformColor}
+                    </label>
+                    <ColorPicker selected={darkColor} onChange={setDarkColor} />
+                  </div>
                 </div>
+
+                {/* 試合開始ボタン */}
+                <button
+                  onClick={handleCreate}
+                  className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors"
+                >
+                  {g.startGame}
+                  <ChevronRight size={18} />
+                </button>
+
               </div>
-
-              {/* ── 試合開始 ── */}
-              <button
-                onClick={handleCreate}
-                className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors"
-              >
-                試合を開始
-                <ChevronRight size={18} />
-              </button>
-
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

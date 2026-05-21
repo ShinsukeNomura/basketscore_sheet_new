@@ -144,7 +144,19 @@
     "teamFouls": "Team Fouls",
     "courtMap": "Select Area",
     "courtMapBack": "Back",
-    "uniformColor": "Jersey Color"
+    "uniformColor": "Jersey Color",
+    "typePractice": "Practice",
+    "typeOfficial": "Official",
+    "typeCup": "Cup",
+    "typeOther": "Other",
+    "whiteTeamLabel": "Light Team",
+    "darkTeamLabel": "Dark Team",
+    "fromMyTeam": "Select from My Teams",
+    "memberList": "Roster: #{nums} ({count} players)",
+    "startGame": "Start Game",
+    "closeSheet": "Close",
+    "errorWhiteRequired": "Please enter the light team name",
+    "errorDarkRequired": "Please enter the dark team name"
   },
 
   "stats": {
@@ -277,6 +289,7 @@
     "subtitle": "Unlock all Basketball Score features",
     "price": "¥{price}/month (tax incl.)",
     "cancelAnytime": "Cancel anytime",
+    "paywallDesc": "The free plan allows up to {limit} games. Upgrade to unlock unlimited recording.",
     "upgrade": "Upgrade to Premium",
     "close": "Maybe later",
     "limitReached": "You've reached the {limit}-game free limit",

@@ -28,7 +28,7 @@
     "analysis": "分析",
     "privacy": "プライバシーポリシー",
     "terms": "利用規約",
-    "legal": "特商法"
+    "legal": "特定商取引法に基づく表記"
   },
 
   "home": {
@@ -144,7 +144,19 @@
     "teamFouls": "チームファウル",
     "courtMap": "エリアを選択",
     "courtMapBack": "戻る",
-    "uniformColor": "ユニフォームの色"
+    "uniformColor": "ユニフォームの色",
+    "typePractice": "練習試合",
+    "typeOfficial": "公式戦",
+    "typeCup": "カップ戦",
+    "typeOther": "その他",
+    "whiteTeamLabel": "チーム（白）",
+    "darkTeamLabel": "チーム（濃）",
+    "fromMyTeam": "登録チームから選択",
+    "memberList": "メンバー: #{nums}（{count}人）",
+    "startGame": "試合を開始",
+    "closeSheet": "閉じる",
+    "errorWhiteRequired": "チーム名（白）を入力してください",
+    "errorDarkRequired": "チーム名（濃）を入力してください"
   },
 
   "stats": {
@@ -277,6 +289,7 @@
     "subtitle": "Basketball Score をフル活用",
     "price": "¥{price}/月（税込）",
     "cancelAnytime": "いつでもキャンセル可能",
+    "paywallDesc": "無料では最大{limit}試合まで記録できます。プレミアムで制限を解除しましょう。",
     "upgrade": "プレミアムにアップグレード",
     "close": "今は閉じる",
     "limitReached": "{limit}試合の無料枠に達しました",

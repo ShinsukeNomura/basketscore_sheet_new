@@ -144,7 +144,19 @@
     "teamFouls": "團隊犯規",
     "courtMap": "選擇區域",
     "courtMapBack": "返回",
-    "uniformColor": "球衣顏色"
+    "uniformColor": "球衣顏色",
+    "typePractice": "練習賽",
+    "typeOfficial": "正式賽",
+    "typeCup": "盃賽",
+    "typeOther": "其他",
+    "whiteTeamLabel": "淺色隊",
+    "darkTeamLabel": "深色隊",
+    "fromMyTeam": "從我的球隊選擇",
+    "memberList": "名單: #{nums}（{count}人）",
+    "startGame": "開始比賽",
+    "closeSheet": "關閉",
+    "errorWhiteRequired": "請輸入淺色隊隊名",
+    "errorDarkRequired": "請輸入深色隊隊名"
   },
 
   "stats": {
@@ -277,6 +289,7 @@
     "subtitle": "解鎖Basketball Score全部功能",
     "price": "¥{price}/月（含稅）",
     "cancelAnytime": "隨時可取消",
+    "paywallDesc": "免費版最多可記錄{limit}場比賽。升級至進階版以解除限制。",
     "upgrade": "升級至進階版",
     "close": "稍後再說",
     "limitReached": "已達{limit}場免費上限",
