@@ -245,6 +245,10 @@
     "pdfExport": "Export Score Sheet PDF",
     "statsDetail": "View Stats",
     "runningScore": "Running Score Sheet",
+    "cloudSave": "Save to Cloud",
+    "saving": "Saving...",
+    "saveDone": "Saved",
+    "saveLocalOnly": "Saved on this device",
     "nextGame": "Create Next Game",
     "goHome": "Go Home",
     "resumeGame": "Resume Recording"

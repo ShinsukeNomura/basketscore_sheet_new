@@ -245,6 +245,10 @@
     "pdfExport": "导出得分表PDF",
     "statsDetail": "查看详细统计",
     "runningScore": "实时得分记录表",
+    "cloudSave": "保存到云端",
+    "saving": "保存中...",
+    "saveDone": "已保存",
+    "saveLocalOnly": "已保存到本设备",
     "nextGame": "创建下一场比赛",
     "goHome": "返回主页",
     "resumeGame": "继续记录"

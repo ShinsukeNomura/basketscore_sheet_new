@@ -336,7 +336,7 @@ export default function HomePage() {
       </div>
 
       {/* ── コンテンツ ── */}
-      <div className="px-4 pb-44">
+      <div className="px-4 pb-56">
 
         {activeGames.length > 0 && (
           <section className="mb-6">
@@ -454,8 +454,16 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ── 新規試合ボタン ── */}
-      <div className="fixed bottom-0 inset-x-0 px-4 pt-3 pb-safe bg-neutral-950/90 backdrop-blur-md border-t border-white/5" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      {/* ── フッター + 新規試合ボタン ── */}
+      <div
+        className="fixed bottom-0 inset-x-0 px-4 pt-2 bg-neutral-950/90 backdrop-blur-md border-t border-white/5"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex justify-center gap-4 pb-2">
+          <Link href={`/${locale}/privacy`} className="text-white/15 text-[10px] active:text-white/40">{dict.nav.privacy}</Link>
+          <Link href={`/${locale}/terms`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.terms}</Link>
+          <Link href={`/${locale}/legal`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.legal}</Link>
+        </div>
         {!isPremium && games.length >= FREE_GAME_LIMIT ? (
           <button
             onClick={() => setCreateOpen(true)}
@@ -477,13 +485,6 @@ export default function HomePage() {
             )}
           </button>
         )}
-      </div>
-
-      {/* フッター */}
-      <div className="fixed bottom-[80px] inset-x-0 flex justify-center gap-4 pb-1 pointer-events-none">
-        <Link href={`/${locale}/privacy`} className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">{dict.nav.privacy}</Link>
-        <Link href={`/${locale}/terms`}   className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">{dict.nav.terms}</Link>
-        <Link href={`/${locale}/legal`}   className="text-white/15 text-[10px] pointer-events-auto active:text-white/40">{dict.nav.legal}</Link>
       </div>
 
       <CreateGameSheet

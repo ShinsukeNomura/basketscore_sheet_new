@@ -245,6 +245,10 @@
     "pdfExport": "スコアシートをPDF出力",
     "statsDetail": "スタッツ詳細を見る",
     "runningScore": "ランニングスコアシート",
+    "cloudSave": "クラウドに保存",
+    "saving": "保存中...",
+    "saveDone": "保存しました",
+    "saveLocalOnly": "端末に保存しました",
     "nextGame": "次の試合を作成",
     "goHome": "ホームへ戻る",
     "resumeGame": "記録を再開する"

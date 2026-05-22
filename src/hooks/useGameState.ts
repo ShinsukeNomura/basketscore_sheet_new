@@ -388,6 +388,20 @@ export function useGameState(gameId: string) {
     dispatch({ type: 'REMAP_TOV_REASONS', payload: { newMode } });
   }, []);
 
+  const saveGame = useCallback(async (): Promise<boolean> => {
+    if (!state.isLoaded) return false;
+    const active = state.logs.filter((l) => !l.is_deleted);
+    const ourScore   = active.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0);
+    const theirScore = active.filter((l) => l.team_id === state.theirTeam.id).reduce((s, l) => s + l.points, 0);
+    const gameState: PersistedGameState = {
+      game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
+      allPlayers: state.allPlayers, logs: state.logs,
+    };
+    savePersistedGame(gameState, ourScore, theirScore, user?.id);
+    if (user?.id) await syncToCloud(gameState, user.id);
+    return true;
+  }, [state, user?.id]);
+
   return {
     game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
     allPlayers: state.allPlayers, selectedStat: state.selectedStat,
@@ -398,6 +412,6 @@ export function useGameState(gameId: string) {
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
-    logTeamTov, remapTovReasons,
+    logTeamTov, remapTovReasons, saveGame,
   };
 }

@@ -4,7 +4,9 @@ import { useMemo, useState, useEffect } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { periodLabel } from '@/lib/period';
 import { cn } from '@/lib/utils';
-import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2, Crown } from 'lucide-react';
+import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2, Crown, RefreshCw } from 'lucide-react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
 
@@ -24,6 +26,7 @@ interface EndGameOverlayProps {
   onShowStats:    () => void;
   onShowRunning:  () => void;
   onResume:       () => void;
+  onSave:         () => Promise<boolean>;
 }
 
 // ================================================================
@@ -157,8 +160,25 @@ export function EndGameOverlay({
   game, ourTeam, theirTeam, allPlayers,
   ourScore, theirScore,
   logs,
-  onGoHome, onNewGame, onShowStats, onShowRunning, onResume,
+  onGoHome, onNewGame, onShowStats, onShowRunning, onResume, onSave,
 }: EndGameOverlayProps) {
+  const dict = useDictionary();
+  const eg = dict.endGame;
+  const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveMsg(null);
+    const ok = await onSave();
+    setSaveMsg(ok
+      ? (user ? eg.saveDone : eg.saveLocalOnly)
+      : null);
+    setSaving(false);
+    if (ok) setTimeout(() => setSaveMsg(null), 3000);
+  };
   const diff = ourScore - theirScore;
   const winnerTeam: Team | null =
     diff > 0 ? ourTeam : diff < 0 ? theirTeam : null;
@@ -390,28 +410,37 @@ export function EndGameOverlay({
           className="flex items-center justify-center gap-2 w-full bg-amber-600/80 active:bg-amber-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <ClipboardList size={18} />ランニングスコアシート
         </button>
-        {/* 3: AI分析（バイオレット）*/}
+        {/* 3: クラウド保存（シアン）*/}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex items-center justify-center gap-2 w-full bg-cyan-600/80 active:bg-cyan-700 disabled:opacity-60 text-white font-bold rounded-2xl py-4 text-base transition-colors"
+        >
+          <RefreshCw size={18} className={cn(saving && 'animate-spin')} />
+          {saving ? eg.saving : saveMsg ?? eg.cloudSave}
+        </button>
+        {/* 4: AI分析（バイオレット）*/}
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Sparkles size={18} />
           {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : aiLoading ? '' : 'AIでスタッツを分析'}
         </button>
-        {/* 4: PDF出力（エメラルド）*/}
+        {/* 5: PDF出力（エメラルド）*/}
         <button onClick={() => setPdfConfirm(true)}
           className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <FileText size={18} />スコアシートをPDF出力
         </button>
-        {/* 5: 次の試合（スカイ）*/}
+        {/* 6: 次の試合（スカイ）*/}
         <button onClick={onNewGame}
           className="flex items-center justify-center gap-2 w-full bg-sky-600 active:bg-sky-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Plus size={18} />次の試合を作成
         </button>
-        {/* 6: ホーム（ダーク）*/}
+        {/* 7: ホーム（ダーク）*/}
         <button onClick={onGoHome}
           className="flex items-center justify-center gap-2 w-full bg-white/8 active:bg-white/12 text-white/60 font-semibold rounded-2xl py-4 text-base transition-colors border border-white/10">
           <Home size={18} />ホームへ戻る
         </button>
-        {/* 7: 記録再開（テキスト）*/}
+        {/* 8: 記録再開（テキスト）*/}
         <button onClick={onResume}
           className="flex items-center justify-center gap-1.5 text-white/30 active:text-white/60 text-sm transition-colors py-2">
           <RotateCcw size={13} />記録を再開する

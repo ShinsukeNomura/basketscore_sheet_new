@@ -29,7 +29,7 @@ export default function GamePage() {
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog,
-    changePeriod, endGame, resumeGame, substitute,
+    changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer, removePlayer, toggleCourt,
     renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons,
   } = useGameState(gameId);
@@ -216,6 +216,7 @@ export default function GamePage() {
           onShowStats={() => setStatsOpen(true)}
           onShowRunning={() => router.push(`/${lang}/game/${gameId}/running`)}
           onResume={resumeGame}
+          onSave={saveGame}
         />
       )}
 
