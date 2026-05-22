@@ -296,9 +296,10 @@ export function useGameState(gameId: string) {
   }, []);
 
   const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
+    try {
     if (!s.isLoaded) return { ok: false, error: '読み込み中' };
     let { gameState } = persistState(s, userId);
-    if (!userId) return { ok: true };
+    if (!userId) return { ok: false, error: 'ログインしていません。一度ログアウトして再ログインしてください。' };
 
     const sync = await syncToCloud(gameState, userId);
     if (sync.state && sync.state.game.id !== gameState.game.id) {
@@ -309,7 +310,12 @@ export function useGameState(gameId: string) {
       savePersistedGame(gameState, ourScore, theirScore, userId);
       dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
     }
-    return sync.ok ? { ok: true } : { ok: false, error: sync.error };
+    return sync.ok
+      ? { ok: true }
+      : { ok: false, error: sync.error ?? 'クラウドへの保存に失敗しました' };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : '予期しないエラー' };
+    }
   }, [persistState, userId]);
 
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---

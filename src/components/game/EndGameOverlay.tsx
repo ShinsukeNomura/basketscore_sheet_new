@@ -174,16 +174,26 @@ export function EndGameOverlay({
     setSaving(true);
     setSaveMsg(null);
     setSaveError(null);
-    const result = await onSave();
-    if (result.ok) {
-      setSaveMsg(user ? eg.saveDone : eg.saveLocalOnly);
-      setSaveError(null);
-      setTimeout(() => setSaveMsg(null), 3000);
-    } else {
+    try {
+      const result = await onSave();
+      if (result.ok) {
+        setSaveMsg(user ? eg.saveDone : eg.saveLocalOnly);
+        setSaveError(null);
+        setTimeout(() => setSaveMsg(null), 3000);
+      } else {
+        const detail = result.error ?? '不明なエラー';
+        setSaveMsg(eg.saveFail);
+        setSaveError(detail);
+        window.alert(`${eg.saveFail}\n\n${detail}`);
+      }
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : '予期しないエラー';
       setSaveMsg(eg.saveFail);
-      setSaveError(result.error ?? '不明なエラー');
+      setSaveError(detail);
+      window.alert(`${eg.saveFail}\n\n${detail}`);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
   const diff = ourScore - theirScore;
   const winnerTeam: Team | null =
@@ -417,6 +427,14 @@ export function EndGameOverlay({
           <ClipboardList size={18} />ランニングスコアシート
         </button>
         {/* 3: クラウド保存（シアン）*/}
+        {saveError && (
+          <div className="rounded-xl bg-red-950/90 border-2 border-red-500/70 p-3">
+            <p className="text-red-300 text-[11px] font-bold mb-1">保存エラー（詳細）</p>
+            <p className="text-red-100 text-xs leading-relaxed break-all whitespace-pre-wrap">
+              {saveError}
+            </p>
+          </div>
+        )}
         <button
           onClick={handleSave}
           disabled={saving}
@@ -425,11 +443,6 @@ export function EndGameOverlay({
           <RefreshCw size={18} className={cn(saving && 'animate-spin')} />
           {saving ? eg.saving : saveMsg ?? eg.cloudSave}
         </button>
-        {saveError && (
-          <p className="text-red-400 text-xs leading-relaxed px-1 -mt-1 break-all">
-            {saveError}
-          </p>
-        )}
         {/* 4: AI分析（バイオレット）*/}
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">

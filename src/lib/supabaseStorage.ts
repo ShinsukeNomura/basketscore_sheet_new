@@ -17,13 +17,16 @@ export async function syncToCloud(
   state: PersistedGameState,
   userId: string,
 ): Promise<SyncCloudResult> {
+  const { data: { user: authUser } } = await supabase.auth.getUser();
   let { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) {
     const refreshed = await supabase.auth.refreshSession();
     session = refreshed.data.session;
   }
 
-  let lastError = 'ログインセッションがありません。再ログインしてください。';
+  let lastError = authUser
+    ? 'サーバー同期に失敗しました。下記の直接保存を試行中…'
+    : 'ログインセッションがありません。再ログインしてください。';
 
   if (session?.access_token) {
     try {

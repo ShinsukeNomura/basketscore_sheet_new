@@ -153,7 +153,8 @@ export async function syncGameCore(
   if (logErr) errors.push(`stats_logs: ${logErr}`);
 
   const hasLogs = payload.logs.length > 0;
-  const ok = !gameErr && !teamErr && !playerErr && (!hasLogs || !logErr);
+  // 得点記録が最重要。teams/players 失敗は警告のみ（logs が保存できれば成功）
+  const ok = !gameErr && (!hasLogs || !logErr);
 
   return { ok, errors, state: payload };
 }
