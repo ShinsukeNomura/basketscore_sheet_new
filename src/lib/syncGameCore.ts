@@ -94,22 +94,37 @@ async function upsertTeams(db: SupabaseClient, state: PersistedGameState): Promi
 async function upsertPlayers(db: SupabaseClient, state: PersistedGameState): Promise<string | null> {
   if (state.allPlayers.length === 0) return null;
 
-  const minimal = state.allPlayers.map((p) => ({
-    id: p.id, team_id: p.team_id, back_number: p.back_number,
-    name: p.name ?? '', is_on_court: p.is_on_court,
+  // 本番 DB に name 列がない場合があるため、最小列のみ送る
+  const withGameId = state.allPlayers.map((p) => ({
+    id: p.id,
+    team_id: p.team_id,
+    back_number: p.back_number,
+    is_on_court: p.is_on_court,
+    game_id: state.game.id,
   }));
-  const { error } = await db.from('players').upsert(minimal, { onConflict: 'id' });
+  let { error } = await db.from('players').upsert(withGameId, { onConflict: 'id' });
+  if (!error) return null;
+
+  const minimal = state.allPlayers.map((p) => ({
+    id: p.id,
+    team_id: p.team_id,
+    back_number: p.back_number,
+    is_on_court: p.is_on_court,
+  }));
+  ({ error } = await db.from('players').upsert(minimal, { onConflict: 'id' }));
   return error?.message ?? null;
 }
 
 async function upsertLogs(db: SupabaseClient, state: PersistedGameState): Promise<string | null> {
   if (state.logs.length === 0) return null;
 
+  const playerIds = new Set(state.allPlayers.map((p) => p.id));
+
   const logRows = state.logs.map((l) => ({
     id:          l.id,
     game_id:     l.game_id,
     team_id:     l.team_id,
-    player_id:   l.player_id ?? null,
+    player_id:   l.player_id && playerIds.has(l.player_id) ? l.player_id : null,
     period:      Math.min(Math.max(l.period, 1), 6),
     timestamp:   l.timestamp,
     action_type: l.action_type,
@@ -153,8 +168,7 @@ export async function syncGameCore(
   if (logErr) errors.push(`stats_logs: ${logErr}`);
 
   const hasLogs = payload.logs.length > 0;
-  // 得点記録が最重要。teams/players 失敗は警告のみ（logs が保存できれば成功）
-  const ok = !gameErr && (!hasLogs || !logErr);
+  const ok = !gameErr && !playerErr && (!hasLogs || !logErr);
 
   return { ok, errors, state: payload };
 }

@@ -181,7 +181,7 @@ export async function loadGameFromCloud(gameId: string, userId?: string): Promis
     },
     allPlayers: players.map((p) => ({
       id: p.id, team_id: p.team_id, back_number: p.back_number,
-      name: p.name || '', is_on_court: p.is_on_court, created_at: p.created_at,
+      name: (p.name as string | undefined) ?? '', is_on_court: p.is_on_court, created_at: p.created_at,
     })),
     logs: logs.map((l) => ({
       id: l.id, game_id: l.game_id, team_id: l.team_id, player_id: l.player_id,
