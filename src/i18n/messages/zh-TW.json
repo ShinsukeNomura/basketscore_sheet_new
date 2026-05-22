@@ -272,6 +272,7 @@
 
   "sync": {
     "loading": "載入中",
+    "notReady": "比賽資料尚未就緒。請重新開啟比賽後再試。",
     "notLoggedIn": "未登入。請登出後重新登入。",
     "saveDone": "已儲存",
     "savePartial": "部分儲存 ({synced}/{total}): {detail}",

@@ -6,7 +6,7 @@ import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame, removeStaleGameEntry } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
 import { shouldPreferCloud } from '@/lib/cloudGameMerge';
-import { isReadyForCloudSync } from '@/lib/gameSyncGuard';
+import { canSyncGameState, isReadyForCloudSync } from '@/lib/gameSyncGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
@@ -309,9 +309,16 @@ export function useGameState(gameId: string) {
   const runCloudSync = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     if (!s.isLoaded) return { ok: false, error: syncT.loading };
     let { gameState } = persistState(s, userId);
-    if (!isReadyForCloudSync(gameState)) {
-      return { ok: false, error: syncT.loading };
+
+    if (!canSyncGameState(gameState)) {
+      const fromDisk = loadPersistedGame(gameId);
+      if (fromDisk && canSyncGameState(fromDisk)) {
+        gameState = fromDisk;
+      } else if (!isReadyForCloudSync(gameState)) {
+        return { ok: false, error: syncT.notReady };
+      }
     }
+
     if (!userId) {
       setCloudSyncStatus('offline');
       return { ok: false, error: syncT.notLoggedIn };
@@ -517,8 +524,11 @@ export function useGameState(gameId: string) {
   }, []);
 
   const saveGame = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
-    return flushSave(state);
-  }, [state, flushSave]);
+    while (syncInFlight.current) {
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return flushSave(stateRef.current);
+  }, [flushSave]);
 
   const reloadFromStorage = useCallback(() => {
     const local = loadPersistedGame(gameId);

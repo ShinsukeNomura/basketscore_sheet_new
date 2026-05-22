@@ -272,6 +272,7 @@
 
   "sync": {
     "loading": "Loading...",
+    "notReady": "Game data is not ready. Reopen the game and try again.",
     "notLoggedIn": "Not signed in. Please sign out and sign in again.",
     "saveDone": "Saved",
     "savePartial": "Partially saved ({synced}/{total}): {detail}",

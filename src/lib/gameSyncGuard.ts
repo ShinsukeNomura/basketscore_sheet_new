@@ -9,3 +9,10 @@ export function isReadyForCloudSync(state: PersistedGameState): boolean {
   if (PLACEHOLDER_TEAM_IDS.has(state.theirTeam.id)) return false;
   return true;
 }
+
+/** 終了済み・記録ありの試合はプレースホルダー判定を緩和して同期する */
+export function canSyncGameState(state: PersistedGameState): boolean {
+  const hasLogs = state.logs.some((l) => !l.is_deleted);
+  if (state.game.status === 'finished' && hasLogs) return state.game.id !== 'demo';
+  return isReadyForCloudSync(state);
+}

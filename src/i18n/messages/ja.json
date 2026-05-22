@@ -272,6 +272,7 @@
 
   "sync": {
     "loading": "読み込み中",
+    "notReady": "試合データの準備ができていません。画面を開き直してから再度お試しください。",
     "notLoggedIn": "ログインしていません。一度ログアウトして再ログインしてください。",
     "saveDone": "保存しました",
     "savePartial": "一部のみ保存 ({synced}/{total}件): {detail}",
