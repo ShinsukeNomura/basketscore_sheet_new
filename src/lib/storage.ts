@@ -85,6 +85,9 @@ export function mergeCloudGamesIntoIndex(cloud: GameSummary[]): GameSummary[] {
   const byId = new Map(index.map((g) => [g.id, g]));
   for (const cg of cloud) {
     const existing = byId.get(cg.id);
+    const cloudPts  = cg.ourScore + cg.theirScore;
+    const localPts  = (existing?.ourScore ?? 0) + (existing?.theirScore ?? 0);
+    const useCloudScores = !existing || cloudPts > localPts;
     byId.set(cg.id, existing
       ? {
           ...existing,
@@ -93,8 +96,8 @@ export function mergeCloudGamesIntoIndex(cloud: GameSummary[]): GameSummary[] {
           status:        cg.status,
           ourTeamName:   cg.ourTeamName,
           theirTeamName: cg.theirTeamName,
-          ourScore:      cg.ourScore,
-          theirScore:    cg.theirScore,
+          ourScore:      useCloudScores ? cg.ourScore   : existing.ourScore,
+          theirScore:    useCloudScores ? cg.theirScore : existing.theirScore,
           user_id:       cg.user_id ?? existing.user_id,
         }
       : cg);

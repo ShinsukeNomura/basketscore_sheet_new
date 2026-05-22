@@ -1,75 +1,37 @@
 import { supabase } from './supabase';
+import { syncGameCore } from './syncGameCore';
 import { PersistedGameState, GameSummary } from '@/types';
 
 // ================================================================
-// クラウドへの同期
+// クラウドへの同期（API経由 → 失敗時は直接 upsert）
 // ================================================================
 
 export async function syncToCloud(
   state: PersistedGameState,
   userId: string,
 ): Promise<boolean> {
-  let ok = true;
-
-  const { error: gameErr } = await supabase.from('games').upsert({
-    id:             state.game.id,
-    user_id:        userId,
-    game_name:      state.game.game_name,
-    date:           state.game.date,
-    status:         state.game.status,
-    current_period: state.game.current_period,
-  }, { onConflict: 'id' });
-  if (gameErr) {
-    console.error('[sync] game upsert failed:', gameErr.message);
-    return false;
-  }
-
-  const { error: teamErr } = await supabase.from('teams').upsert([
-    { id: state.ourTeam.id,   game_id: state.game.id, team_name: state.ourTeam.team_name,   is_ours: true,  color: state.ourTeam.color ?? 'white' },
-    { id: state.theirTeam.id, game_id: state.game.id, team_name: state.theirTeam.team_name, is_ours: false, color: state.theirTeam.color ?? 'navy' },
-  ], { onConflict: 'id' });
-  if (teamErr) {
-    console.error('[sync] teams upsert failed:', teamErr.message);
-    ok = false;
-  }
-
-  if (state.allPlayers.length > 0) {
-    const rows = state.allPlayers.map((p) => ({
-      id:          p.id,
-      team_id:     p.team_id,
-      back_number: p.back_number,
-      name:        p.name ?? '',
-      is_on_court: p.is_on_court,
-    }));
-    const { error: playerErr } = await supabase.from('players').upsert(rows, { onConflict: 'id' });
-    if (playerErr) console.error('[sync] players upsert failed:', playerErr.message);
-  }
-
-  if (state.logs.length > 0) {
-    const logRows = state.logs.map((l) => ({
-      id:          l.id,
-      game_id:     l.game_id,
-      team_id:     l.team_id,
-      player_id:   l.player_id ?? null,
-      period:      l.period,
-      timestamp:   l.timestamp,
-      action_type: l.action_type,
-      points:      l.points,
-      is_deleted:  l.is_deleted,
-      link_id:     l.link_id ?? null,
-    }));
-    const BATCH = 200;
-    for (let i = 0; i < logRows.length; i += BATCH) {
-      const chunk = logRows.slice(i, i + BATCH);
-      const { error: logErr } = await supabase.from('stats_logs').upsert(chunk, { onConflict: 'id' });
-      if (logErr) {
-        console.error('[sync] stats_logs upsert failed:', logErr.message);
-        ok = false;
-      }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    try {
+      const res = await fetch('/api/games/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ state }),
+      });
+      const data = await res.json() as { ok?: boolean; errors?: string[]; error?: string };
+      if (res.ok && data.ok) return true;
+      console.error('[sync] API failed:', data.errors ?? data.error);
+    } catch (e) {
+      console.error('[sync] API network error:', e);
     }
   }
 
-  return ok;
+  const result = await syncGameCore(supabase, state, userId);
+  if (!result.ok) console.error('[sync] direct failed:', result.errors);
+  return result.ok;
 }
 
 function scoreFromLogs(
@@ -92,8 +54,8 @@ function scoreFromLogs(
 export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[] | null> {
   const { data: games, error } = await supabase
     .from('games')
-    .select('id, game_name, date, status, teams(id, team_name, is_ours)')
-    .eq('user_id', userId)
+    .select('id, game_name, date, status, user_id, teams(id, team_name, is_ours)')
+    .or(`user_id.eq.${userId},user_id.is.null`)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -110,7 +72,7 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
 
   if (logsErr) console.error('[fetchGames] stats_logs error:', logsErr.message);
 
-  const logsByGame = new Map<string, typeof allLogs>();
+  const logsByGame = new Map<string, NonNullable<typeof allLogs>>();
   for (const log of allLogs ?? []) {
     const list = logsByGame.get(log.game_id) ?? [];
     list.push(log);
@@ -136,7 +98,7 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
         theirTeamName: theirTeam.team_name || '相手',
         ourScore,
         theirScore,
-        user_id:       userId,
+        user_id:       g.user_id ?? userId,
       } as GameSummary];
     } catch {
       return [];
@@ -149,11 +111,12 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
 // ================================================================
 
 export async function loadGameFromCloud(gameId: string, userId?: string): Promise<PersistedGameState | null> {
-  let gameQuery = supabase.from('games').select('*').eq('id', gameId);
-  if (userId) gameQuery = gameQuery.eq('user_id', userId);
-
-  const gameRes = await gameQuery.single();
+  const gameRes = await supabase.from('games').select('*').eq('id', gameId).single();
   if (!gameRes.data) return null;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = gameRes.data as any;
+  if (userId && g.user_id && g.user_id !== userId) return null;
 
   const teamsRes = await supabase.from('teams').select('*').eq('game_id', gameId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -168,8 +131,6 @@ export async function loadGameFromCloud(gameId: string, userId?: string): Promis
     supabase.from('stats_logs').select('*').eq('game_id', gameId),
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const g       = gameRes.data as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const players = (playersRes.data ?? []) as any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -197,6 +158,9 @@ export async function loadGameFromCloud(gameId: string, userId?: string): Promis
       period: l.period, timestamp: l.timestamp, action_type: l.action_type,
       points: l.points, is_deleted: l.is_deleted, created_at: l.created_at,
       link_id: l.link_id ?? undefined,
+      is_auto: l.is_auto ?? undefined,
+      tov_reason: l.tov_reason ?? undefined,
+      court_location: l.court_location ?? undefined,
     })),
   };
 }

@@ -249,6 +249,7 @@
     "saving": "保存中...",
     "saveDone": "保存しました",
     "saveLocalOnly": "端末に保存しました",
+    "saveFail": "クラウド保存に失敗しました",
     "nextGame": "次の試合を作成",
     "goHome": "ホームへ戻る",
     "resumeGame": "記録を再開する"

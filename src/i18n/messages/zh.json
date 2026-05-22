@@ -249,6 +249,7 @@
     "saving": "保存中...",
     "saveDone": "已保存",
     "saveLocalOnly": "已保存到本设备",
+    "saveFail": "云端保存失败",
     "nextGame": "创建下一场比赛",
     "goHome": "返回主页",
     "resumeGame": "继续记录"

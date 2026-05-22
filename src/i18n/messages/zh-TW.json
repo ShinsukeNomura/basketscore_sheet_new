@@ -249,6 +249,7 @@
     "saving": "儲存中...",
     "saveDone": "已儲存",
     "saveLocalOnly": "已儲存至本裝置",
+    "saveFail": "雲端儲存失敗",
     "nextGame": "建立下一場比賽",
     "goHome": "返回首頁",
     "resumeGame": "繼續記錄"

@@ -175,7 +175,7 @@ export function EndGameOverlay({
     const ok = await onSave();
     setSaveMsg(ok
       ? (user ? eg.saveDone : eg.saveLocalOnly)
-      : null);
+      : eg.saveFail);
     setSaving(false);
     if (ok) setTimeout(() => setSaveMsg(null), 3000);
   };

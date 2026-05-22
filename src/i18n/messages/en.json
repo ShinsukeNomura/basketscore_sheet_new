@@ -249,6 +249,7 @@
     "saving": "Saving...",
     "saveDone": "Saved",
     "saveLocalOnly": "Saved on this device",
+    "saveFail": "Cloud save failed",
     "nextGame": "Create Next Game",
     "goHome": "Go Home",
     "resumeGame": "Resume Recording"
