@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { Game, Period, Team } from '@/types';
 import { cn } from '@/lib/utils';
-import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList, Settings2 } from 'lucide-react';
+import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList, Settings2, Cloud } from 'lucide-react';
+import type { CloudSyncStatus } from '@/hooks/useGameState';
 import { periodLabel, isOT } from '@/lib/period';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -22,7 +23,8 @@ interface GameHeaderProps {
   onGoHome:       () => void;
   onShowStats:    () => void;
   onShowRunning:  () => void;
-  onEditSetup?:   () => void;
+  onEditSetup?:      () => void;
+  cloudSyncStatus?:  CloudSyncStatus;
 }
 
 const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
@@ -30,10 +32,12 @@ const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
 export function GameHeader({
   game, ourTeam, theirTeam, ourScore, theirScore,
   onChangePeriod, onEndGame, onRenameGame, onGoHome, onShowStats, onShowRunning, onEditSetup,
+  cloudSyncStatus,
 }: GameHeaderProps) {
   const dict = useDictionary();
   const g = dict.game;
   const c = dict.common;
+  const sync = dict.sync;
   const isFinished = game.status === 'finished';
 
   // 試合名インライン編集
@@ -140,6 +144,34 @@ export function GameHeader({
           </button>
         )}
       </div>
+
+      {cloudSyncStatus && cloudSyncStatus !== 'idle' && (
+        <div className="flex items-center justify-center gap-1 pb-1">
+          <Cloud
+            size={11}
+            className={cn(
+              cloudSyncStatus === 'syncing' && 'text-sky-400 animate-pulse',
+              cloudSyncStatus === 'saved' && 'text-emerald-400/80',
+              cloudSyncStatus === 'error' && 'text-amber-400',
+              cloudSyncStatus === 'offline' && 'text-white/25',
+            )}
+          />
+          <span
+            className={cn(
+              'text-[10px] font-medium',
+              cloudSyncStatus === 'syncing' && 'text-sky-400/80',
+              cloudSyncStatus === 'saved' && 'text-emerald-400/70',
+              cloudSyncStatus === 'error' && 'text-amber-400/80',
+              cloudSyncStatus === 'offline' && 'text-white/25',
+            )}
+          >
+            {cloudSyncStatus === 'syncing' && sync.syncingShort}
+            {cloudSyncStatus === 'saved' && sync.savedShort}
+            {cloudSyncStatus === 'error' && sync.errorShort}
+            {cloudSyncStatus === 'offline' && sync.offlineShort}
+          </span>
+        </div>
+      )}
 
       {/* ── チーム名 + クォーター行 ── */}
       <div className="flex items-center gap-2 pb-0.5">

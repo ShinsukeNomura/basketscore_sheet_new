@@ -1,10 +1,11 @@
 'use client';
 
-import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
+import { shouldPreferCloud } from '@/lib/cloudGameMerge';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
@@ -278,12 +279,22 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 // Hook
 // ============================================================
 
+export type CloudSyncStatus = 'idle' | 'syncing' | 'saved' | 'error' | 'offline';
+
+const SAVE_DEBOUNCE_MS = 600;
+const CLOUD_PULL_INTERVAL_MS = 12_000;
+
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
   const { user } = useAuth();
   const syncT = useDictionary().sync;
 
   const userId = user?.id;
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>('idle');
+  const syncInFlight = useRef(false);
+  const pendingSyncState = useRef<InternalState | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const persistState = useCallback((s: InternalState, uid?: string) => {
     const activeLogs = s.logs.filter((l) => !l.is_deleted);
@@ -297,12 +308,15 @@ export function useGameState(gameId: string) {
     return { gameState, ourScore, theirScore };
   }, []);
 
-  const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
-    try {
+  const runCloudSync = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     if (!s.isLoaded) return { ok: false, error: syncT.loading };
     let { gameState } = persistState(s, userId);
-    if (!userId) return { ok: false, error: syncT.notLoggedIn };
+    if (!userId) {
+      setCloudSyncStatus('offline');
+      return { ok: false, error: syncT.notLoggedIn };
+    }
 
+    setCloudSyncStatus('syncing');
     const cloud = await syncToCloud(gameState, userId);
     if (cloud.state && cloud.state.game.id !== gameState.game.id) {
       gameState = cloud.state;
@@ -313,12 +327,14 @@ export function useGameState(gameId: string) {
       dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
     }
     if (cloud.ok) {
+      setCloudSyncStatus('saved');
       const detail = cloud.logsTotal != null
         ? `（${cloud.logsSynced ?? cloud.logsTotal}/${cloud.logsTotal}）`
         : '';
       return { ok: true, error: detail ? `${syncT.saveDone}${detail}` : undefined };
     }
     if (cloud.partial) {
+      setCloudSyncStatus('error');
       return {
         ok: false,
         error: syncT.savePartial
@@ -327,11 +343,47 @@ export function useGameState(gameId: string) {
           .replace('{detail}', cloud.error ?? ''),
       };
     }
+    setCloudSyncStatus('error');
     return { ok: false, error: cloud.error ?? syncT.saveFail };
-    } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : syncT.unexpected };
-    }
   }, [persistState, userId, syncT]);
+
+  const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      if (syncInFlight.current) {
+        pendingSyncState.current = s;
+        return { ok: true };
+      }
+      syncInFlight.current = true;
+      let current = s;
+      let lastResult: { ok: boolean; error?: string } = { ok: true };
+      do {
+        pendingSyncState.current = null;
+        lastResult = await runCloudSync(current);
+        if (pendingSyncState.current) {
+          current = pendingSyncState.current;
+          pendingSyncState.current = null;
+        }
+      } while (pendingSyncState.current);
+      return lastResult;
+    } catch (e) {
+      setCloudSyncStatus('error');
+      return { ok: false, error: e instanceof Error ? e.message : syncT.unexpected };
+    } finally {
+      syncInFlight.current = false;
+    }
+  }, [runCloudSync, syncT]);
+
+  const pullFromCloud = useCallback(async () => {
+    if (!userId || !stateRef.current.isLoaded) return;
+    const local = loadPersistedGame(gameId);
+    const cloud = await loadGameFromCloud(gameId, userId);
+    if (!cloud || !shouldPreferCloud(local, cloud)) return;
+    const active = cloud.logs.filter((l) => !l.is_deleted);
+    const ourScore   = active.filter((l) => l.team_id === cloud.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
+    const theirScore = active.filter((l) => l.team_id === cloud.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
+    savePersistedGame(cloud, ourScore, theirScore, userId);
+    dispatch({ type: 'LOAD_PERSISTED', payload: cloud });
+  }, [gameId, userId]);
 
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
   useEffect(() => {
@@ -339,22 +391,19 @@ export function useGameState(gameId: string) {
 
     async function load() {
       const local = loadPersistedGame(gameId);
-      const localLogCount = (local?.logs ?? []).filter((l) => !l.is_deleted).length;
 
       if (userId) {
         try {
           const cloud = await loadGameFromCloud(gameId, userId);
           if (cancelled) return;
           if (cloud) {
-            const cloudLogCount = cloud.logs.filter((l) => !l.is_deleted).length;
-            const useCloud = !local || cloudLogCount > localLogCount;
+            const useCloud = shouldPreferCloud(local, cloud);
             const payload = useCloud ? cloud : local!;
             if (useCloud) {
-              persistState({
-                game: payload.game, ourTeam: payload.ourTeam, theirTeam: payload.theirTeam,
-                allPlayers: payload.allPlayers, logs: payload.logs,
-                selectedStat: null, flashPlayerId: null, isLoaded: true,
-              }, userId);
+              const active = payload.logs.filter((l) => !l.is_deleted);
+              const ourScore   = active.filter((l) => l.team_id === payload.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
+              const theirScore = active.filter((l) => l.team_id === payload.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
+              savePersistedGame(payload, ourScore, theirScore, userId);
             }
             dispatch({ type: 'LOAD_PERSISTED', payload });
             return;
@@ -381,14 +430,45 @@ export function useGameState(gameId: string) {
     return () => { cancelled = true; };
   }, [gameId, userId, persistState]);
 
-  // --- localStorage + クラウド への同期（デバウンス 300ms） ---
+  // --- localStorage + クラウド への同期（デバウンス） ---
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialSyncDone = useRef(false);
   useEffect(() => {
     if (!state.isLoaded) return;
+    if (!userId) setCloudSyncStatus('offline');
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => { void flushSave(state); }, 300);
+    saveTimer.current = setTimeout(() => { void flushSave(state); }, SAVE_DEBOUNCE_MS);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [state, flushSave]);
+  }, [state, flushSave, userId]);
+
+  // 試合画面を開いた直後に1回クラウドへ送信
+  useEffect(() => {
+    if (!state.isLoaded || !userId || initialSyncDone.current) return;
+    initialSyncDone.current = true;
+    void flushSave(state);
+  }, [state.isLoaded, userId, state, flushSave]);
+
+  // 記録中: 他端末の更新をクラウドから取り込む
+  useEffect(() => {
+    if (!userId || !state.isLoaded || state.game.status !== 'progress') return;
+    const interval = setInterval(() => { void pullFromCloud(); }, CLOUD_PULL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [userId, state.isLoaded, state.game.status, pullFromCloud]);
+
+  // タブ復帰時にクラウド取得 / 非表示時に即時送信
+  useEffect(() => {
+    const onVisibility = () => {
+      if (!stateRef.current.isLoaded) return;
+      if (document.visibilityState === 'hidden') {
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        void flushSave(stateRef.current);
+      } else if (userId) {
+        void pullFromCloud();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [userId, flushSave, pullFromCloud]);
 
   // 試合終了時はデバウンスを待たず即時クラウド同期
   const prevStatus = useRef<GameStatus | null>(null);
@@ -492,5 +572,6 @@ export function useGameState(gameId: string) {
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
+    cloudSyncStatus, pullFromCloud,
   };
 }

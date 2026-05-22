@@ -277,7 +277,11 @@
     "savePartial": "部分儲存 ({synced}/{total}): {detail}",
     "saveFail": "傳送至雲端失敗",
     "unexpected": "意外錯誤",
-    "unknown": "未知錯誤"
+    "unknown": "未知錯誤",
+    "syncingShort": "同步中",
+    "savedShort": "已儲存至雲端",
+    "errorShort": "同步失敗",
+    "offlineShort": "未登入"
   },
 
   "statsSheet": {

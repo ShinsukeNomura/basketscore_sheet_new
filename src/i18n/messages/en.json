@@ -277,7 +277,11 @@
     "savePartial": "Partially saved ({synced}/{total}): {detail}",
     "saveFail": "Failed to save to cloud",
     "unexpected": "Unexpected error",
-    "unknown": "Unknown error"
+    "unknown": "Unknown error",
+    "syncingShort": "Syncing…",
+    "savedShort": "Cloud saved",
+    "errorShort": "Sync failed",
+    "offlineShort": "Not signed in"
   },
 
   "statsSheet": {

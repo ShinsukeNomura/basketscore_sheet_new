@@ -34,6 +34,7 @@ export default function GamePage() {
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer, removePlayer, toggleCourt,
     renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons, reloadFromStorage,
+    cloudSyncStatus,
   } = useGameState(gameId);
 
   const { isPremium } = useAuth();
@@ -119,6 +120,7 @@ export default function GamePage() {
         onRenameGame={renameGame}
         onGoHome={() => router.push(`/${lang}`)}
         onEditSetup={() => setCreateOpen(true)}
+        cloudSyncStatus={cloudSyncStatus}
         onShowStats={() => setStatsOpen(true)}
         onShowRunning={() => router.push(`/${lang}/game/${gameId}/running`)}
       />

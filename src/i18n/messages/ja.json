@@ -277,7 +277,11 @@
     "savePartial": "一部のみ保存 ({synced}/{total}件): {detail}",
     "saveFail": "クラウドへの保存に失敗しました",
     "unexpected": "予期しないエラー",
-    "unknown": "不明なエラー"
+    "unknown": "不明なエラー",
+    "syncingShort": "クラウド送信中",
+    "savedShort": "クラウド保存済",
+    "errorShort": "送信失敗・再試行中",
+    "offlineShort": "未ログイン"
   },
 
   "statsSheet": {

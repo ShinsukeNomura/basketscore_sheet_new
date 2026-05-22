@@ -139,33 +139,61 @@ async function upsertLogs(
 
   const playerIds = new Set(state.allPlayers.map((p) => p.id));
 
-  const logRows: LogRow[] = state.logs.map((l) => ({
-    id:          l.id,
-    game_id:     l.game_id,
-    team_id:     l.team_id,
-    player_id:   l.player_id && playerIds.has(l.player_id) ? l.player_id : null,
-    period:      Math.min(Math.max(l.period, 1), 6),
-    timestamp:   l.timestamp,
-    action_type: l.action_type,
-    points:      l.points ?? 0,
-    is_deleted:  l.is_deleted ?? false,
-    link_id:     l.link_id != null ? String(l.link_id) : null,
-  }));
+  const logRows = state.logs.map((l) => {
+    const row: LogRow & { court_location?: string; tov_reason?: string; is_auto?: boolean } = {
+      id:          l.id,
+      game_id:     l.game_id,
+      team_id:     l.team_id,
+      player_id:   l.player_id && playerIds.has(l.player_id) ? l.player_id : null,
+      period:      Math.min(Math.max(l.period, 1), 6),
+      timestamp:   l.timestamp,
+      action_type: l.action_type,
+      points:      l.points ?? 0,
+      is_deleted:  l.is_deleted ?? false,
+      link_id:     l.link_id != null ? String(l.link_id) : null,
+    };
+    if (l.court_location) row.court_location = l.court_location;
+    if (l.tov_reason) row.tov_reason = l.tov_reason;
+    if (l.is_auto) row.is_auto = true;
+    return row;
+  });
 
   let synced = 0;
   let lastErr: string | null = null;
   const BATCH = 50;
 
+  const minimalRow = (row: (typeof logRows)[number]): LogRow => ({
+    id: row.id,
+    game_id: row.game_id,
+    team_id: row.team_id,
+    player_id: row.player_id,
+    period: row.period,
+    timestamp: row.timestamp,
+    action_type: row.action_type,
+    points: row.points,
+    is_deleted: row.is_deleted,
+    link_id: row.link_id,
+  });
+
   for (let i = 0; i < logRows.length; i += BATCH) {
     const chunk = logRows.slice(i, i + BATCH);
-    const { error } = await db.from('stats_logs').upsert(chunk, { onConflict: 'id' });
+    let { error } = await db.from('stats_logs').upsert(chunk, { onConflict: 'id' });
     if (!error) {
       synced += chunk.length;
       continue;
     }
-    // バッチ失敗時は1件ずつ再試行
+    // 拡張列未対応DB向けに最小列で再試行
+    const minimalChunk = chunk.map(minimalRow);
+    ({ error } = await db.from('stats_logs').upsert(minimalChunk, { onConflict: 'id' }));
+    if (!error) {
+      synced += chunk.length;
+      continue;
+    }
     for (const row of chunk) {
-      const { error: rowErr } = await db.from('stats_logs').upsert(row, { onConflict: 'id' });
+      let { error: rowErr } = await db.from('stats_logs').upsert(row, { onConflict: 'id' });
+      if (rowErr) {
+        ({ error: rowErr } = await db.from('stats_logs').upsert(minimalRow(row), { onConflict: 'id' }));
+      }
       if (!rowErr) synced += 1;
       else lastErr = rowErr.message;
     }
