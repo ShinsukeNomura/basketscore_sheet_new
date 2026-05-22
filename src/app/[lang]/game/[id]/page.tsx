@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useGameState }          from '@/hooks/useGameState';
 import { GameHeader }            from '@/components/game/GameHeader';
@@ -34,8 +34,12 @@ export default function GamePage() {
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer, removePlayer, toggleCourt,
     renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons, reloadFromStorage,
-    cloudSyncStatus,
+    cloudSyncStatus, saveToCloud,
   } = useGameState(gameId);
+
+  const leaveAndSave = useCallback(() => { void saveToCloud(); }, [saveToCloud]);
+
+  useEffect(() => () => { void saveToCloud(); }, [saveToCloud]);
 
   const { isPremium } = useAuth();
 
@@ -118,11 +122,11 @@ export default function GamePage() {
         onChangePeriod={changePeriod}
         onEndGame={endGame}
         onRenameGame={renameGame}
-        onGoHome={() => router.push(`/${lang}`)}
+        onGoHome={() => { leaveAndSave(); router.push(`/${lang}`); }}
         onEditSetup={() => setCreateOpen(true)}
         cloudSyncStatus={cloudSyncStatus}
         onShowStats={() => setStatsOpen(true)}
-        onShowRunning={() => router.push(`/${lang}/game/${gameId}/running`)}
+        onShowRunning={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/running`); }}
       />
 
       <div className="flex-[1.2] min-h-0 overflow-hidden">

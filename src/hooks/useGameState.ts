@@ -281,9 +281,6 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
 export type CloudSyncStatus = 'idle' | 'syncing' | 'saved' | 'error' | 'offline';
 
-const SAVE_DEBOUNCE_MS = 600;
-const CLOUD_PULL_INTERVAL_MS = 12_000;
-
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
   const { user } = useAuth();
@@ -373,18 +370,6 @@ export function useGameState(gameId: string) {
     }
   }, [runCloudSync, syncT]);
 
-  const pullFromCloud = useCallback(async () => {
-    if (!userId || !stateRef.current.isLoaded) return;
-    const local = loadPersistedGame(gameId);
-    const cloud = await loadGameFromCloud(gameId, userId);
-    if (!cloud || !shouldPreferCloud(local, cloud)) return;
-    const active = cloud.logs.filter((l) => !l.is_deleted);
-    const ourScore   = active.filter((l) => l.team_id === cloud.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
-    const theirScore = active.filter((l) => l.team_id === cloud.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
-    savePersistedGame(cloud, ourScore, theirScore, userId);
-    dispatch({ type: 'LOAD_PERSISTED', payload: cloud });
-  }, [gameId, userId]);
-
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
   useEffect(() => {
     let cancelled = false;
@@ -430,56 +415,28 @@ export function useGameState(gameId: string) {
     return () => { cancelled = true; };
   }, [gameId, userId, persistState]);
 
-  // --- localStorage + クラウド への同期（デバウンス） ---
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialSyncDone = useRef(false);
+  // --- ローカル保存（記録のたび） ---
   useEffect(() => {
     if (!state.isLoaded) return;
+    persistState(state, userId);
     if (!userId) setCloudSyncStatus('offline');
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => { void flushSave(state); }, SAVE_DEBOUNCE_MS);
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [state, flushSave, userId]);
+  }, [state, persistState, userId, state.isLoaded]);
 
-  // 試合画面を開いた直後に1回クラウドへ送信
-  useEffect(() => {
-    if (!state.isLoaded || !userId || initialSyncDone.current) return;
-    initialSyncDone.current = true;
-    void flushSave(state);
-  }, [state.isLoaded, userId, state, flushSave]);
-
-  // 記録中: 他端末の更新をクラウドから取り込む
-  useEffect(() => {
-    if (!userId || !state.isLoaded || state.game.status !== 'progress') return;
-    const interval = setInterval(() => { void pullFromCloud(); }, CLOUD_PULL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [userId, state.isLoaded, state.game.status, pullFromCloud]);
-
-  // タブ復帰時にクラウド取得 / 非表示時に即時送信
-  useEffect(() => {
-    const onVisibility = () => {
-      if (!stateRef.current.isLoaded) return;
-      if (document.visibilityState === 'hidden') {
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        void flushSave(stateRef.current);
-      } else if (userId) {
-        void pullFromCloud();
-      }
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [userId, flushSave, pullFromCloud]);
-
-  // 試合終了時はデバウンスを待たず即時クラウド同期
+  // 試合終了時にクラウドへ送信
   const prevStatus = useRef<GameStatus | null>(null);
   useEffect(() => {
     if (!state.isLoaded) return;
     if (prevStatus.current !== 'finished' && state.game.status === 'finished') {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
       void flushSave(state);
     }
     prevStatus.current = state.game.status;
   }, [state.game.status, state.isLoaded, state, flushSave]);
+
+  /** スタッツ画面を離れるときなどに呼ぶ（クラウド送信） */
+  const saveToCloud = useCallback(
+    () => flushSave(stateRef.current),
+    [flushSave],
+  );
 
   // --- 派生値 ---
   const activeLogs = useMemo(() => state.logs.filter((l) => !l.is_deleted), [state.logs]);
@@ -552,7 +509,6 @@ export function useGameState(gameId: string) {
   }, []);
 
   const saveGame = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
     return flushSave(state);
   }, [state, flushSave]);
 
@@ -572,6 +528,6 @@ export function useGameState(gameId: string) {
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
-    cloudSyncStatus, pullFromCloud,
+    cloudSyncStatus, saveToCloud,
   };
 }

@@ -618,7 +618,7 @@
     "premiumTov12to6Val": "24s/8s/5s/Backcourt/3s→Time Violation, OOB→Bad Pass",
     "cloudTitle": "Cloud Link",
     "cloudUploadTitle": "Finish a game and send to cloud (phone)",
-    "cloudUploadAuto": "While logged in, your game is auto-backed up to the cloud about every 300ms during play and on the end screen.",
+    "cloudUploadAuto": "While logged in, your game is saved to the cloud when you leave the stats screen (e.g. go home or open the running score sheet) and when you end the game.",
     "cloudUploadManual": "Tap \"Send to Cloud\" on the end screen to confirm the final save.",
     "cloudDownloadTitle": "View data on PC or another device",
     "cloudDownloadBody": "On the home screen, tap \"Fetch Latest from Cloud\" to download the latest games sent from your phone. Scores and heatmaps will update on this device.",

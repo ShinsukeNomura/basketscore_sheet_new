@@ -9,7 +9,7 @@ export default function RunningPage() {
   const gameId = typeof params.id === 'string' ? params.id : (params.id?.[0] ?? 'demo');
   const router = useRouter();
 
-  const { ourTeam, theirTeam, allPlayers, activeLogs, isLoaded } = useGameState(gameId);
+  const { ourTeam, theirTeam, allPlayers, activeLogs, isLoaded, saveToCloud } = useGameState(gameId);
 
   if (!isLoaded) {
     return (
@@ -26,7 +26,7 @@ export default function RunningPage() {
         theirTeam={theirTeam}
         allPlayers={allPlayers}
         logs={activeLogs}
-        onClose={() => router.back()}
+        onClose={() => { void saveToCloud(); router.back(); }}
       />
     </div>
   );
