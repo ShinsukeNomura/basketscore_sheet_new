@@ -4,6 +4,8 @@ import { PersistedGameState } from '@/types';
 export interface SyncResult {
   ok: boolean;
   errors: string[];
+  logsSynced?: number;
+  logsTotal?: number;
   /** ID を再発行した場合の新しい状態（呼び出し側で localStorage に保存すること） */
   state?: PersistedGameState;
 }
@@ -115,12 +117,28 @@ async function upsertPlayers(db: SupabaseClient, state: PersistedGameState): Pro
   return error?.message ?? null;
 }
 
-async function upsertLogs(db: SupabaseClient, state: PersistedGameState): Promise<string | null> {
-  if (state.logs.length === 0) return null;
+type LogRow = {
+  id: string;
+  game_id: string;
+  team_id: string;
+  player_id: string | null;
+  period: number;
+  timestamp: string;
+  action_type: string;
+  points: number;
+  is_deleted: boolean;
+  link_id: string | null;
+};
+
+async function upsertLogs(
+  db: SupabaseClient,
+  state: PersistedGameState,
+): Promise<{ error: string | null; synced: number; total: number }> {
+  if (state.logs.length === 0) return { error: null, synced: 0, total: 0 };
 
   const playerIds = new Set(state.allPlayers.map((p) => p.id));
 
-  const logRows = state.logs.map((l) => ({
+  const logRows: LogRow[] = state.logs.map((l) => ({
     id:          l.id,
     game_id:     l.game_id,
     team_id:     l.team_id,
@@ -133,14 +151,26 @@ async function upsertLogs(db: SupabaseClient, state: PersistedGameState): Promis
     link_id:     l.link_id != null ? String(l.link_id) : null,
   }));
 
-  const BATCH = 100;
+  let synced = 0;
   let lastErr: string | null = null;
+  const BATCH = 50;
+
   for (let i = 0; i < logRows.length; i += BATCH) {
     const chunk = logRows.slice(i, i + BATCH);
     const { error } = await db.from('stats_logs').upsert(chunk, { onConflict: 'id' });
-    if (error) lastErr = error.message;
+    if (!error) {
+      synced += chunk.length;
+      continue;
+    }
+    // バッチ失敗時は1件ずつ再試行
+    for (const row of chunk) {
+      const { error: rowErr } = await db.from('stats_logs').upsert(row, { onConflict: 'id' });
+      if (!rowErr) synced += 1;
+      else lastErr = rowErr.message;
+    }
   }
-  return lastErr;
+
+  return { error: synced < logRows.length ? (lastErr ?? '一部の記録を保存できませんでした') : null, synced, total: logRows.length };
 }
 
 /** Supabase へ試合データを書き込む */
@@ -164,11 +194,14 @@ export async function syncGameCore(
   const playerErr = await upsertPlayers(db, payload);
   if (playerErr) errors.push(`players: ${playerErr}`);
 
-  const logErr = await upsertLogs(db, payload);
-  if (logErr) errors.push(`stats_logs: ${logErr}`);
+  const logResult = await upsertLogs(db, payload);
+  if (logResult.error) {
+    errors.push(`stats_logs: ${logResult.error} (${logResult.synced}/${logResult.total}件)`);
+  }
 
   const hasLogs = payload.logs.length > 0;
-  const ok = !gameErr && !playerErr && (!hasLogs || !logErr);
+  const logsOk  = !hasLogs || (logResult.synced === logResult.total && !logResult.error);
+  const ok      = !gameErr && !playerErr && logsOk;
 
-  return { ok, errors, state: payload };
+  return { ok, errors, state: payload, logsSynced: logResult.synced, logsTotal: logResult.total };
 }

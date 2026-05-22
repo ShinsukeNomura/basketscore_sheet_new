@@ -310,9 +310,19 @@ export function useGameState(gameId: string) {
       savePersistedGame(gameState, ourScore, theirScore, userId);
       dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
     }
-    return sync.ok
-      ? { ok: true }
-      : { ok: false, error: sync.error ?? 'クラウドへの保存に失敗しました' };
+    if (sync.ok) {
+      const detail = sync.logsTotal != null
+        ? `（${sync.logsSynced ?? sync.logsTotal}/${sync.logsTotal}件）`
+        : '';
+      return { ok: true, error: detail ? `保存しました${detail}` : undefined };
+    }
+    if (sync.partial) {
+      return {
+        ok: false,
+        error: `一部のみ保存 (${sync.logsSynced}/${sync.logsTotal}件): ${sync.error ?? ''}`,
+      };
+    }
+    return { ok: false, error: sync.error ?? 'クラウドへの保存に失敗しました' };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : '予期しないエラー' };
     }

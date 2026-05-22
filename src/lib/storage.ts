@@ -87,7 +87,8 @@ export function mergeCloudGamesIntoIndex(cloud: GameSummary[]): GameSummary[] {
     const existing = byId.get(cg.id);
     const cloudPts  = cg.ourScore + cg.theirScore;
     const localPts  = (existing?.ourScore ?? 0) + (existing?.theirScore ?? 0);
-    const useCloudScores = !existing || cloudPts > localPts;
+    // PC などローカル 0-0 のときはクラウドを優先（一部同期でも表示）
+    const useCloudScores = !existing || localPts === 0 || cloudPts > localPts;
     byId.set(cg.id, existing
       ? {
           ...existing,

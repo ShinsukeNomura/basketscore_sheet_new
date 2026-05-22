@@ -177,9 +177,11 @@ export function EndGameOverlay({
     try {
       const result = await onSave();
       if (result.ok) {
-        setSaveMsg(user ? eg.saveDone : eg.saveLocalOnly);
+        setSaveMsg(result.error && result.error.startsWith('保存しました')
+          ? result.error
+          : (user ? eg.saveDone : eg.saveLocalOnly));
         setSaveError(null);
-        setTimeout(() => setSaveMsg(null), 3000);
+        setTimeout(() => setSaveMsg(null), 4000);
       } else {
         const detail = result.error ?? '不明なエラー';
         setSaveMsg(eg.saveFail);

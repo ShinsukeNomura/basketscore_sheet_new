@@ -5,6 +5,9 @@ import { PersistedGameState, GameSummary } from '@/types';
 export interface SyncCloudResult {
   ok: boolean;
   error?: string;
+  partial?: boolean;
+  logsSynced?: number;
+  logsTotal?: number;
   /** ID 再発行後の状態（localStorage 更新用） */
   state?: PersistedGameState;
 }
@@ -45,7 +48,12 @@ export async function syncToCloud(
         state?: PersistedGameState;
       };
       if (res.ok && data.ok) {
-        return { ok: true, state: data.state ?? state };
+        return {
+          ok: true,
+          state: data.state ?? state,
+          logsSynced: (data as { logsSynced?: number }).logsSynced,
+          logsTotal:  (data as { logsTotal?: number }).logsTotal,
+        };
       }
       lastError = data.errors?.join(' / ') ?? data.error ?? `APIエラー (HTTP ${res.status})`;
       console.error('[sync] API failed:', lastError);
@@ -57,7 +65,22 @@ export async function syncToCloud(
 
   const result = await syncGameCore(supabase, state, userId);
   if (result.ok) {
-    return { ok: true, state: result.state ?? state };
+    return {
+      ok: true,
+      state: result.state ?? state,
+      logsSynced: result.logsSynced,
+      logsTotal:  result.logsTotal,
+    };
+  }
+  if (result.logsSynced != null && result.logsTotal != null && result.logsSynced > 0) {
+    return {
+      ok: false,
+      partial: true,
+      logsSynced: result.logsSynced,
+      logsTotal: result.logsTotal,
+      error: result.errors.join(' / ') || lastError,
+      state: result.state,
+    };
   }
   const directErr = result.errors.join(' / ') || lastError;
   console.error('[sync] direct failed:', directErr);
@@ -95,15 +118,25 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
   if (!games?.length) return [];
 
   const gameIds = games.map((g) => g.id);
-  const { data: allLogs, error: logsErr } = await supabase
-    .from('stats_logs')
-    .select('game_id, team_id, points, is_deleted')
-    .in('game_id', gameIds);
+  type LogRow = { game_id: string; team_id: string; points: number; is_deleted: boolean };
+  const allLogs: LogRow[] = [];
 
-  if (logsErr) console.error('[fetchGames] stats_logs error:', logsErr.message);
+  for (let i = 0; i < gameIds.length; i += 30) {
+    const chunk = gameIds.slice(i, i + 30);
+    const { data, error: logsErr } = await supabase
+      .from('stats_logs')
+      .select('game_id, team_id, points, is_deleted')
+      .in('game_id', chunk)
+      .limit(5000);
+    if (logsErr) {
+      console.error('[fetchGames] stats_logs error:', logsErr.message);
+      break;
+    }
+    if (data) allLogs.push(...data);
+  }
 
-  const logsByGame = new Map<string, NonNullable<typeof allLogs>>();
-  for (const log of allLogs ?? []) {
+  const logsByGame = new Map<string, LogRow[]>();
+  for (const log of allLogs) {
     const list = logsByGame.get(log.game_id) ?? [];
     list.push(log);
     logsByGame.set(log.game_id, list);

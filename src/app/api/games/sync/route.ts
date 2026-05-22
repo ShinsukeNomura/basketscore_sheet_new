@@ -36,7 +36,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, errors: result.errors, state: result.state }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, state: result.state });
+    return NextResponse.json({
+      ok: true,
+      state: result.state,
+      logsSynced: result.logsSynced,
+      logsTotal:  result.logsTotal,
+    });
   } catch (e) {
     console.error('[api/games/sync]', e);
     return NextResponse.json({ ok: false, error: 'サーバーエラー' }, { status: 500 });
