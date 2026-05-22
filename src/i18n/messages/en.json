@@ -33,7 +33,8 @@
 
   "home": {
     "subtitle": "Real-time basketball stats, one hand",
-    "cloudSync": "Cloud Sync",
+    "cloudSync": "Fetch Latest from Cloud",
+    "cloudFetchStaleHint": "Tap to fetch the latest data recorded on your phone",
     "syncing": "Syncing...",
     "syncDone": "Synced ({count} games)",
     "syncFail": "Sync failed",
@@ -245,11 +246,11 @@
     "pdfExport": "Export Score Sheet PDF",
     "statsDetail": "View Stats",
     "runningScore": "Running Score Sheet",
-    "cloudSave": "Save to Cloud",
+    "cloudSave": "Send to Cloud",
     "saving": "Saving...",
     "saveDone": "Saved",
     "saveLocalOnly": "Saved on this device",
-    "saveFail": "Cloud save failed",
+    "saveFail": "Failed to send to cloud",
     "nextGame": "Create Next Game",
     "goHome": "Go Home",
     "resumeGame": "Resume Recording"
@@ -314,8 +315,8 @@
       "aiDesc": "Gemini analyzes your game data and generates coach-level reports. Results are cached.",
       "pdf": "PDF Export",
       "pdfDesc": "Export and print score sheets as PDF",
-      "cloud": "Cloud Sync",
-      "cloudDesc": "Auto-sync across all your devices when signed in",
+      "cloud": "Cloud sync (send & fetch)",
+      "cloudDesc": "Send from phone; fetch latest on PC or other devices",
       "tov": "TOV Detail Categories",
       "tovDesc": "Log turnovers in 6 or 12 detailed categories (PRO)"
     },
@@ -425,14 +426,13 @@
     "premiumTov6to12Val": "Stolen→Lost Ball, Time Violation→Other",
     "premiumTov12to6": "Official → 6-Cat",
     "premiumTov12to6Val": "24s/8s/5s/Backcourt/3s→Time Violation, OOB→Bad Pass",
-    "cloudTitle": "Cloud Sync",
-    "cloudStep1": "Record on your phone",
-    "cloudStep1Val": "→ Auto-saved to cloud",
-    "cloudStep2": "Open on PC or another device",
-    "cloudStep2Val": "→ Sign in with the same account",
-    "cloudStep3": "Tap \"Cloud Sync\" on the home screen",
-    "cloudStep3Val": "→ Fetch the latest data",
-    "cloudHint": "Auto-syncs 300ms after each stat entry. Home screen scores reflect local data immediately."
+    "cloudTitle": "Cloud Link",
+    "cloudUploadTitle": "Finish a game and send to cloud (phone)",
+    "cloudUploadAuto": "While logged in, your game is auto-backed up to the cloud about every 300ms during play and on the end screen.",
+    "cloudUploadManual": "Tap \"Send to Cloud\" on the end screen to confirm the final save.",
+    "cloudDownloadTitle": "View data on PC or another device",
+    "cloudDownloadBody": "On the home screen, tap \"Fetch Latest from Cloud\" to download the latest games sent from your phone. Scores and heatmaps will update on this device.",
+    "cloudDirectionNote": "\"Send to Cloud\" uploads data. \"Fetch Latest from Cloud\" downloads data."
   },
 
   "privacy": {

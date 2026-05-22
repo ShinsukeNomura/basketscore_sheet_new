@@ -33,7 +33,8 @@
 
   "home": {
     "subtitle": "片手でリアルタイム記録",
-    "cloudSync": "クラウド同期",
+    "cloudSync": "クラウドから最新データを取得",
+    "cloudFetchStaleHint": "スマホでの変更を反映するには、ボタンを押して最新データを取得してください",
     "syncing": "同期中...",
     "syncDone": "同期完了（{count}件）",
     "syncFail": "同期に失敗しました",
@@ -245,11 +246,11 @@
     "pdfExport": "スコアシートをPDF出力",
     "statsDetail": "スタッツ詳細を見る",
     "runningScore": "ランニングスコアシート",
-    "cloudSave": "クラウドに保存",
+    "cloudSave": "クラウドへ送信",
     "saving": "保存中...",
     "saveDone": "保存しました",
     "saveLocalOnly": "端末に保存しました",
-    "saveFail": "クラウド保存に失敗しました",
+    "saveFail": "クラウドへの送信に失敗しました",
     "nextGame": "次の試合を作成",
     "goHome": "ホームへ戻る",
     "resumeGame": "記録を再開する"
@@ -314,8 +315,8 @@
       "aiDesc": "Geminiが試合データを分析し、コーチ目線のレポートを日本語で生成。結果はキャッシュ保存されます",
       "pdf": "PDF出力",
       "pdfDesc": "スコアシートをPDFでエクスポート・印刷",
-      "cloud": "クラウド同期",
-      "cloudDesc": "複数端末で同じアカウントにログインすれば自動同期",
+      "cloud": "クラウド連携（送信・取得）",
+      "cloudDesc": "スマホで送る・PCで「最新データを取得」で受け取る",
       "tov": "TOV詳細分類",
       "tovDesc": "ターンオーバーを厳選6・公式12カテゴリーで記録（PRO）"
     },
@@ -425,14 +426,13 @@
     "premiumTov6to12Val": "スチール→ロストボール、時間違反→その他",
     "premiumTov12to6": "公式12 → 厳選6",
     "premiumTov12to6Val": "24秒/8秒/5秒/バックコート/3秒→時間違反、OOB→パスミス",
-    "cloudTitle": "クラウド同期",
-    "cloudStep1": "スマホで試合記録",
-    "cloudStep1Val": "→ 自動的にクラウドへ保存",
-    "cloudStep2": "PCや別端末で開く",
-    "cloudStep2Val": "→ 同じアカウントでログイン",
-    "cloudStep3": "ホームの「クラウド同期」をタップ",
-    "cloudStep3Val": "→ 最新データを取得",
-    "cloudHint": "スタッツ入力後300msで自動同期。ホーム画面のスコアはローカルデータを即時反映します"
+    "cloudTitle": "クラウド連携",
+    "cloudUploadTitle": "試合を終了してクラウドへ送る（スマホ操作）",
+    "cloudUploadAuto": "試合中および試合終了画面では、ログイン中であればデータが約300msごとに自動でクラウドへバックアップされます。",
+    "cloudUploadManual": "終了画面の「クラウドへ送信」ボタンを押すことで、手動での最終確認保存が完了します。",
+    "cloudDownloadTitle": "他の端末やPCでデータを見る（PC・別端末操作）",
+    "cloudDownloadBody": "スマホから送られた最新の試合データを取り込むには、ホーム画面の「クラウドから最新データを取得」ボタンを押してください。クラウド上の最新一覧が端末にダウンロードされ、スコアやヒートマップが更新されます。",
+    "cloudDirectionNote": "「クラウドへ送信」はクラウドへ送る操作、「クラウドから最新データを取得」はクラウドから受け取る操作です。"
   },
 
   "privacy": {

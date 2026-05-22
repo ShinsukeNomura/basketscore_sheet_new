@@ -80,6 +80,23 @@ function setGamesIndex(index: GameSummary[]): void {
 }
 
 /** クラウド一覧でローカルインデックスを更新（スコア・ステータスはクラウド優先） */
+const LAST_CLOUD_FETCH_KEY = (uid: string) => `bball_last_cloud_fetch_${uid}`;
+
+export function getLastCloudFetchAt(userId: string): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(LAST_CLOUD_FETCH_KEY(userId));
+    return raw ? Number(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setLastCloudFetchAt(userId: string): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LAST_CLOUD_FETCH_KEY(userId), String(Date.now()));
+}
+
 export function mergeCloudGamesIntoIndex(cloud: GameSummary[]): GameSummary[] {
   const index = getGamesIndex();
   const byId = new Map(index.map((g) => [g.id, g]));

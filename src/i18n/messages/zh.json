@@ -33,7 +33,8 @@
 
   "home": {
     "subtitle": "实时篮球比赛记录，单手操作",
-    "cloudSync": "云同步",
+    "cloudSync": "从云端获取最新数据",
+    "cloudFetchStaleHint": "若在手机端有更新，请点按按钮获取最新数据",
     "syncing": "同步中...",
     "syncDone": "同步完成（{count}场）",
     "syncFail": "同步失败",
@@ -245,11 +246,11 @@
     "pdfExport": "导出得分表PDF",
     "statsDetail": "查看详细统计",
     "runningScore": "实时得分记录表",
-    "cloudSave": "保存到云端",
+    "cloudSave": "发送到云端",
     "saving": "保存中...",
     "saveDone": "已保存",
     "saveLocalOnly": "已保存到本设备",
-    "saveFail": "云端保存失败",
+    "saveFail": "发送到云端失败",
     "nextGame": "创建下一场比赛",
     "goHome": "返回主页",
     "resumeGame": "继续记录"
@@ -314,8 +315,8 @@
       "aiDesc": "Gemini分析比赛数据，生成教练视角报告。结果会缓存保存。",
       "pdf": "PDF导出",
       "pdfDesc": "将得分表导出并打印为PDF",
-      "cloud": "云同步",
-      "cloudDesc": "使用同一账号登录多台设备即可自动同步",
+      "cloud": "云端联动（发送・获取）",
+      "cloudDesc": "手机发送・电脑点「获取最新数据」接收",
       "tov": "失误详细分类",
       "tovDesc": "将失误分为精选6类或官方12类进行记录（PRO）"
     },
@@ -425,14 +426,13 @@
     "premiumTov6to12Val": "被抢断→运球失误，时间违规→其他",
     "premiumTov12to6": "官方12类 → 精选6类",
     "premiumTov12to6Val": "24秒/8秒/5秒/回场/3秒→时间违规，出界→传球失误",
-    "cloudTitle": "云同步",
-    "cloudStep1": "手机端记录比赛",
-    "cloudStep1Val": "→ 自动保存至云端",
-    "cloudStep2": "在电脑或其他设备打开",
-    "cloudStep2Val": "→ 使用同一账号登录",
-    "cloudStep3": "点击主页的「云同步」",
-    "cloudStep3Val": "→ 获取最新数据",
-    "cloudHint": "输入数据后300ms自动同步。主页得分即时显示本地数据。"
+    "cloudTitle": "云端联动",
+    "cloudUploadTitle": "结束比赛并发送到云端（手机操作）",
+    "cloudUploadAuto": "登录后，比赛进行中及结束画面会约每300ms自动备份到云端。",
+    "cloudUploadManual": "在结束画面点击「发送到云端」按钮，可完成手动最终确认保存。",
+    "cloudDownloadTitle": "在其他设备或电脑上查看（电脑/其他设备）",
+    "cloudDownloadBody": "要从手机获取最新比赛数据，请在主页点击「从云端获取最新数据」。云端最新列表将下载到本设备，得分和热区图会更新。",
+    "cloudDirectionNote": "「发送到云端」是上传，「从云端获取最新数据」是下载。"
   },
 
   "privacy": {

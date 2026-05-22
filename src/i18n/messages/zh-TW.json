@@ -33,7 +33,8 @@
 
   "home": {
     "subtitle": "單手即時記錄籃球比賽",
-    "cloudSync": "雲端同步",
+    "cloudSync": "從雲端取得最新資料",
+    "cloudFetchStaleHint": "若在手機端有更新，請點按按鈕取得最新資料",
     "syncing": "同步中...",
     "syncDone": "同步完成（{count}場）",
     "syncFail": "同步失敗",
@@ -245,11 +246,11 @@
     "pdfExport": "匯出得分表PDF",
     "statsDetail": "查看詳細數據",
     "runningScore": "即時得分記錄表",
-    "cloudSave": "儲存至雲端",
+    "cloudSave": "傳送至雲端",
     "saving": "儲存中...",
     "saveDone": "已儲存",
     "saveLocalOnly": "已儲存至本裝置",
-    "saveFail": "雲端儲存失敗",
+    "saveFail": "傳送至雲端失敗",
     "nextGame": "建立下一場比賽",
     "goHome": "返回首頁",
     "resumeGame": "繼續記錄"
@@ -314,8 +315,8 @@
       "aiDesc": "Gemini分析比賽數據，產生教練視角報告。結果會快取儲存。",
       "pdf": "PDF匯出",
       "pdfDesc": "將得分表匯出並列印為PDF",
-      "cloud": "雲端同步",
-      "cloudDesc": "使用同一帳號登入多台裝置即可自動同步",
+      "cloud": "雲端連動（傳送・取得）",
+      "cloudDesc": "手機傳送・電腦點「取得最新資料」接收",
       "tov": "失誤詳細分類",
       "tovDesc": "將失誤分為精選6類或官方12類進行記錄（PRO）"
     },
@@ -425,14 +426,13 @@
     "premiumTov6to12Val": "被抄截→運球失誤，時間違規→其他",
     "premiumTov12to6": "官方12類 → 精選6類",
     "premiumTov12to6Val": "24秒/8秒/5秒/回場/3秒→時間違規，出界→傳球失誤",
-    "cloudTitle": "雲端同步",
-    "cloudStep1": "手機端記錄比賽",
-    "cloudStep1Val": "→ 自動儲存至雲端",
-    "cloudStep2": "在電腦或其他裝置開啟",
-    "cloudStep2Val": "→ 使用同一帳號登入",
-    "cloudStep3": "點擊首頁的「雲端同步」",
-    "cloudStep3Val": "→ 取得最新資料",
-    "cloudHint": "輸入數據後300ms自動同步。首頁得分即時顯示本地資料。"
+    "cloudTitle": "雲端連動",
+    "cloudUploadTitle": "結束比賽並傳送至雲端（手機操作）",
+    "cloudUploadAuto": "登入後，比賽進行中及結束畫面會約每300ms自動備份至雲端。",
+    "cloudUploadManual": "在結束畫面點擊「傳送至雲端」按鈕，可完成手動最終確認儲存。",
+    "cloudDownloadTitle": "在其他裝置或電腦上查看（電腦・其他裝置）",
+    "cloudDownloadBody": "要從手機取得最新比賽資料，請在首頁點擊「從雲端取得最新資料」。雲端最新列表將下載至本裝置，得分與熱區圖會更新。",
+    "cloudDirectionNote": "「傳送至雲端」是上傳，「從雲端取得最新資料」則是下載。"
   },
 
   "privacy": {

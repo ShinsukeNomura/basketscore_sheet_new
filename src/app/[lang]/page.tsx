@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { getGamesIndex, deleteGame, mergeCloudGamesIntoIndex, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
+import {
+  getGamesIndex, deleteGame, mergeCloudGamesIntoIndex,
+  getLastCloudFetchAt, setLastCloudFetchAt as persistLastCloudFetchAt,
+  GameSummary, FREE_GAME_LIMIT,
+} from '@/lib/storage';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
@@ -148,6 +152,16 @@ export default function HomePage() {
   const [labelTarget, setLabelTarget] = useState<GameSummary | null>(null);
   const [filterLabel, setFilterLabel] = useState<string>('');
   const [filterOpen,  setFilterOpen]  = useState(false);
+  const [lastCloudFetchAt, setLastCloudFetchAt] = useState<number | null>(null);
+
+  const CLOUD_FETCH_STALE_MS = 5 * 60 * 1000;
+  const showCloudFetchHint = !!user?.id && (
+    lastCloudFetchAt == null || Date.now() - lastCloudFetchAt > CLOUD_FETCH_STALE_MS
+  );
+
+  useEffect(() => {
+    if (user?.id) setLastCloudFetchAt(getLastCloudFetchAt(user.id));
+  }, [user?.id]);
 
   useEffect(() => {
     if (!loading && user && typeof window !== 'undefined') {
@@ -192,6 +206,8 @@ export default function HomePage() {
     if (cloud !== null) {
       const merged = cloud.length > 0 ? mergeCloudGamesIntoIndex(cloud) : getGamesIndex();
       setGames(merged);
+      persistLastCloudFetchAt(user.id);
+      setLastCloudFetchAt(Date.now());
       setSyncMsg(h.syncDone.replace('{count}', String(merged.length)));
     } else {
       setGames(getGamesIndex());
@@ -293,14 +309,21 @@ export default function HomePage() {
         </div>
 
         {/* アクションボタン行 */}
-        <div className="flex gap-2 mt-3 flex-wrap justify-center">
-          <button
-            onClick={handleSync}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
-          >
-            <RefreshCw size={12} className={cn(syncing && 'animate-spin')} />
-            {syncing ? h.syncing : syncMsg ?? h.cloudSync}
-          </button>
+        <div className="flex gap-2 mt-3 flex-wrap justify-center items-start">
+          <div className="flex flex-col items-center gap-1 max-w-[200px]">
+            <button
+              onClick={handleSync}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
+            >
+              <RefreshCw size={12} className={cn(syncing && 'animate-spin')} />
+              {syncing ? h.syncing : syncMsg ?? h.cloudSync}
+            </button>
+            {showCloudFetchHint && !syncing && !syncMsg && (
+              <p className="text-[10px] text-amber-400/45 text-center leading-snug px-1">
+                ⚠️ {h.cloudFetchStaleHint}
+              </p>
+            )}
+          </div>
           <button
             onClick={() => setMyTeamsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"

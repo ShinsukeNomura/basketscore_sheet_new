@@ -349,7 +349,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
             </div>
           </section>
 
-          {/* クラウド同期 */}
+          {/* クラウド連携 */}
           <section>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
@@ -357,21 +357,17 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
               </div>
               <h2 className="text-white font-black text-lg">{g.cloudTitle}</h2>
             </div>
-            <div className="flex flex-col gap-2">
-              <div className="rounded-2xl bg-white/4 border border-white/6 p-4 flex flex-col gap-3">
-                {[
-                  [g.cloudStep1, g.cloudStep1Val],
-                  [g.cloudStep2, g.cloudStep2Val],
-                  [g.cloudStep3, g.cloudStep3Val],
-                ].map(([step, result]) => (
-                  <div key={step} className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
-                    <span className="text-white/70 text-sm font-semibold">{step}</span>
-                    <span className="text-white/35 text-xs">{result}</span>
-                  </div>
-                ))}
+            <div className="flex flex-col gap-3">
+              <div className="rounded-2xl bg-emerald-950/30 border border-emerald-500/25 p-4 flex flex-col gap-2">
+                <p className="text-emerald-400/90 text-xs font-black tracking-wide">↑ {g.cloudUploadTitle}</p>
+                <p className="text-white/65 text-sm leading-relaxed">{g.cloudUploadAuto}</p>
+                <p className="text-white/65 text-sm leading-relaxed">{g.cloudUploadManual}</p>
               </div>
-              <p className="text-white/25 text-xs text-center px-4">{g.cloudHint}</p>
+              <div className="rounded-2xl bg-sky-950/30 border border-sky-500/25 p-4 flex flex-col gap-2">
+                <p className="text-sky-400/90 text-xs font-black tracking-wide">↓ {g.cloudDownloadTitle}</p>
+                <p className="text-white/65 text-sm leading-relaxed">{g.cloudDownloadBody}</p>
+              </div>
+              <p className="text-white/30 text-xs text-center px-2 leading-relaxed">{g.cloudDirectionNote}</p>
             </div>
           </section>
 
