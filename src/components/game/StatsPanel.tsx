@@ -1,7 +1,8 @@
 'use client';
 
 import { ActionType, StatDef, TovMode } from '@/types';
-import { STAT_DEFS, ACTION_LABEL_JA } from '@/lib/stats';
+import { STAT_DEFS } from '@/lib/stats';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
@@ -102,6 +103,12 @@ export function StatsPanel({
   ourTeamName, theirTeamName, ourTov, theirTov, onOurTov, onTheirTov,
   isPremium = false, tovMode = 'simple', onTovModeChange,
 }: StatsPanelProps) {
+  const dict = useDictionary();
+  const g = dict.game;
+  const st = dict.stats;
+  const sp = dict.statsPanel;
+  const actions = dict.actions as Record<ActionType, string>;
+
   function tap(action: ActionType) {
     if (navigator.vibrate) navigator.vibrate(18);
     onSelectStat(action);
@@ -115,7 +122,7 @@ export function StatsPanel({
       {/* ── プレミアム TOV モード切替 ── */}
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
-          {([['simple', '簡略', false], ['6-grid', '厳選6', true], ['12-grid', '公式12', true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
+          {([['simple', st.tovSimple, false], ['6-grid', st.tovDetail6, true], ['12-grid', st.tovDetail12, true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
             <button
               key={mode}
               onPointerDown={() => onTovModeChange?.(mode)}
@@ -137,7 +144,7 @@ export function StatsPanel({
                   tovMode === mode
                     ? mode === '6-grid' ? 'bg-sky-500/30 text-sky-300' : 'bg-amber-500/30 text-amber-300'
                     : 'bg-amber-500/15 text-amber-500/70',
-                )}>PRO</span>
+                )}>{sp.pro}</span>
               )}
             </button>
           ))}
@@ -176,19 +183,19 @@ export function StatsPanel({
           <div className="flex items-center gap-2 bg-neutral-800/60 border border-neutral-700/50 rounded-full px-4 py-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="text-neutral-100 text-xs font-semibold">
-              {ACTION_LABEL_JA[selectedStat]}
+              {actions[selectedStat]}
             </span>
-            <span className="text-neutral-500 text-xs">→ 選手をタップ</span>
+            <span className="text-neutral-500 text-xs">{g.selectPlayer}</span>
             <button
               onPointerDown={() => { if (navigator.vibrate) navigator.vibrate(10); onSelectStat(selectedStat); }}
               className="text-neutral-500 hover:text-neutral-300 ml-0.5 p-0.5"
-              aria-label="選択解除"
+              aria-label={dict.common.close}
             >
               <X size={12} />
             </button>
           </div>
         ) : (
-          <span className="text-neutral-600 text-xs tracking-wide">スタッツを選択してください</span>
+          <span className="text-neutral-600 text-xs tracking-wide">{g.selectStat}</span>
         )}
       </div>
 
@@ -223,8 +230,8 @@ export function StatsPanel({
       {/* ── 略語一覧（スマホ非表示） ── */}
       <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">
         {[
-          ['ORbd', 'OFリバウンド'], ['DRbd', 'DFリバウンド'], ['AST', 'アシスト'],
-          ['STL', 'スティール'],    ['BLK', 'ブロック'],      ['FOUL', 'ファウル'], ['TOV', 'ターンオーバー'],
+          ['ORbd', sp.legendOrbd], ['DRbd', sp.legendDrbd], ['AST', sp.legendAst],
+          ['STL', sp.legendStl], ['BLK', sp.legendBlk], ['FOUL', sp.legendFoul], ['TOV', sp.legendTov],
         ].map(([abbr, full]) => (
           <span key={abbr} className="text-[10px] text-neutral-500 whitespace-nowrap">
             <span className="font-bold">{abbr}</span>

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sheet';
 import { Plus, Trash2, Users, ChevronLeft, Download } from 'lucide-react';
 import { fetchUserTeams, UserTeam } from '@/lib/myTeams';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface RosterSheetProps {
   open:           boolean;
@@ -37,6 +38,9 @@ export function RosterSheet({
   onToggleCourt,
   onClose,
 }: RosterSheetProps) {
+  const dict = useDictionary();
+  const g = dict.game;
+  const c = dict.common;
   const [input,       setInput]       = useState('');
   const [error,       setError]       = useState('');
   const [importOpen,  setImportOpen]  = useState(false);
@@ -71,11 +75,11 @@ export function RosterSheet({
   const handleAdd = useCallback(() => {
     const num = input.trim();
     if (!num) {
-      setError('番号を入力してください');
+      setError(g.errorEmpty);
       return;
     }
     if (!/^\d{1,2}$/.test(num)) {
-      setError('1〜2桁の数字を入力してください');
+      setError(g.errorInvalidNumber);
       return;
     }
     if (!team) return;
@@ -85,7 +89,7 @@ export function RosterSheet({
       (p) => p.team_id === team.id && p.back_number === num,
     );
     if (dup) {
-      setError(`#${num} はすでに登録されています`);
+      setError(g.errorDuplicate.replace('{num}', num));
       return;
     }
 
@@ -152,14 +156,14 @@ export function RosterSheet({
               : 'bg-white/10 text-white/60 hover:bg-white/15',
           )}
         >
-          {isOnCourt ? '● コート上' : toggleDisabled ? 'コート満員' : '○ ベンチ'}
+          {isOnCourt ? g.courtOn : toggleDisabled ? g.courtFull : g.bench}
         </button>
 
         {/* 削除 */}
         <button
           onClick={() => handleRemove(player.id)}
           className="shrink-0 p-1.5 rounded-lg text-white/25 hover:text-red-400 hover:bg-red-950/40 active:bg-red-900/60 transition-colors"
-          aria-label="削除"
+          aria-label={c.delete}
         >
           <Trash2 size={14} />
         </button>
@@ -178,14 +182,14 @@ export function RosterSheet({
           <button
             onClick={onClose}
             className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
-            aria-label="戻る"
+            aria-label={c.back}
           >
             <ChevronLeft size={20} />
-            <span className="text-xs font-medium">戻る</span>
+            <span className="text-xs font-medium">{c.back}</span>
           </button>
           <SheetTitle className="text-white text-sm flex items-center gap-2 flex-1">
             <Users size={15} className={cfg.nameText} />
-            {team?.team_name || '—'} — メンバー管理
+            {team?.team_name || '—'} — {g.memberManage}
           </SheetTitle>
         </SheetHeader>
 
@@ -193,7 +197,7 @@ export function RosterSheet({
         {team && (
           <div className="shrink-0 mb-4 px-0.5">
             <p className="text-white/35 text-[11px] font-semibold tracking-widest uppercase mb-2">
-              ユニフォームの色
+              {g.uniformColor}
             </p>
             <ColorPicker
               selected={team.color as JerseyColorId}
@@ -214,7 +218,7 @@ export function RosterSheet({
             />
           ))}
           <span className="text-white/40 text-xs ml-1 self-center shrink-0">
-            {courtCount}/5
+            {g.courtCount.replace('{count}', String(courtCount))}
           </span>
         </div>
 
@@ -224,7 +228,7 @@ export function RosterSheet({
           {courtPlayers.length > 0 && (
             <div className="mb-1">
               <p className="text-white/30 text-[11px] font-semibold tracking-widest uppercase px-1 mb-1">
-                コート上
+                {g.onCourt}
               </p>
               <div className="flex flex-col gap-1">
                 {courtPlayers
@@ -238,7 +242,7 @@ export function RosterSheet({
           {benchPlayers.length > 0 && (
             <div className="mb-1">
               <p className="text-white/30 text-[11px] font-semibold tracking-widest uppercase px-1 mb-1">
-                ベンチ
+                {g.benchLabel}
               </p>
               <div className="flex flex-col gap-1">
                 {benchPlayers
@@ -251,8 +255,8 @@ export function RosterSheet({
           {/* 選手ゼロ時のガイド */}
           {teamPlayers.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <span className="text-white/15 text-sm">まだ選手がいません</span>
-              <span className="text-white/10 text-xs">下の入力欄から番号を追加してください</span>
+              <span className="text-white/15 text-sm">{g.noPlayers}</span>
+              <span className="text-white/10 text-xs">{g.noPlayersHint}</span>
             </div>
           )}
         </div>
@@ -264,16 +268,16 @@ export function RosterSheet({
               onClick={openImport}
               className="w-full flex items-center justify-center gap-2 py-2 mb-2 rounded-xl bg-white/4 border border-white/8 text-white/40 text-xs font-semibold active:bg-white/8 transition-colors"
             >
-              <Download size={13} />登録チームを読み込む
+              <Download size={13} />{g.importFromMyTeam}
             </button>
           ) : (
             <div className="mb-3 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden">
               <div className="flex items-center justify-between px-3 py-2 border-b border-white/8">
-                <span className="text-white/50 text-xs font-semibold">登録チームを選択</span>
-                <button onClick={() => setImportOpen(false)} className="text-white/30 text-xs active:text-white/60">キャンセル</button>
+                <span className="text-white/50 text-xs font-semibold">{g.importSelect}</span>
+                <button onClick={() => setImportOpen(false)} className="text-white/30 text-xs active:text-white/60">{g.importCancel}</button>
               </div>
               {myTeams.length === 0 ? (
-                <p className="text-white/25 text-xs text-center py-3">登録チームがありません</p>
+                <p className="text-white/25 text-xs text-center py-3">{g.noMyTeams}</p>
               ) : (
                 myTeams.map((t) => (
                   <button
@@ -282,7 +286,7 @@ export function RosterSheet({
                     className="w-full flex items-center justify-between px-3 py-2.5 text-left active:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
                   >
                     <span className="text-white text-sm font-bold">{t.team_name}</span>
-                    <span className="text-white/30 text-xs">{t.backNumbers.length}人</span>
+                    <span className="text-white/30 text-xs">{g.playerCount.replace('{count}', String(t.backNumbers.length))}</span>
                   </button>
                 ))
               )}
@@ -301,7 +305,7 @@ export function RosterSheet({
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={2}
-                  placeholder="背番号（例：14）"
+                  placeholder={g.backNumber}
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value.replace(/\D/g, ''));
@@ -323,7 +327,7 @@ export function RosterSheet({
                   )}
                 >
                   <Plus size={16} />
-                  追加
+                  {c.add}
                 </button>
               </div>
               {error && (

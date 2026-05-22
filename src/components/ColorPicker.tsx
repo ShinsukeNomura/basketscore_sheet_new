@@ -2,6 +2,7 @@
 
 import { JERSEY_COLORS, JerseyColorId } from '@/lib/colors';
 import { cn } from '@/lib/utils';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface ColorPickerProps {
   selected: JerseyColorId | string;
@@ -9,6 +10,7 @@ interface ColorPickerProps {
 }
 
 export function ColorPicker({ selected, onChange }: ColorPickerProps) {
+  const jersey = useDictionary().jersey;
   return (
     <div className="flex gap-3 flex-wrap">
       {JERSEY_COLORS.map((c) => (
@@ -16,7 +18,7 @@ export function ColorPicker({ selected, onChange }: ColorPickerProps) {
           key={c.id}
           onPointerDown={() => onChange(c.id)}
           className="flex flex-col items-center gap-1"
-          aria-label={c.label}
+          aria-label={jersey[c.id]}
         >
           <span
             className={cn(
@@ -31,7 +33,7 @@ export function ColorPicker({ selected, onChange }: ColorPickerProps) {
             'text-[10px] font-medium leading-none',
             selected === c.id ? 'text-white/80' : 'text-white/30',
           )}>
-            {c.label}
+            {jersey[c.id]}
           </span>
         </button>
       ))}

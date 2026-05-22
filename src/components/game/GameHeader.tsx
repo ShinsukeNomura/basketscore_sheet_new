@@ -8,6 +8,7 @@ import { periodLabel, isOT } from '@/lib/period';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface GameHeaderProps {
   game:           Game;
@@ -29,6 +30,9 @@ export function GameHeader({
   game, ourTeam, theirTeam, ourScore, theirScore,
   onChangePeriod, onEndGame, onRenameGame, onGoHome, onShowStats, onShowRunning,
 }: GameHeaderProps) {
+  const dict = useDictionary();
+  const g = dict.game;
+  const c = dict.common;
   const isFinished = game.status === 'finished';
 
   // 試合名インライン編集
@@ -59,10 +63,10 @@ export function GameHeader({
         <button
           onPointerDown={onGoHome}
           className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 p-1 -ml-1"
-          aria-label="ホームへ戻る"
+          aria-label={dict.nav.home}
         >
           <ChevronLeft size={20} />
-          <span className="text-xs font-medium">ホーム</span>
+          <span className="text-xs font-medium">{dict.nav.home}</span>
         </button>
 
         {/* 試合名（中央） */}
@@ -99,7 +103,7 @@ export function GameHeader({
         <button
           onPointerDown={onShowRunning}
           className="p-1.5 rounded-lg text-white/35 active:text-white/80 active:bg-white/10 transition-colors shrink-0"
-          aria-label="ランニングスコアシート"
+          aria-label={dict.running.title}
         >
           <ClipboardList size={16} />
         </button>
@@ -108,20 +112,20 @@ export function GameHeader({
         <button
           onPointerDown={onShowStats}
           className="p-1.5 rounded-lg text-white/35 active:text-white/80 active:bg-white/10 transition-colors shrink-0"
-          aria-label="スタッツ詳細"
+          aria-label={dict.statsSheet.title}
         >
           <BarChart2 size={16} />
         </button>
 
         {/* 終了ボタン */}
         {isFinished ? (
-          <span className="text-[11px] font-semibold px-2 py-1 rounded-lg text-white/25 bg-white/5 shrink-0">終了済</span>
+          <span className="text-[11px] font-semibold px-2 py-1 rounded-lg text-white/25 bg-white/5 shrink-0">{g.finished}</span>
         ) : (
           <button
             onPointerDown={() => setConfirmOpen(true)}
             className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg text-red-400 bg-red-950/60 active:bg-red-800/70 transition-colors shrink-0 min-h-[32px]"
           >
-            試合終了
+            {g.end}
           </button>
         )}
       </div>
@@ -171,7 +175,7 @@ export function GameHeader({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="bg-neutral-900 border-white/10 max-w-[320px] mx-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white text-base text-center">試合を終了しますか？</DialogTitle>
+            <DialogTitle className="text-white text-base text-center">{g.endConfirm}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center items-baseline gap-4 py-5">
             <div className="text-center">
@@ -184,19 +188,19 @@ export function GameHeader({
               <span className="text-white font-black text-5xl tabular-nums">{theirScore}</span>
             </div>
           </div>
-          <p className="text-white/35 text-xs text-center -mt-3 mb-1">終了後も「記録を再開する」からスコアを修正できます</p>
+          <p className="text-white/35 text-xs text-center -mt-3 mb-1">{g.resumeNote}</p>
           <DialogFooter className="flex flex-row gap-2 mt-2">
             <button
               onPointerDown={() => setConfirmOpen(false)}
               className="flex-1 py-3.5 rounded-xl bg-white/8 text-white font-semibold text-sm active:bg-white/14 transition-colors"
             >
-              キャンセル
+              {c.cancel}
             </button>
             <button
               onPointerDown={() => { setConfirmOpen(false); onEndGame(); }}
               className="flex-1 py-3.5 rounded-xl bg-red-600 text-white font-bold text-sm active:bg-red-700 transition-colors"
             >
-              終了する
+              {g.endButton}
             </button>
           </DialogFooter>
         </DialogContent>

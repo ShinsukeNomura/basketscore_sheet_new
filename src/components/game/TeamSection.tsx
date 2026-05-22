@@ -6,6 +6,7 @@ import { getColorConfig } from '@/lib/colors';
 import { PlayerCard } from './PlayerCard';
 import { cn } from '@/lib/utils';
 import { Pencil, Check } from 'lucide-react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface TeamSectionProps {
   team:             Team;
@@ -27,6 +28,7 @@ export function TeamSection({
   selectedStat, flashPlayerId,
   onPlayerClick, onSubstitute, onRoster, onRenameTeam,
 }: TeamSectionProps) {
+  const ts = useDictionary().teamSection;
   const cfg = getColorConfig(team.color);
 
   const [editing, setEditing] = useState(false);
@@ -81,10 +83,10 @@ export function TeamSection({
 
         {/* メンバー / 交代ボタン（onClick: Sheetのドラッグ検知と競合しないよう） */}
         <div className="flex gap-1 shrink-0 items-center">
-          {['メンバー', '交代'].map((label) => (
+          {([ts.roster, ts.substitute] as const).map((label) => (
             <button
               key={label}
-              onClick={() => label === 'メンバー' ? onRoster(team) : onSubstitute(team)}
+              onClick={() => label === ts.roster ? onRoster(team) : onSubstitute(team)}
               className={cn(
                 'text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors min-h-[22px]',
                 cfg.btnText, cfg.btnBg,
@@ -102,7 +104,7 @@ export function TeamSection({
         return (
           <div className="flex items-center justify-between shrink-0 px-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="text-white/25 text-[10px] font-semibold tracking-wide">チームF</span>
+              <span className="text-white/25 text-[10px] font-semibold tracking-wide">{ts.teamFouls}</span>
               <div className="flex gap-0.5 items-center">
                 {Array.from({ length: Math.min(teamFoulCount, 7) }).map((_, i) => (
                   <span
@@ -129,7 +131,7 @@ export function TeamSection({
               )}
             >
               {teamFoulCount}
-              {isBonus && <span className="text-[8px] font-semibold ml-0.5">ペナルティ</span>}
+              {isBonus && <span className="text-[8px] font-semibold ml-0.5">{ts.penalty}</span>}
             </span>
           </div>
         );
@@ -145,9 +147,9 @@ export function TeamSection({
             cfg.emptyBorder,
           )}
         >
-          <span className="text-white/55 text-xs font-bold">メンバーが登録されていません</span>
+          <span className="text-white/55 text-xs font-bold">{ts.noMembers}</span>
           <span className={cn('text-[11px] font-semibold underline underline-offset-2', cfg.nameText)}>
-            「メンバー」ボタンから追加してください
+            {ts.noMembersHint}
           </span>
         </button>
       ) : (

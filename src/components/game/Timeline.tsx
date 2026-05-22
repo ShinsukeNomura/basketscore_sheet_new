@@ -1,7 +1,8 @@
 'use client';
 
 import { TimelineEntry, Player } from '@/types';
-import { ACTION_LABEL_JA } from '@/lib/stats';
+import { useDictionary } from '@/i18n/DictionaryProvider';
+import type { ActionType } from '@/types';
 import { cn } from '@/lib/utils';
 import { X, Link } from 'lucide-react';
 
@@ -17,13 +18,16 @@ function fmt(iso: string) {
 }
 
 export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
+  const dict = useDictionary();
+  const tl = dict.timeline;
+  const actions = dict.actions as Record<ActionType, string>;
   const playerMap = Object.fromEntries(allPlayers.map((p) => [p.id, p]));
 
   return (
     <div className="bg-neutral-950 px-2 py-1 flex flex-col gap-1">
       {entries.length === 0 ? (
         <div className="flex items-center justify-center h-10">
-          <span className="text-white/15 text-xs">記録がまだありません</span>
+          <span className="text-white/15 text-xs">{tl.empty}</span>
         </div>
       ) : (
         entries.map(({ primary, linked }) => {
@@ -50,7 +54,7 @@ export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
 
               {/* 選手番号 or チーム */}
               <span className="text-white/60 text-[11px] font-bold tabular-nums shrink-0">
-                {player ? `#${player.back_number}` : 'チーム'}
+                {player ? `#${player.back_number}` : tl.team}
               </span>
 
               {/* アクション名 */}
@@ -58,7 +62,7 @@ export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
                 'text-[11px] font-bold truncate',
                 isPoint ? 'text-emerald-400' : 'text-white/55',
               )}>
-                {ACTION_LABEL_JA[primary.action_type]}
+                {actions[primary.action_type]}
                 {isPoint && ` +${primary.points}`}
               </span>
 
@@ -66,7 +70,7 @@ export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
               {hasLinkedTov && (
                 <span className="flex items-center gap-0.5 bg-orange-500/20 text-orange-300 text-[10px] font-semibold rounded-md px-1.5 py-0.5 shrink-0 whitespace-nowrap">
                   <Link size={8} />
-                  相手TOV
+                  {tl.oppTov}
                 </span>
               )}
 
@@ -77,7 +81,7 @@ export function Timeline({ entries, allPlayers, onUndo }: TimelineProps) {
                   onUndo(primary.id);
                 }}
                 className="shrink-0 -mr-1 p-2.5 rounded-lg text-white/25 active:text-red-400 active:bg-red-950/50 transition-colors"
-                aria-label="取り消し"
+                aria-label={tl.undo}
               >
                 <X size={13} />
               </button>

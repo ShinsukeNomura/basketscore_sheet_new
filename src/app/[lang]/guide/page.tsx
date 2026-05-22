@@ -104,32 +104,14 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
     },
   };
 
-  const STAT_BUTTONS = locale === 'ja'
-    ? [
-        ['2PT / 3PT / FT',               '得点（シュート成功）',                        'text-emerald-400'],
-        ['2PT miss / 3PT miss / FT miss', 'シュートミス（得点なし）',                    'text-red-400'],
-        ['ORbd / DRbd',                   'オフェンス・ディフェンスリバウンド',           'text-blue-400'],
-        ['AST / STL / BLK',              'アシスト・スティール・ブロック',               'text-violet-400'],
-        ['FOUL',                          'ファウル',                                    'text-amber-400'],
-        ['TOV',                           'ターンオーバー（スタッツパネル最上段）',       'text-orange-400'],
-      ]
-    : locale === 'zh' || locale === 'zh-TW'
-    ? [
-        ['2PT / 3PT / FT',               locale === 'zh' ? '得分（投篮命中）' : '得分（投籃命中）',       'text-emerald-400'],
-        ['2PT miss / 3PT miss / FT miss', locale === 'zh' ? '未中' : '未中',                               'text-red-400'],
-        ['ORbd / DRbd',                  locale === 'zh' ? '进攻/防守篮板' : '進攻/防守籃板',              'text-blue-400'],
-        ['AST / STL / BLK',             locale === 'zh' ? '助攻/抢断/盖帽' : '助攻/抄截/阻攻',            'text-violet-400'],
-        ['FOUL',                          locale === 'zh' ? '犯规' : '犯規',                               'text-amber-400'],
-        ['TOV',                           locale === 'zh' ? '失误（面板顶部）' : '失誤（面板頂部）',       'text-orange-400'],
-      ]
-    : [
-        ['2PT / 3PT / FT',               'Points (shot made)',                          'text-emerald-400'],
-        ['2PT miss / 3PT miss / FT miss', 'Missed shots (no points)',                   'text-red-400'],
-        ['ORbd / DRbd',                  'Offensive / Defensive rebound',               'text-blue-400'],
-        ['AST / STL / BLK',             'Assist / Steal / Block',                      'text-violet-400'],
-        ['FOUL',                          'Foul',                                       'text-amber-400'],
-        ['TOV',                           'Turnover (top of stats panel)',              'text-orange-400'],
-      ];
+  const STAT_BUTTONS = [
+    ['2PT / 3PT / FT',                g.statBtn2pt,   'text-emerald-400'],
+    ['2PT miss / 3PT miss / FT miss', g.statBtnMiss,  'text-red-400'],
+    ['ORbd / DRbd',                   g.statBtnRbd,   'text-blue-400'],
+    ['AST / STL / BLK',               g.statBtnAst,   'text-violet-400'],
+    ['FOUL',                          g.statBtnFoul,  'text-amber-400'],
+    ['TOV',                           g.statBtnTov,   'text-orange-400'],
+  ];
 
   return (
     <>

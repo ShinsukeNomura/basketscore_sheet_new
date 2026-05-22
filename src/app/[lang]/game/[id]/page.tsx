@@ -16,8 +16,10 @@ import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
 import { Team, Player, CourtLocation, TovMode, TovReason } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 export default function GamePage() {
+  const g = useDictionary().game;
   const params = useParams();
   const gameId = typeof params.id === 'string' ? params.id : (params.id?.[0] ?? 'demo');
   const lang   = typeof params.lang === 'string' ? params.lang : 'ja';
@@ -139,8 +141,8 @@ export default function GamePage() {
         <StatsPanel
           selectedStat={selectedStat}
           onSelectStat={selectStat}
-          ourTeamName={ourTeam.team_name || '自チーム'}
-          theirTeamName={theirTeam.team_name || '相手'}
+          ourTeamName={ourTeam.team_name || g.ourTeam}
+          theirTeamName={theirTeam.team_name || g.theirTeam}
           ourTov={teamTovCounts[ourTeam.id] ?? 0}
           theirTov={teamTovCounts[theirTeam.id] ?? 0}
           onOurTov={handleOurTov}
@@ -182,7 +184,7 @@ export default function GamePage() {
       {tovPending && tovMode !== 'simple' && (
         <TovCategorySheet
           mode={tovMode as Exclude<TovMode, 'simple'>}
-          teamName={tovPending.isOurs ? (ourTeam.team_name || '自チーム') : (theirTeam.team_name || '相手')}
+          teamName={tovPending.isOurs ? (ourTeam.team_name || g.ourTeam) : (theirTeam.team_name || g.theirTeam)}
           isOurs={tovPending.isOurs}
           players={allPlayers.filter((p) => p.team_id === tovPending.teamId)}
           onConfirm={handleTovConfirm}

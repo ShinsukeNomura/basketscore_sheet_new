@@ -11,6 +11,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ArrowLeftRight, ChevronLeft } from 'lucide-react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface SubstitutionSheetProps {
   open:          boolean;
@@ -31,6 +32,9 @@ export function SubstitutionSheet({
   onSubstitute,
   onClose,
 }: SubstitutionSheetProps) {
+  const dict = useDictionary();
+  const sub = dict.substitution;
+  const c = dict.common;
   const [outPlayer, setOutPlayer] = useState<Player | null>(null);
 
   function handleCourtTap(player: Player) {
@@ -79,25 +83,25 @@ export function SubstitutionSheet({
             className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
           >
             <ChevronLeft size={20} />
-            <span className="text-xs font-medium">戻る</span>
+            <span className="text-xs font-medium">{c.back}</span>
           </button>
           <SheetTitle className="text-white text-sm flex-1">
-            {team?.team_name} — メンバー交代
+            {team?.team_name} — {sub.title}
           </SheetTitle>
         </SheetHeader>
 
         {/* 手順インジケーター */}
         <div className="flex items-center gap-2 mb-4 text-xs text-white/40">
-          <span className={outPlayer ? 'text-white/80 font-semibold' : ''}>① コート上の選手を選択</span>
+          <span className={outPlayer ? 'text-white/80 font-semibold' : ''}>{sub.step1}</span>
           <ArrowLeftRight size={12} />
-          <span className={outPlayer ? 'text-white/40' : 'text-white/20'}>② ベンチから入る選手を選択</span>
+          <span className={outPlayer ? 'text-white/40' : 'text-white/20'}>{sub.step2}</span>
         </div>
 
         {/* コート上の選手 */}
         <div className="mb-4">
           <div className="flex items-center gap-1.5 mb-2">
             <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
-            <span className="text-white/50 text-xs font-semibold">コート上（OUT）</span>
+            <span className="text-white/50 text-xs font-semibold">{sub.courtOut}</span>
           </div>
           <div className="grid grid-cols-5 gap-2">
             {courtPlayers.map((p) => (
@@ -116,12 +120,12 @@ export function SubstitutionSheet({
           <div className="flex items-center gap-1.5 mb-2">
             <div className="w-1.5 h-3 rounded-full bg-white/20" />
             <span className="text-white/50 text-xs font-semibold">
-              ベンチ（IN）{!outPlayer && <span className="text-white/25 font-normal ml-1">— まずコート上の選手を選んでください</span>}
+              {sub.benchIn}{!outPlayer && <span className="text-white/25 font-normal ml-1">{sub.selectCourtFirst}</span>}
             </span>
           </div>
           <div className={cn('grid grid-cols-5 gap-2 transition-opacity', outPlayer ? 'opacity-100' : 'opacity-30 pointer-events-none')}>
             {benchPlayers.length === 0 ? (
-              <span className="col-span-5 text-center text-white/25 text-xs py-4">ベンチに選手がいません</span>
+              <span className="col-span-5 text-center text-white/25 text-xs py-4">{sub.noBench}</span>
             ) : (
               benchPlayers.map((p) => (
                 <PlayerChip

@@ -7,6 +7,7 @@ import { JerseyColorId, DEFAULT_WHITE_COLOR } from '@/lib/colors';
 import { UserTeam, fetchUserTeams, saveUserTeam, deleteUserTeam } from '@/lib/myTeams';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, ChevronLeft, Pencil, Check, Users, Crown } from 'lucide-react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface Props {
   open:            boolean;
@@ -20,6 +21,9 @@ interface Props {
 }
 
 export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClose, onSelect, onSelectOther, selectLabel }: Props) {
+  const dict = useDictionary();
+  const mt = dict.myTeamsSheet;
+  const pr = dict.premium;
   const [teams,   setTeams]   = useState<UserTeam[]>([]);
   const [editing, setEditing] = useState<UserTeam | null>(null);
   const [mode,    setMode]    = useState<'list' | 'edit' | 'premium'>('list');
@@ -54,7 +58,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
   }
 
   function handleDelete(id: string) {
-    if (!confirm('このチームを削除しますか？')) return;
+    if (!confirm(mt.deleteConfirm)) return;
     deleteUserTeam(id);
     load();
   }
@@ -69,12 +73,12 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
     if (url) window.location.href = url;
   }
 
-  const backLabel = mode === 'edit' ? 'チーム一覧' : mode === 'premium' ? '登録チーム' : '戻る';
+  const backLabel = mode === 'edit' ? mt.teamList : mode === 'premium' ? mt.title : mt.back;
   const titleText = mode === 'list'
-    ? (onSelect ? selectLabel ?? 'チームを選択' : '登録チーム')
+    ? (onSelect ? selectLabel ?? mt.selectTitle : mt.title)
     : mode === 'edit'
-    ? (editing?.id ? 'チームを編集' : '新しいチームを登録')
-    : 'プレミアムプラン';
+    ? (editing?.id ? mt.editTitle : mt.newTitle)
+    : mt.premiumTitle;
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -110,18 +114,18 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                   onClick={onSelectOther}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-white/15 text-white/50 text-sm font-semibold active:bg-white/5 transition-colors"
                 >
-                  その他（手動入力）
+                  {mt.otherManual}
                 </button>
               )}
               {teams.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
                   <Users size={32} className="text-white/15" />
-                  <p className="text-white/30 text-sm">登録チームがありません</p>
+                  <p className="text-white/30 text-sm">{mt.noTeams}</p>
                   <button
                     onClick={handleNew}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold active:bg-blue-700"
                   >
-                    <Plus size={14} />チームを追加
+                    <Plus size={14} />{mt.addTeam}
                   </button>
                 </div>
               )}
@@ -138,8 +142,8 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                     <p className="text-white font-bold text-sm truncate">{team.team_name}</p>
                     <p className="text-white/35 text-xs">
                       {team.backNumbers.length > 0
-                        ? `#${team.backNumbers.join(' #')} (${team.backNumbers.length}人)`
-                        : 'メンバー未登録'}
+                        ? `#${team.backNumbers.join(' #')} (${mt.memberCount.replace('{count}', String(team.backNumbers.length))})`
+                        : mt.noMembers}
                     </p>
                   </div>
                   <div className="flex gap-1 shrink-0">
@@ -148,7 +152,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                         onClick={() => onSelect(team)}
                         className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold active:bg-blue-700"
                       >
-                        選択
+                        {mt.select}
                       </button>
                     ) : (
                       <>
@@ -169,7 +173,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                   onClick={handleNew}
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-dashed border-white/15 text-white/40 text-sm active:border-white/30 active:text-white/60 transition-colors"
                 >
-                  <Plus size={16} />チームを追加
+                  <Plus size={16} />{mt.addTeam}
                 </button>
               )}
             </div>
@@ -179,19 +183,19 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
           {mode === 'edit' && editing && (
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">チーム名</label>
+                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">{mt.teamName}</label>
                 <input
                   type="text"
                   value={editing.team_name}
                   onChange={(e) => setEditing({ ...editing, team_name: e.target.value })}
-                  placeholder="例: チームA"
+                  placeholder={mt.teamNamePlaceholder}
                   maxLength={20}
                   autoFocus
                   className="bg-white/8 text-white font-semibold rounded-xl px-4 py-3.5 text-base placeholder:text-white/20 outline-none focus:ring-2 focus:ring-blue-500/60"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">ユニフォームの色</label>
+                <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">{dict.game.uniformColor}</label>
                 <ColorPicker
                   selected={editing.color as JerseyColorId}
                   onChange={(c) => setEditing({ ...editing, color: c })}
@@ -199,7 +203,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-white/40 text-xs font-semibold tracking-wider uppercase">
-                  メンバー（背番号）
+                  {mt.membersLabel}
                 </label>
                 <PlayerNumberInput
                   numbers={editing.backNumbers}
@@ -211,7 +215,7 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                 disabled={!editing.team_name.trim()}
                 className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 disabled:opacity-40 text-white font-bold rounded-2xl py-4 text-base"
               >
-                <Check size={18} />保存する
+                <Check size={18} />{mt.saveTeam}
               </button>
             </div>
           )}
@@ -223,21 +227,17 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
                 <Crown size={30} className="text-amber-400" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <h2 className="text-white font-black text-lg">複数チームの登録</h2>
-                <p className="text-white/40 text-sm leading-relaxed">
-                  プレミアムプランでは複数のチームを登録できます。<br />
-                  チームごとに背番号・ユニフォームカラーを保存し、<br />
-                  試合登録時にワンタップで選択できます。
-                </p>
+                <h2 className="text-white font-black text-lg">{mt.multiTeamTitle}</h2>
+                <p className="text-white/40 text-sm leading-relaxed whitespace-pre-line">{mt.multiTeamDesc}</p>
               </div>
               <div className="w-full rounded-2xl bg-white/4 border border-white/8 px-4 py-3 text-left">
-                <p className="text-amber-400/80 text-xs font-bold mb-2 tracking-wider uppercase">プレミアム機能</p>
+                <p className="text-amber-400/80 text-xs font-bold mb-2 tracking-wider uppercase">{pr.title}</p>
                 {[
-                  '試合記録が無制限に',
-                  '複数チームの登録・管理',
-                  'AIによるスタッツ分析レポート',
-                  'クラウド同期・複数端末対応',
-                  'スコアシートのPDF出力',
+                  mt.featureUnlimited,
+                  mt.featureMultiTeam,
+                  mt.featureAi,
+                  mt.featureCloud,
+                  mt.featurePdf,
                 ].map((f) => (
                   <p key={f} className="text-white/60 text-sm py-1 flex items-center gap-2">
                     <span className="text-emerald-400 text-xs">✓</span>{f}
@@ -246,23 +246,22 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
               </div>
               <div className="flex flex-col gap-1">
                 <div className="flex items-baseline gap-1 justify-center">
-                  <span className="text-white font-black text-3xl">¥680</span>
-                  <span className="text-white/40 text-sm">/ 月</span>
+                  <span className="text-white font-black text-3xl">{pr.priceMonthly}</span>
                 </div>
-                <span className="text-white/30 text-xs">いつでもキャンセル可能</span>
+                <span className="text-white/30 text-xs">{pr.cancelAnytime}</span>
               </div>
               <div className="w-full flex flex-col gap-2">
                 <button
                   onClick={handleUpgrade}
                   className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base"
                 >
-                  <Crown size={18} />プレミアムにアップグレード
+                  <Crown size={18} />{pr.upgrade}
                 </button>
                 <button
                   onClick={() => setMode('list')}
                   className="text-white/30 text-sm py-2 active:text-white/60"
                 >
-                  今は戻る
+                  {pr.close}
                 </button>
               </div>
             </div>
@@ -275,14 +274,18 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
 }
 
 function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange: (n: string[]) => void }) {
+  const dict = useDictionary();
+  const g = dict.game;
+  const c = dict.common;
+  const mt = dict.myTeamsSheet;
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
 
   function add() {
     const num = input.trim();
     if (!num) return;
-    if (!/^\d{1,2}$/.test(num)) { setError('1〜2桁の数字を入力してください'); return; }
-    if (numbers.includes(num)) { setError(`#${num} はすでに登録されています`); return; }
+    if (!/^\d{1,2}$/.test(num)) { setError(g.errorInvalidNumber); return; }
+    if (numbers.includes(num)) { setError(g.errorDuplicate.replace('{num}', num)); return; }
     onChange([...numbers, num]);
     setInput('');
     setError('');
@@ -297,7 +300,7 @@ function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange:
           value={input}
           onChange={(e) => { setInput(e.target.value); setError(''); }}
           onKeyDown={(e) => e.key === 'Enter' && add()}
-          placeholder="背番号"
+          placeholder={mt.backNumberShort}
           maxLength={2}
           className="flex-1 bg-white/8 text-white font-semibold rounded-xl px-4 py-3 text-base placeholder:text-white/20 outline-none focus:ring-2 focus:ring-blue-500/60"
         />
@@ -305,7 +308,7 @@ function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange:
           onClick={add}
           className="px-4 py-3 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-bold text-sm"
         >
-          追加
+          {c.add}
         </button>
       </div>
       {error && <p className="text-red-400 text-xs px-1">{error}</p>}
@@ -322,7 +325,7 @@ function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange:
           ))}
         </div>
       )}
-      <p className="text-white/25 text-xs">タップで削除</p>
+      <p className="text-white/25 text-xs">{mt.tapToRemove}</p>
     </div>
   );
 }

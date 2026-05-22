@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { BarChart2, ChevronLeft, MapPin } from 'lucide-react';
 import { CourtHeatmap } from '@/components/game/CourtMap';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 // ────────── 型 ──────────
 interface PlayerStatRow {
@@ -82,6 +83,7 @@ function cellValue(row: PlayerStatRow, key: typeof COLS[number]['key']): CellRes
 function TeamTable({
   team, rows, teamTov, logs,
 }: { team: Team; rows: PlayerStatRow[]; teamTov: number; logs: StatsLog[] }) {
+  const ss = useDictionary().statsSheet;
   const cfg = getColorConfig(team.color);
 
   // チーム合計行
@@ -99,7 +101,7 @@ function TeamTable({
     }),
     { pts:0, fg2m:0, fg2a:0, fg3m:0, fg3a:0, ftm:0, fta:0, orbd:0, drbd:0, ast:0, stl:0, blk:0, foul:0 }
   );
-  const totalRow: PlayerStatRow = { player: { id:'', team_id:'', back_number:'計', name:'チーム合計', is_on_court:false, color:'', created_at:'' } as Player & { color: string }, ...total };
+  const totalRow: PlayerStatRow = { player: { id:'', team_id:'', back_number: ss.totalAbbr, name: ss.teamTotal, is_on_court:false, color:'', created_at:'' } as Player & { color: string }, ...total };
 
   // シュートマップ用: シュートデータのある選手だけ対象
   const [mapPlayer, setMapPlayer] = useState<string | null>(null);
@@ -118,7 +120,7 @@ function TeamTable({
           <div className={cn('w-1.5 h-4 rounded-full', cfg.accentDot)} />
           <span className={cn('text-sm font-bold', cfg.nameText)}>{team.team_name}</span>
         </div>
-        <p className="text-white/25 text-xs text-center py-4">スタッツ記録なし</p>
+        <p className="text-white/25 text-xs text-center py-4">{ss.noStats}</p>
       </div>
     );
   }
@@ -186,7 +188,7 @@ function TeamTable({
             {/* チーム合計 */}
             <tr className="border-t-2 border-white/15">
               <td className="text-left text-white/50 text-[11px] font-bold py-2 pr-2 sticky left-0 bg-neutral-950 z-10">
-                計
+                {ss.totalAbbr}
               </td>
               {COLS.map((c) => {
                 const val = cellValue(totalRow, c.key);
@@ -213,7 +215,7 @@ function TeamTable({
         <div className="mt-4 rounded-2xl bg-white/3 border border-white/6 p-3">
           <div className="flex items-center gap-2 mb-3">
             <MapPin size={13} className="text-white/40" />
-            <span className="text-white/50 text-xs font-semibold">シュートマップ</span>
+            <span className="text-white/50 text-xs font-semibold">{ss.shootMap}</span>
             {/* 選手セレクター */}
             <div className="flex gap-1.5 ml-2 flex-wrap">
               {shotPlayers.map((r) => (
@@ -254,6 +256,9 @@ interface StatsSheetProps {
 export function StatsSheet({
   open, onClose, ourTeam, theirTeam, allPlayers, logs, ourTov, theirTov,
 }: StatsSheetProps) {
+  const dict = useDictionary();
+  const ss = dict.statsSheet;
+  const c = dict.common;
   const ourRows   = useMemo(() => computeRows(logs, allPlayers, ourTeam.id),   [logs, allPlayers, ourTeam.id]);
   const theirRows = useMemo(() => computeRows(logs, allPlayers, theirTeam.id), [logs, allPlayers, theirTeam.id]);
 
@@ -270,10 +275,10 @@ export function StatsSheet({
             className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
           >
             <ChevronLeft size={20} />
-            <span className="text-xs font-medium">戻る</span>
+            <span className="text-xs font-medium">{c.back}</span>
           </button>
           <BarChart2 size={15} className="text-white/40" />
-          <SheetTitle className="text-white text-sm flex-1">スタッツ詳細</SheetTitle>
+          <SheetTitle className="text-white text-sm flex-1">{ss.title}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto sheet-scroll">
@@ -283,9 +288,9 @@ export function StatsSheet({
           {/* 凡例 */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 pb-4">
             {[
-              ['PTS','得点'], ['2PT','2点シュート(成/試)'], ['3PT','3点シュート(成/試)'],
-              ['FT','フリースロー(成/試)'], ['RBD','リバウンド'], ['AST','アシスト'],
-              ['STL','スティール'], ['BLK','ブロック'], ['F','ファウル'],['TOV','ターンオーバー'],
+              ['PTS', ss.legendPts], ['2PT', ss.legend2pt], ['3PT', ss.legend3pt],
+              ['FT', ss.legendFt], ['RBD', ss.legendRbd], ['AST', ss.legendAst],
+              ['STL', ss.legendStl], ['BLK', ss.legendBlk], ['F', ss.legendFoul], ['TOV', ss.legendTov],
             ].map(([k, v]) => (
               <span key={k} className="text-[10px] text-white/25">
                 <span className="text-white/40 font-bold">{k}</span> = {v}

@@ -34,7 +34,9 @@
   "home": {
     "subtitle": "片手でリアルタイム記録",
     "cloudSync": "クラウドから最新データを取得",
-    "cloudFetchStaleHint": "スマホでの変更を反映するには、ボタンを押して最新データを取得してください",
+    "cloudSyncShort": "最新取得",
+    "cloudSyncDoneShort": "完了",
+    "cloudFetchStaleHint": "スマホの更新を反映",
     "syncing": "同期中...",
     "syncDone": "同期完了（{count}件）",
     "syncFail": "同期に失敗しました",
@@ -253,7 +255,183 @@
     "saveFail": "クラウドへの送信に失敗しました",
     "nextGame": "次の試合を作成",
     "goHome": "ホームへ戻る",
-    "resumeGame": "記録を再開する"
+    "resumeGame": "記録を再開する",
+    "saveErrorDetail": "保存エラー（詳細）",
+    "unknownError": "不明なエラー",
+    "unexpectedError": "予期しないエラー",
+    "aiErrorPrefix": "エラー: {error}",
+    "mvp": "MVP"
+  },
+
+  "sync": {
+    "loading": "読み込み中",
+    "notLoggedIn": "ログインしていません。一度ログアウトして再ログインしてください。",
+    "saveDone": "保存しました",
+    "savePartial": "一部のみ保存 ({synced}/{total}件): {detail}",
+    "saveFail": "クラウドへの保存に失敗しました",
+    "unexpected": "予期しないエラー",
+    "unknown": "不明なエラー"
+  },
+
+  "statsSheet": {
+    "title": "スタッツ詳細",
+    "noStats": "スタッツ記録なし",
+    "teamTotal": "チーム合計",
+    "totalAbbr": "計",
+    "shootMap": "シュートマップ",
+    "legendPts": "得点",
+    "legend2pt": "2点シュート(成/試)",
+    "legend3pt": "3点シュート(成/試)",
+    "legendFt": "フリースロー(成/試)",
+    "legendRbd": "リバウンド",
+    "legendAst": "アシスト",
+    "legendStl": "スティール",
+    "legendBlk": "ブロック",
+    "legendFoul": "ファウル",
+    "legendTov": "ターンオーバー"
+  },
+
+  "court": {
+    "noShotData": "シュートデータなし",
+    "selectArea": "エリアを選択",
+    "made": "成功",
+    "miss": "ミス",
+    "legendPaint": "ペイント/ゴール下",
+    "legendMid": "ミドル",
+    "legend3pt": "3PT",
+    "legend60": "60%+",
+    "legend4060": "40-60%",
+    "legend2040": "20-40%",
+    "legend20": "<20%",
+    "zones": {
+      "restricted": "ゴール下",
+      "paintLeft": "ペイント左",
+      "paintRight": "ペイント右",
+      "midLeftCorner": "ミドル左コーナー",
+      "midLeftWing": "ミドル左ウィング",
+      "midCenter": "ミドル中央",
+      "midRightWing": "ミドル右ウィング",
+      "midRightCorner": "ミドル右コーナー",
+      "threeLeftCorner": "3PT左コーナー",
+      "threeLeftWing": "3PT左ウィング",
+      "threeCenter": "3PTトップ",
+      "threeRightWing": "3PT右ウィング",
+      "threeRightCorner": "3PT右コーナー"
+    }
+  },
+
+  "teamSection": {
+    "roster": "メンバー",
+    "substitute": "交代",
+    "teamFouls": "チームF",
+    "penalty": "ペナルティ",
+    "noMembers": "メンバーが登録されていません",
+    "noMembersHint": "「メンバー」ボタンから追加してください"
+  },
+
+  "timeline": {
+    "empty": "記録がまだありません",
+    "team": "チーム",
+    "oppTov": "相手TOV",
+    "undo": "取り消し"
+  },
+
+  "actions": {
+    "2PT_MADE": "2PT成功",
+    "2PT_MISS": "2PT失敗",
+    "3PT_MADE": "3PT成功",
+    "3PT_MISS": "3PT失敗",
+    "FT_MADE": "FT成功",
+    "FT_MISS": "FT失敗",
+    "ORBD": "ORbd",
+    "DRBD": "DRbd",
+    "AST": "Ast",
+    "STL": "Stl",
+    "BLK": "Blk",
+    "TOV": "Tov",
+    "FOUL": "Foul"
+  },
+
+  "statsPanel": {
+    "categorySuccess": "success",
+    "categoryMiss": "miss",
+    "legendOrbd": "OFリバウンド",
+    "legendDrbd": "DFリバウンド",
+    "legendAst": "アシスト",
+    "legendStl": "スティール",
+    "legendBlk": "ブロック",
+    "legendFoul": "ファウル",
+    "legendTov": "ターンオーバー",
+    "pro": "PRO"
+  },
+
+  "substitution": {
+    "title": "メンバー交代",
+    "step1": "① コート上の選手をタップ",
+    "step2": "② ベンチの選手をタップして交代",
+    "courtOut": "コート上（OUT）",
+    "benchIn": "ベンチ（IN）",
+    "noBench": "ベンチに選手がいません",
+    "selectCourtFirst": "— まずコート上の選手を選んでください"
+  },
+
+  "myTeamsSheet": {
+    "back": "戻る",
+    "teamList": "チーム一覧",
+    "title": "登録チーム",
+    "selectTitle": "チームを選択",
+    "editTitle": "チームを編集",
+    "newTitle": "新しいチームを登録",
+    "premiumTitle": "プレミアムプラン",
+    "deleteConfirm": "このチームを削除しますか？",
+    "otherManual": "その他（手動入力）",
+    "noTeams": "登録チームがありません",
+    "addTeam": "チームを追加",
+    "select": "選択",
+    "noMembers": "メンバー未登録",
+    "memberCount": "{count}人",
+    "teamName": "チーム名",
+    "teamNamePlaceholder": "例: チームA",
+    "membersLabel": "メンバー（背番号）",
+    "saveTeam": "保存する",
+    "tapToRemove": "タップで削除",
+    "backNumberShort": "背番号",
+    "multiTeamTitle": "複数チームの登録",
+    "multiTeamDesc": "プレミアムプランでは複数のチームを登録できます。チームごとに背番号・ユニフォームカラーを保存し、試合登録時にワンタップで選択できます。",
+    "featureUnlimited": "試合記録が無制限に",
+    "featureMultiTeam": "複数チームの登録・管理",
+    "featureAi": "AIによるスタッツ分析レポート",
+    "featureCloud": "クラウド同期・複数端末対応",
+    "featurePdf": "スコアシートのPDF出力"
+  },
+
+  "premiumSuccess": {
+    "activating": "プレミアムを有効化中...",
+    "verifying": "決済を確認しています。\nそのままお待ちください。",
+    "activated": "プレミアム登録完了！",
+    "thanks": "ありがとうございます。\nすべての機能が使えるようになりました。",
+    "redirecting": "2秒後に試合作成画面へ移動します...",
+    "delayed": "有効化に時間がかかっています",
+    "delayedHint": "決済は完了しています。\n数分後にホームページで確認してください。",
+    "createGame": "試合を作成する"
+  },
+
+  "jersey": {
+    "white": "白",
+    "black": "黒",
+    "navy": "ネイビー",
+    "red": "赤",
+    "yellow": "黄",
+    "green": "緑",
+    "purple": "紫",
+    "orange": "オレンジ"
+  },
+
+  "languages": {
+    "ja": "日本語",
+    "en": "English",
+    "zh": "简体中文",
+    "zh-TW": "繁體中文"
   },
 
   "analysis": {
@@ -287,7 +465,8 @@
     "upgradePremium": "プレミアムにアップグレード",
     "backToTeam": "チーム分析に戻る",
     "playerDetail": "#{num}（{team}） ／ {games}試合 ／ 総{pts}pts",
-    "networkError": "通信エラーが発生しました"
+    "networkError": "通信エラーが発生しました",
+    "shootMap": "シュートマップ"
   },
 
   "premium": {
@@ -432,7 +611,13 @@
     "cloudUploadManual": "終了画面の「クラウドへ送信」ボタンを押すことで、手動での最終確認保存が完了します。",
     "cloudDownloadTitle": "他の端末やPCでデータを見る（PC・別端末操作）",
     "cloudDownloadBody": "スマホから送られた最新の試合データを取り込むには、ホーム画面の「クラウドから最新データを取得」ボタンを押してください。クラウド上の最新一覧が端末にダウンロードされ、スコアやヒートマップが更新されます。",
-    "cloudDirectionNote": "「クラウドへ送信」はクラウドへ送る操作、「クラウドから最新データを取得」はクラウドから受け取る操作です。"
+    "cloudDirectionNote": "「クラウドへ送信」はクラウドへ送る操作、「クラウドから最新データを取得」はクラウドから受け取る操作です。",
+    "statBtn2pt": "得点（シュート成功）",
+    "statBtnMiss": "シュートミス（得点なし）",
+    "statBtnRbd": "オフェンス・ディフェンスリバウンド",
+    "statBtnAst": "アシスト・スティール・ブロック",
+    "statBtnFoul": "ファウル",
+    "statBtnTov": "ターンオーバー（スタッツパネル最上段）"
   },
 
   "privacy": {

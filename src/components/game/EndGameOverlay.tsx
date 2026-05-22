@@ -41,8 +41,8 @@ function calcPeriodScore(logs: StatsLog[], teamId: string, period: number): numb
     .reduce((s, l) => s + l.points, 0);
 }
 
-function teamLabel(team: Team, isOurs: boolean): string {
-  return team.team_name?.trim() || (isOurs ? '自チーム' : '相手');
+function teamLabel(team: Team, isOurs: boolean, our: string, their: string): string {
+  return team.team_name?.trim() || (isOurs ? our : their);
 }
 
 // ================================================================
@@ -164,6 +164,8 @@ export function EndGameOverlay({
 }: EndGameOverlayProps) {
   const dict = useDictionary();
   const eg = dict.endGame;
+  const g = dict.game;
+  const sync = dict.sync;
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
@@ -177,19 +179,19 @@ export function EndGameOverlay({
     try {
       const result = await onSave();
       if (result.ok) {
-        setSaveMsg(result.error && result.error.startsWith('保存しました')
+        setSaveMsg(result.error && result.error.startsWith(sync.saveDone)
           ? result.error
           : (user ? eg.saveDone : eg.saveLocalOnly));
         setSaveError(null);
         setTimeout(() => setSaveMsg(null), 4000);
       } else {
-        const detail = result.error ?? '不明なエラー';
+        const detail = result.error ?? sync.unknown;
         setSaveMsg(eg.saveFail);
         setSaveError(detail);
         window.alert(`${eg.saveFail}\n\n${detail}`);
       }
     } catch (e) {
-      const detail = e instanceof Error ? e.message : '予期しないエラー';
+      const detail = e instanceof Error ? e.message : sync.unexpected;
       setSaveMsg(eg.saveFail);
       setSaveError(detail);
       window.alert(`${eg.saveFail}\n\n${detail}`);
@@ -201,8 +203,8 @@ export function EndGameOverlay({
   const winnerTeam: Team | null =
     diff > 0 ? ourTeam : diff < 0 ? theirTeam : null;
 
-  const ourName   = teamLabel(ourTeam,   true);
-  const theirName = teamLabel(theirTeam, false);
+  const ourName   = teamLabel(ourTeam,   true,  g.ourTeam, g.theirTeam);
+  const theirName = teamLabel(theirTeam, false, g.ourTeam, g.theirTeam);
 
   // 表示するピリオド（OTは得点があるものだけ）
   const activePeriods = useMemo(() => {
@@ -284,7 +286,7 @@ export function EndGameOverlay({
       setAiCachedAt(new Date().toISOString());
       setCachedReport(gameReportKey(game.id), report);
     } else {
-      setAiReport(error ? `エラー: ${error}` : report);
+      setAiReport(error ? eg.aiErrorPrefix.replace('{error}', error) : report);
     }
     setAiLoading(false);
   };
@@ -293,7 +295,7 @@ export function EndGameOverlay({
     <div className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
       {pdfConfirm && (
         <PdfConfirmDialog
-          title="スコアシートをPDF出力"
+          title={dict.pdf.confirmScore}
           onConfirm={() => { setPdfConfirm(false); executePDF(); }}
           onCancel={() => setPdfConfirm(false)}
         />
@@ -304,11 +306,11 @@ export function EndGameOverlay({
         <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center mb-3">
           <Trophy size={22} className="text-amber-400" />
         </div>
-        <h1 className="text-white font-black text-2xl tracking-tight">試合終了</h1>
+        <h1 className="text-white font-black text-2xl tracking-tight">{eg.title}</h1>
         <p className={cn('text-sm font-semibold mt-1', winnerTeam ? 'text-amber-400' : 'text-white/40')}>
           {winnerTeam
-            ? `${teamLabel(winnerTeam, winnerTeam.id === ourTeam.id)} の勝利`
-            : '引き分け'}
+            ? eg.winner.replace('{team}', teamLabel(winnerTeam, winnerTeam.id === ourTeam.id, g.ourTeam, g.theirTeam))
+            : eg.draw}
         </p>
       </div>
 
@@ -340,7 +342,7 @@ export function EndGameOverlay({
             className="text-[11px] text-white/30 font-semibold border-b border-white/5"
             style={{ display: 'grid', gridTemplateColumns: `2fr repeat(${activePeriods.length}, 1fr)` }}
           >
-            <div className="col-span-1 px-3 py-2">チーム</div>
+            <div className="col-span-1 px-3 py-2">{eg.team}</div>
             {activePeriods.map((p) => (
               <div key={p} className="text-center py-2">{periodLabel(p)}</div>
             ))}
@@ -389,15 +391,15 @@ export function EndGameOverlay({
         <div className="mx-6 mb-5 rounded-2xl bg-white/4 border border-white/8 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={14} className="text-violet-400" />
-            <span className="text-white font-bold text-sm flex-1">AI分析レポート</span>
+            <span className="text-white font-bold text-sm flex-1">{eg.aiReport}</span>
             {aiCachedAt && !aiLoading && (
-              <span className="text-white/25 text-[10px]">{formatCacheDate(aiCachedAt)} 生成</span>
+              <span className="text-white/25 text-[10px]">{eg.generatedAt.replace('{date}', formatCacheDate(aiCachedAt))}</span>
             )}
           </div>
           {aiLoading ? (
             <div className="flex items-center gap-2 text-white/40">
               <Loader2 size={14} className="animate-spin" />
-              <span className="text-xs">分析中...</span>
+              <span className="text-xs">{eg.aiLoading}</span>
             </div>
           ) : (
             <>
@@ -406,7 +408,7 @@ export function EndGameOverlay({
                 onClick={() => { setAiReport(null); setAiCachedAt(''); setShowReport(false); }}
                 className="mt-3 text-white/25 text-[10px] active:text-white/50 underline underline-offset-2"
               >
-                再分析する
+                {eg.reAnalyze}
               </button>
             </>
           )}
@@ -421,17 +423,17 @@ export function EndGameOverlay({
         {/* 1: スタッツ詳細（青）*/}
         <button onClick={onShowStats}
           className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
-          <BarChart2 size={18} />スタッツ詳細を見る
+          <BarChart2 size={18} />{eg.statsDetail}
         </button>
         {/* 2: ランニングスコア（アンバー）*/}
         <button onClick={onShowRunning}
           className="flex items-center justify-center gap-2 w-full bg-amber-600/80 active:bg-amber-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
-          <ClipboardList size={18} />ランニングスコアシート
+          <ClipboardList size={18} />{eg.runningScore}
         </button>
         {/* 3: クラウド保存（シアン）*/}
         {saveError && (
           <div className="rounded-xl bg-red-950/90 border-2 border-red-500/70 p-3">
-            <p className="text-red-300 text-[11px] font-bold mb-1">保存エラー（詳細）</p>
+            <p className="text-red-300 text-[11px] font-bold mb-1">{eg.saveErrorDetail}</p>
             <p className="text-red-100 text-xs leading-relaxed break-all whitespace-pre-wrap">
               {saveError}
             </p>
@@ -449,27 +451,27 @@ export function EndGameOverlay({
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
           <Sparkles size={18} />
-          {aiReport ? (showReport ? 'レポートを閉じる' : 'レポートを表示') : aiLoading ? '' : 'AIでスタッツを分析'}
+          {aiReport ? (showReport ? eg.hideReport : eg.showReport) : aiLoading ? '' : eg.aiAnalyze}
         </button>
         {/* 5: PDF出力（エメラルド）*/}
         <button onClick={() => setPdfConfirm(true)}
           className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
-          <FileText size={18} />スコアシートをPDF出力
+          <FileText size={18} />{eg.pdfExport}
         </button>
         {/* 6: 次の試合（スカイ）*/}
         <button onClick={onNewGame}
           className="flex items-center justify-center gap-2 w-full bg-sky-600 active:bg-sky-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
-          <Plus size={18} />次の試合を作成
+          <Plus size={18} />{eg.nextGame}
         </button>
         {/* 7: ホーム（ダーク）*/}
         <button onClick={onGoHome}
           className="flex items-center justify-center gap-2 w-full bg-white/8 active:bg-white/12 text-white/60 font-semibold rounded-2xl py-4 text-base transition-colors border border-white/10">
-          <Home size={18} />ホームへ戻る
+          <Home size={18} />{eg.goHome}
         </button>
         {/* 8: 記録再開（テキスト）*/}
         <button onClick={onResume}
           className="flex items-center justify-center gap-1.5 text-white/30 active:text-white/60 text-sm transition-colors py-2">
-          <RotateCcw size={13} />記録を再開する
+          <RotateCcw size={13} />{eg.resumeGame}
         </button>
       </div>
     </div>

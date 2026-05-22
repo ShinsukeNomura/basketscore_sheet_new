@@ -336,7 +336,7 @@ function PlayerDetailView({
       {/* シュートヒートマップ */}
       {(player.fg2a > 0 || player.fg3a > 0) && (
         <div className="rounded-2xl bg-white/4 border border-white/8 p-4 flex flex-col gap-2">
-          <p className="text-white/40 text-xs font-semibold tracking-wider uppercase">シュートマップ</p>
+          <p className="text-white/40 text-xs font-semibold tracking-wider uppercase">{dict.analysis.shootMap}</p>
           <CourtHeatmap logs={shotLogs} />
         </div>
       )}

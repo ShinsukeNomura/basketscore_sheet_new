@@ -6,6 +6,7 @@ import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
 import { useAuth } from '@/hooks/useAuth';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 // ============================================================
 // ユーティリティ
@@ -280,6 +281,7 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
   const { user } = useAuth();
+  const syncT = useDictionary().sync;
 
   const userId = user?.id;
 
@@ -297,36 +299,39 @@ export function useGameState(gameId: string) {
 
   const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     try {
-    if (!s.isLoaded) return { ok: false, error: '読み込み中' };
+    if (!s.isLoaded) return { ok: false, error: syncT.loading };
     let { gameState } = persistState(s, userId);
-    if (!userId) return { ok: false, error: 'ログインしていません。一度ログアウトして再ログインしてください。' };
+    if (!userId) return { ok: false, error: syncT.notLoggedIn };
 
-    const sync = await syncToCloud(gameState, userId);
-    if (sync.state && sync.state.game.id !== gameState.game.id) {
-      gameState = sync.state;
+    const cloud = await syncToCloud(gameState, userId);
+    if (cloud.state && cloud.state.game.id !== gameState.game.id) {
+      gameState = cloud.state;
       const active = gameState.logs.filter((l) => !l.is_deleted);
       const ourScore   = active.filter((l) => l.team_id === gameState.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
       const theirScore = active.filter((l) => l.team_id === gameState.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
       savePersistedGame(gameState, ourScore, theirScore, userId);
       dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
     }
-    if (sync.ok) {
-      const detail = sync.logsTotal != null
-        ? `（${sync.logsSynced ?? sync.logsTotal}/${sync.logsTotal}件）`
+    if (cloud.ok) {
+      const detail = cloud.logsTotal != null
+        ? `（${cloud.logsSynced ?? cloud.logsTotal}/${cloud.logsTotal}）`
         : '';
-      return { ok: true, error: detail ? `保存しました${detail}` : undefined };
+      return { ok: true, error: detail ? `${syncT.saveDone}${detail}` : undefined };
     }
-    if (sync.partial) {
+    if (cloud.partial) {
       return {
         ok: false,
-        error: `一部のみ保存 (${sync.logsSynced}/${sync.logsTotal}件): ${sync.error ?? ''}`,
+        error: syncT.savePartial
+          .replace('{synced}', String(cloud.logsSynced))
+          .replace('{total}', String(cloud.logsTotal))
+          .replace('{detail}', cloud.error ?? ''),
       };
     }
-    return { ok: false, error: sync.error ?? 'クラウドへの保存に失敗しました' };
+    return { ok: false, error: cloud.error ?? syncT.saveFail };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : '予期しないエラー' };
+      return { ok: false, error: e instanceof Error ? e.message : syncT.unexpected };
     }
-  }, [persistState, userId]);
+  }, [persistState, userId, syncT]);
 
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
   useEffect(() => {

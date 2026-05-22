@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { X, Plus, Tag } from 'lucide-react';
-import { DEFAULT_LABELS, getCustomLabels, saveCustomLabels } from '@/lib/storage';
+import { getCustomLabels, saveCustomLabels } from '@/lib/storage';
 import { cn } from '@/lib/utils';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface GameLabelSheetProps {
   gameName:  string;
@@ -13,12 +14,16 @@ interface GameLabelSheetProps {
 }
 
 export function GameLabelSheet({ gameName, current, onSave, onClose }: GameLabelSheetProps) {
+  const dict = useDictionary();
+  const lb = dict.labels;
+  const c = dict.common;
+  const defaultLabels = Object.values(lb.defaults);
   const [selected,   setSelected]   = useState<Set<string>>(new Set(current));
   const [customList, setCustomList] = useState<string[]>(getCustomLabels);
   const [inputVal,   setInputVal]   = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const allLabels = [...DEFAULT_LABELS, ...customList];
+  const allLabels = [...defaultLabels, ...customList];
 
   function toggleLabel(label: string) {
     setSelected((prev) => {
@@ -51,7 +56,7 @@ export function GameLabelSheet({ gameName, current, onSave, onClose }: GameLabel
         <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-800">
           <Tag size={16} className="text-amber-400 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">ラベルを編集</p>
+            <p className="text-white font-bold text-sm">{lb.editTitle}</p>
             <p className="text-white/35 text-xs truncate">{gameName}</p>
           </div>
           <button onClick={onClose} className="text-neutral-500 active:text-white min-h-[44px] min-w-[44px] flex items-center justify-center">
@@ -90,7 +95,7 @@ export function GameLabelSheet({ gameName, current, onSave, onClose }: GameLabel
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCustom()}
-              placeholder="カスタムラベルを追加..."
+              placeholder={lb.addCustom}
               className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-white text-sm placeholder-neutral-600 outline-none focus:border-amber-500/50"
             />
             <button
@@ -107,7 +112,7 @@ export function GameLabelSheet({ gameName, current, onSave, onClose }: GameLabel
             onClick={handleSave}
             className="w-full py-3 rounded-xl bg-amber-500 active:bg-amber-600 text-neutral-900 font-black text-sm transition-colors"
           >
-            保存する（{selected.size}件選択中）
+            {lb.saveCta.replace('{count}', String(selected.size))}
           </button>
         </div>
 

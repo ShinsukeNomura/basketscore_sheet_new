@@ -34,7 +34,9 @@
   "home": {
     "subtitle": "实时篮球比赛记录，单手操作",
     "cloudSync": "从云端获取最新数据",
-    "cloudFetchStaleHint": "若在手机端有更新，请点按按钮获取最新数据",
+    "cloudSyncShort": "获取",
+    "cloudSyncDoneShort": "完成",
+    "cloudFetchStaleHint": "同步手机更新",
     "syncing": "同步中...",
     "syncDone": "同步完成（{count}场）",
     "syncFail": "同步失败",
@@ -253,7 +255,183 @@
     "saveFail": "发送到云端失败",
     "nextGame": "创建下一场比赛",
     "goHome": "返回主页",
-    "resumeGame": "继续记录"
+    "resumeGame": "继续记录",
+    "saveErrorDetail": "保存错误（详情）",
+    "unknownError": "未知错误",
+    "unexpectedError": "意外错误",
+    "aiErrorPrefix": "错误: {error}",
+    "mvp": "MVP"
+  },
+
+  "sync": {
+    "loading": "加载中",
+    "notLoggedIn": "未登录。请退出后重新登录。",
+    "saveDone": "已保存",
+    "savePartial": "部分保存 ({synced}/{total}): {detail}",
+    "saveFail": "发送到云端失败",
+    "unexpected": "意外错误",
+    "unknown": "未知错误"
+  },
+
+  "statsSheet": {
+    "title": "详细统计",
+    "noStats": "暂无统计记录",
+    "teamTotal": "球队合计",
+    "totalAbbr": "计",
+    "shootMap": "投篮热区图",
+    "legendPts": "得分",
+    "legend2pt": "2分(中/投)",
+    "legend3pt": "3分(中/投)",
+    "legendFt": "罚球(中/投)",
+    "legendRbd": "篮板",
+    "legendAst": "助攻",
+    "legendStl": "抢断",
+    "legendBlk": "盖帽",
+    "legendFoul": "犯规",
+    "legendTov": "失误"
+  },
+
+  "court": {
+    "noShotData": "暂无投篮数据",
+    "selectArea": "选择区域",
+    "made": "命中",
+    "miss": "未中",
+    "legendPaint": "油漆区/篮下",
+    "legendMid": "中距离",
+    "legend3pt": "三分",
+    "legend60": "60%+",
+    "legend4060": "40-60%",
+    "legend2040": "20-40%",
+    "legend20": "<20%",
+    "zones": {
+      "restricted": "篮下",
+      "paintLeft": "油漆区左",
+      "paintRight": "油漆区右",
+      "midLeftCorner": "中距离左底角",
+      "midLeftWing": "中距离左翼",
+      "midCenter": "中距离中央",
+      "midRightWing": "中距离右翼",
+      "midRightCorner": "中距离右底角",
+      "threeLeftCorner": "三分左底角",
+      "threeLeftWing": "三分左翼",
+      "threeCenter": "三分顶弧",
+      "threeRightWing": "三分右翼",
+      "threeRightCorner": "三分右底角"
+    }
+  },
+
+  "teamSection": {
+    "roster": "队员",
+    "substitute": "换人",
+    "teamFouls": "球队犯规",
+    "penalty": "加罚",
+    "noMembers": "尚未登记队员",
+    "noMembersHint": "请通过「队员」按钮添加"
+  },
+
+  "timeline": {
+    "empty": "暂无记录",
+    "team": "球队",
+    "oppTov": "对方失误",
+    "undo": "撤销"
+  },
+
+  "actions": {
+    "2PT_MADE": "2分命中",
+    "2PT_MISS": "2分未中",
+    "3PT_MADE": "3分命中",
+    "3PT_MISS": "3分未中",
+    "FT_MADE": "罚球命中",
+    "FT_MISS": "罚球未中",
+    "ORBD": "进攻篮板",
+    "DRBD": "防守篮板",
+    "AST": "助攻",
+    "STL": "抢断",
+    "BLK": "盖帽",
+    "TOV": "失误",
+    "FOUL": "犯规"
+  },
+
+  "statsPanel": {
+    "categorySuccess": "命中",
+    "categoryMiss": "未中",
+    "legendOrbd": "进攻篮板",
+    "legendDrbd": "防守篮板",
+    "legendAst": "助攻",
+    "legendStl": "抢断",
+    "legendBlk": "盖帽",
+    "legendFoul": "犯规",
+    "legendTov": "失误",
+    "pro": "PRO"
+  },
+
+  "substitution": {
+    "title": "换人",
+    "step1": "① 点击场上球员",
+    "step2": "② 点击替补完成换人",
+    "courtOut": "场上（换下）",
+    "benchIn": "替补（换上）",
+    "noBench": "替补席无球员",
+    "selectCourtFirst": "— 请先选择场上球员"
+  },
+
+  "myTeamsSheet": {
+    "back": "返回",
+    "teamList": "球队列表",
+    "title": "我的球队",
+    "selectTitle": "选择球队",
+    "editTitle": "编辑球队",
+    "newTitle": "登记新球队",
+    "premiumTitle": "高级版",
+    "deleteConfirm": "确定删除此球队吗？",
+    "otherManual": "其他（手动输入）",
+    "noTeams": "暂无登记球队",
+    "addTeam": "添加球队",
+    "select": "选择",
+    "noMembers": "未登记队员",
+    "memberCount": "{count}人",
+    "teamName": "球队名称",
+    "teamNamePlaceholder": "例: A队",
+    "membersLabel": "队员（背号）",
+    "saveTeam": "保存",
+    "tapToRemove": "点击删除",
+    "backNumberShort": "背号",
+    "multiTeamTitle": "登记多支球队",
+    "multiTeamDesc": "高级版可登记多支球队，保存背号与球衣颜色，创建比赛时一键选择。",
+    "featureUnlimited": "无限比赛记录",
+    "featureMultiTeam": "多球队管理",
+    "featureAi": "AI统计分析报告",
+    "featureCloud": "云端同步・多设备",
+    "featurePdf": "PDF得分表导出"
+  },
+
+  "premiumSuccess": {
+    "activating": "正在激活高级版...",
+    "verifying": "正在验证支付。\n请稍候。",
+    "activated": "高级版激活成功！",
+    "thanks": "感谢您的支持。\n所有高级功能现已解锁。",
+    "redirecting": "2秒后跳转至创建比赛页面...",
+    "delayed": "激活时间稍长",
+    "delayedHint": "支付已完成。\n请几分钟后在主页确认。",
+    "createGame": "创建比赛"
+  },
+
+  "jersey": {
+    "white": "白",
+    "black": "黑",
+    "navy": "藏青",
+    "red": "红",
+    "yellow": "黄",
+    "green": "绿",
+    "purple": "紫",
+    "orange": "橙"
+  },
+
+  "languages": {
+    "ja": "日本語",
+    "en": "English",
+    "zh": "简体中文",
+    "zh-TW": "繁體中文"
   },
 
   "analysis": {
@@ -287,7 +465,8 @@
     "upgradePremium": "升级至高级版",
     "backToTeam": "返回球队分析",
     "playerDetail": "#{num}（{team}）/ {games}场 / 总计{pts}分",
-    "networkError": "网络错误，请重试。"
+    "networkError": "网络错误，请重试。",
+    "shootMap": "投篮热区图"
   },
 
   "premium": {
@@ -432,7 +611,13 @@
     "cloudUploadManual": "在结束画面点击「发送到云端」按钮，可完成手动最终确认保存。",
     "cloudDownloadTitle": "在其他设备或电脑上查看（电脑/其他设备）",
     "cloudDownloadBody": "要从手机获取最新比赛数据，请在主页点击「从云端获取最新数据」。云端最新列表将下载到本设备，得分和热区图会更新。",
-    "cloudDirectionNote": "「发送到云端」是上传，「从云端获取最新数据」是下载。"
+    "cloudDirectionNote": "「发送到云端」是上传，「从云端获取最新数据」是下载。",
+    "statBtn2pt": "得分（投篮命中）",
+    "statBtnMiss": "未中（不得分）",
+    "statBtnRbd": "进攻/防守篮板",
+    "statBtnAst": "助攻/抢断/盖帽",
+    "statBtnFoul": "犯规",
+    "statBtnTov": "失误（面板顶部）"
   },
 
   "privacy": {

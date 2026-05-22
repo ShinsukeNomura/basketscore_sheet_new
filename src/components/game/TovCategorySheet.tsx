@@ -1,35 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 import { ArrowLeft, X, Hand, Route, AlertTriangle, Clock, HelpCircle, Footprints } from 'lucide-react';
 import { TovReason, TovMode, Player } from '@/types';
 import { cn } from '@/lib/utils';
-
-// ── 厳選6カテゴリー ─────────────────────────────────────────────
-const SIX_REASONS: { id: TovReason; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'steal',          label: 'スチールされた',   sub: 'Stolen',           icon: <Hand size={22} />,          color: 'bg-rose-900/60 border-rose-700/60 text-rose-200 active:bg-rose-800' },
-  { id: 'bad-pass',       label: 'パスミス',         sub: 'Bad Pass / OOB',   icon: <Route size={22} />,         color: 'bg-amber-900/60 border-amber-700/60 text-amber-200 active:bg-amber-800' },
-  { id: 'traveling',      label: 'トラベリング',     sub: 'Traveling',        icon: <Footprints size={22} />,    color: 'bg-orange-900/60 border-orange-700/60 text-orange-200 active:bg-orange-800' },
-  { id: 'offensive-foul', label: 'オフェンスファウル', sub: 'Offensive Foul',  icon: <AlertTriangle size={22} />, color: 'bg-red-900/60 border-red-700/60 text-red-200 active:bg-red-800' },
-  { id: 'violation',      label: '時間・その他違反', sub: '24s / 8s / 5s',    icon: <Clock size={22} />,         color: 'bg-sky-900/60 border-sky-700/60 text-sky-200 active:bg-sky-800' },
-  { id: 'other',          label: 'その他',           sub: 'Others',           icon: <HelpCircle size={22} />,    color: 'bg-neutral-700/60 border-neutral-600/60 text-neutral-200 active:bg-neutral-600' },
-];
-
-// ── 公式12カテゴリー ────────────────────────────────────────────
-const TWELVE_REASONS: { id: TovReason; label: string; sub: string }[] = [
-  { id: 'bad-pass',       label: 'バッドパス',         sub: 'Bad Pass' },
-  { id: 'lost-ball',      label: 'ハンドリングミス',   sub: 'Lost Ball' },
-  { id: 'offensive-foul', label: 'オフェンスファウル', sub: 'Offensive Foul' },
-  { id: 'traveling',      label: 'トラベリング',       sub: 'Traveling' },
-  { id: 'double-dribble', label: 'ダブルドリブル',     sub: 'Double Dribble' },
-  { id: 'out-of-bounds',  label: 'アウトオブバウンズ', sub: 'Out of Bounds' },
-  { id: '24sec',          label: '24秒違反',           sub: '24-Sec Violation' },
-  { id: '8sec',           label: '8秒違反',            sub: '8-Sec Violation' },
-  { id: '5sec',           label: '5秒違反',            sub: '5-Sec Violation' },
-  { id: 'backcourt',      label: 'バックコート',       sub: 'Backcourt' },
-  { id: '3sec',           label: '3秒違反',            sub: '3-Sec Violation' },
-  { id: 'other',          label: 'その他',             sub: 'Technical / Misc' },
-];
 
 interface TovCategorySheetProps {
   mode:     Exclude<TovMode, 'simple'>;
@@ -41,6 +16,35 @@ interface TovCategorySheetProps {
 }
 
 export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, onCancel }: TovCategorySheetProps) {
+  const dict = useDictionary();
+  const t = dict.tov;
+  const c = dict.common;
+  const g = dict.game;
+
+  const sixReasons = useMemo(() => [
+    { id: 'steal' as TovReason,          label: t.steal,          sub: t.stealSub,          icon: <Hand size={22} />,          color: 'bg-rose-900/60 border-rose-700/60 text-rose-200 active:bg-rose-800' },
+    { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub,        icon: <Route size={22} />,         color: 'bg-amber-900/60 border-amber-700/60 text-amber-200 active:bg-amber-800' },
+    { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub,      icon: <Footprints size={22} />,    color: 'bg-orange-900/60 border-orange-700/60 text-orange-200 active:bg-orange-800' },
+    { id: 'offensive-foul' as TovReason, label: t.offensiveFoul,  sub: t.offensiveFoulSub,  icon: <AlertTriangle size={22} />, color: 'bg-red-900/60 border-red-700/60 text-red-200 active:bg-red-800' },
+    { id: 'violation' as TovReason,      label: t.violation,      sub: t.violationSub,      icon: <Clock size={22} />,         color: 'bg-sky-900/60 border-sky-700/60 text-sky-200 active:bg-sky-800' },
+    { id: 'other' as TovReason,         label: t.other,          sub: t.otherSub,          icon: <HelpCircle size={22} />,    color: 'bg-neutral-700/60 border-neutral-600/60 text-neutral-200 active:bg-neutral-600' },
+  ], [t]);
+
+  const twelveReasons = useMemo(() => [
+    { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub },
+    { id: 'lost-ball' as TovReason,      label: t.lostBall,       sub: t.lostBallSub },
+    { id: 'offensive-foul' as TovReason, label: t.offensiveFoul,  sub: t.offensiveFoulSub },
+    { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub },
+    { id: 'double-dribble' as TovReason, label: t.doubleDribble,  sub: t.doubleDribbleSub },
+    { id: 'out-of-bounds' as TovReason,  label: t.outOfBounds,    sub: t.outOfBoundsSub },
+    { id: '24sec' as TovReason,          label: t.sec24,          sub: t.sec24Sub },
+    { id: '8sec' as TovReason,           label: t.sec8,           sub: t.sec8Sub },
+    { id: '5sec' as TovReason,           label: t.sec5,           sub: t.sec5Sub },
+    { id: 'backcourt' as TovReason,      label: t.backcourt,      sub: t.backcourtSub },
+    { id: '3sec' as TovReason,           label: t.sec3,           sub: t.sec3Sub },
+    { id: 'other' as TovReason,          label: t.other,          sub: t.otherSub },
+  ], [t]);
+
   const [step,           setStep]           = useState<'reason' | 'player'>('reason');
   const [selectedReason, setSelectedReason] = useState<TovReason | null>(null);
   const [flash,          setFlash]          = useState<string | null>(null);
@@ -88,10 +92,10 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
             className="flex items-center gap-1 text-neutral-400 active:text-white min-h-[44px] min-w-[44px] justify-center"
           >
             <ArrowLeft size={18} />
-            <span className="text-sm">戻る</span>
+            <span className="text-sm">{c.back}</span>
           </button>
           <div className="text-center">
-            <div className="text-[10px] text-neutral-500 mb-0.5">ターンオーバー記録</div>
+            <div className="text-[10px] text-neutral-500 mb-0.5">{t.title}</div>
             <div className={cn('text-xs font-bold px-2 py-0.5 rounded border', teamColor)}>
               {teamName}
             </div>
@@ -107,11 +111,11 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
         {/* ステップインジケーター */}
         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800/40 border-b border-neutral-800 text-[11px]">
           <span className={cn('px-2 py-0.5 rounded', step === 'reason' ? 'bg-amber-900/60 text-amber-200' : 'bg-neutral-700 text-neutral-500')}>
-            理由選択
+            {t.stepReason}
           </span>
           <span className="text-neutral-700">→</span>
           <span className={cn('px-2 py-0.5 rounded', step === 'player' ? 'bg-emerald-900/60 text-emerald-200' : 'bg-neutral-700 text-neutral-500')}>
-            選手選択
+            {t.stepPlayer}
           </span>
         </div>
 
@@ -121,7 +125,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
             mode === '6-grid' ? (
               /* 厳選6カテゴリー (2×3) */
               <div className="grid grid-cols-2 gap-3">
-                {SIX_REASONS.map((r) => (
+                {sixReasons.map((r) => (
                   <button
                     key={r.id}
                     onClick={() => handleReasonSelect(r.id)}
@@ -142,7 +146,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
             ) : (
               /* 公式12カテゴリー (3×4) */
               <div className="grid grid-cols-3 gap-2">
-                {TWELVE_REASONS.map((r) => (
+                {twelveReasons.map((r) => (
                   <button
                     key={r.id}
                     onClick={() => handleReasonSelect(r.id)}
@@ -163,7 +167,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
             /* 選手選択 */
             <div className="space-y-3">
               <div className="text-center text-xs text-neutral-400 mb-3">
-                TOVを記録する選手を選択（任意）
+                {t.selectPlayer}
               </div>
               {players.length > 0 ? (
                 <div className="grid grid-cols-5 gap-2">
@@ -186,13 +190,13 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-xs text-neutral-600 py-4">選手が登録されていません</div>
+                <div className="text-center text-xs text-neutral-600 py-4">{g.noPlayers}</div>
               )}
               <button
                 onClick={handleSkip}
                 className="w-full py-3 rounded-xl bg-neutral-800 border border-neutral-700 text-neutral-300 text-sm font-medium active:bg-neutral-700 transition-all"
               >
-                選手を指定しない
+                {t.skipPlayer}
               </button>
             </div>
           )}

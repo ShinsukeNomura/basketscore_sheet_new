@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useDictionary } from '@/i18n/DictionaryProvider';
 import { ArrowLeft, X } from 'lucide-react';
 import { CourtLocation, ActionType, Player, StatsLog } from '@/types';
 
@@ -13,21 +14,48 @@ interface CourtZone {
   is3pt:      boolean;
 }
 
-export const COURT_ZONES: CourtZone[] = [
-  { id: 'restricted',       label: 'ゴール下',        shortLabel: 'RIM',   gridArea: '1 / 3 / 3 / 5', is3pt: false },
-  { id: 'paint-left',       label: 'ペイント左',       shortLabel: 'PAINT', gridArea: '1 / 2 / 3 / 3', is3pt: false },
-  { id: 'paint-right',      label: 'ペイント右',       shortLabel: 'PAINT', gridArea: '1 / 5 / 3 / 6', is3pt: false },
-  { id: 'mid-left-corner',  label: 'ミドル左コーナー', shortLabel: 'MID',   gridArea: '1 / 1 / 3 / 2', is3pt: false },
-  { id: 'mid-left-wing',    label: 'ミドル左ウィング', shortLabel: 'MID',   gridArea: '3 / 2 / 4 / 3', is3pt: false },
-  { id: 'mid-center',       label: 'ミドル中央',       shortLabel: 'MID',   gridArea: '3 / 3 / 4 / 5', is3pt: false },
-  { id: 'mid-right-wing',   label: 'ミドル右ウィング', shortLabel: 'MID',   gridArea: '3 / 5 / 4 / 6', is3pt: false },
-  { id: 'mid-right-corner', label: 'ミドル右コーナー', shortLabel: 'MID',   gridArea: '1 / 6 / 3 / 7', is3pt: false },
-  { id: '3pt-left-corner',  label: '3PT左コーナー',    shortLabel: '3PT',   gridArea: '3 / 1 / 5 / 2', is3pt: true  },
-  { id: '3pt-left-wing',    label: '3PT左ウィング',    shortLabel: '3PT',   gridArea: '4 / 2 / 5 / 3', is3pt: true  },
-  { id: '3pt-center',       label: '3PTトップ',        shortLabel: '3PT',   gridArea: '4 / 3 / 5 / 5', is3pt: true  },
-  { id: '3pt-right-wing',   label: '3PT右ウィング',    shortLabel: '3PT',   gridArea: '4 / 5 / 5 / 6', is3pt: true  },
-  { id: '3pt-right-corner', label: '3PT右コーナー',    shortLabel: '3PT',   gridArea: '3 / 6 / 5 / 7', is3pt: true  },
+const COURT_ZONE_LAYOUT: Omit<CourtZone, 'label'>[] = [
+  { id: 'restricted',       shortLabel: 'RIM',   gridArea: '1 / 3 / 3 / 5', is3pt: false },
+  { id: 'paint-left',       shortLabel: 'PAINT', gridArea: '1 / 2 / 3 / 3', is3pt: false },
+  { id: 'paint-right',      shortLabel: 'PAINT', gridArea: '1 / 5 / 3 / 6', is3pt: false },
+  { id: 'mid-left-corner',  shortLabel: 'MID',   gridArea: '1 / 1 / 3 / 2', is3pt: false },
+  { id: 'mid-left-wing',    shortLabel: 'MID',   gridArea: '3 / 2 / 4 / 3', is3pt: false },
+  { id: 'mid-center',       shortLabel: 'MID',   gridArea: '3 / 3 / 4 / 5', is3pt: false },
+  { id: 'mid-right-wing',   shortLabel: 'MID',   gridArea: '3 / 5 / 4 / 6', is3pt: false },
+  { id: 'mid-right-corner', shortLabel: 'MID',   gridArea: '1 / 6 / 3 / 7', is3pt: false },
+  { id: '3pt-left-corner',  shortLabel: '3PT',   gridArea: '3 / 1 / 5 / 2', is3pt: true  },
+  { id: '3pt-left-wing',    shortLabel: '3PT',   gridArea: '4 / 2 / 5 / 3', is3pt: true  },
+  { id: '3pt-center',       shortLabel: '3PT',   gridArea: '4 / 3 / 5 / 5', is3pt: true  },
+  { id: '3pt-right-wing',   shortLabel: '3PT',   gridArea: '4 / 5 / 5 / 6', is3pt: true  },
+  { id: '3pt-right-corner', shortLabel: '3PT',   gridArea: '3 / 6 / 5 / 7', is3pt: true  },
 ];
+
+const ZONE_LABEL_KEYS: Record<CourtLocation, keyof ReturnType<typeof useDictionary>['court']['zones']> = {
+  'restricted':       'restricted',
+  'paint-left':       'paintLeft',
+  'paint-right':      'paintRight',
+  'mid-left-corner':  'midLeftCorner',
+  'mid-left-wing':    'midLeftWing',
+  'mid-center':       'midCenter',
+  'mid-right-wing':   'midRightWing',
+  'mid-right-corner': 'midRightCorner',
+  '3pt-left-corner':  'threeLeftCorner',
+  '3pt-left-wing':    'threeLeftWing',
+  '3pt-center':       'threeCenter',
+  '3pt-right-wing':   'threeRightWing',
+  '3pt-right-corner': 'threeRightCorner',
+};
+
+function useCourtZones(): CourtZone[] {
+  const zones = useDictionary().court.zones;
+  return useMemo(
+    () => COURT_ZONE_LAYOUT.map((z) => ({
+      ...z,
+      label: zones[ZONE_LABEL_KEYS[z.id]],
+    })),
+    [zones],
+  );
+}
 
 const SHOT_ACTIONS = new Set<ActionType>(['2PT_MADE', '2PT_MISS', '3PT_MADE', '3PT_MISS']);
 
@@ -69,18 +97,24 @@ function computeZoneStats(logs: StatsLog[], filterType?: '2pt' | '3pt') {
 }
 
 // ──────────── インラインヒートマップ（StatsSheet・分析ページ用） ────────────
-const LEGEND = [
-  { color: '#991b1b', label: '60%+' },
-  { color: '#f97316', label: '40-60%' },
-  { color: '#fde68a', label: '20-40%' },
-  { color: '#fef9c3', label: '<20%' },
-];
+function useHeatLegend() {
+  const ct = useDictionary().court;
+  return useMemo(() => [
+    { color: '#991b1b', label: ct.legend60 },
+    { color: '#f97316', label: ct.legend4060 },
+    { color: '#fde68a', label: ct.legend2040 },
+    { color: '#fef9c3', label: ct.legend20 },
+  ], [ct]);
+}
 
 interface CourtHeatmapProps {
   logs: StatsLog[];
 }
 
 export function CourtHeatmap({ logs }: CourtHeatmapProps) {
+  const ct = useDictionary().court;
+  const courtZones = useCourtZones();
+  const legend = useHeatLegend();
   const shotLogs = useMemo(
     () => logs.filter((l) => !l.is_deleted && l.court_location && SHOT_ACTIONS.has(l.action_type as ActionType)),
     [logs],
@@ -97,7 +131,7 @@ export function CourtHeatmap({ logs }: CourtHeatmapProps) {
 
   if (fga === 0) {
     return (
-      <p className="text-white/25 text-xs text-center py-4">シュートデータなし</p>
+      <p className="text-white/25 text-xs text-center py-4">{ct.noShotData}</p>
     );
   }
 
@@ -137,7 +171,7 @@ export function CourtHeatmap({ logs }: CourtHeatmapProps) {
           className="grid gap-0.5"
           style={{ gridTemplateColumns: 'repeat(6, 1fr)', gridTemplateRows: 'repeat(4, 48px)' }}
         >
-          {COURT_ZONES.map((zone) => {
+          {courtZones.map((zone) => {
             const stat = zoneStats.get(zone.id) ?? { made: 0, attempted: 0 };
             const bg   = heatBg(stat.made, stat.attempted);
             const tc   = heatTextColor(stat.made, stat.attempted);
@@ -166,7 +200,7 @@ export function CourtHeatmap({ logs }: CourtHeatmapProps) {
                       {zone.shortLabel}
                     </span>
                     <span className="text-[9px] text-white/15 leading-tight text-center px-0.5 mt-0.5">
-                      {zone.label.replace(/^(ミドル|3PT|ペイント)\s?/, '')}
+                      {zone.label}
                     </span>
                   </>
                 )}
@@ -177,7 +211,7 @@ export function CourtHeatmap({ logs }: CourtHeatmapProps) {
 
         {/* 凡例 */}
         <div className="flex items-center gap-2.5 mt-2 justify-center flex-wrap">
-          {LEGEND.map(({ color, label }) => (
+          {legend.map(({ color, label }) => (
             <div key={label} className="flex items-center gap-1">
               <div className="w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
               <span className="text-[9px] text-white/30">{label}</span>
@@ -201,10 +235,15 @@ interface CourtMapProps {
 }
 
 export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, shotLogs = [] }: CourtMapProps) {
+  const dict = useDictionary();
+  const ct = dict.court;
+  const c = dict.common;
+  const courtZones = useCourtZones();
+  const legend = useHeatLegend();
   const is3pt  = action === '3PT_MADE' || action === '3PT_MISS';
   const isMade = action === '2PT_MADE' || action === '3PT_MADE';
   const shotLabel   = is3pt ? '3PT' : '2PT';
-  const resultLabel = isMade ? '成功' : 'ミス';
+  const resultLabel = isMade ? ct.made : ct.miss;
 
   // 現在の選択タイプに合わせてヒートマップをフィルター（2PT選択中なら2Pゾーン、3PT選択中なら3Pゾーン）
   const filteredLogs = useMemo(
@@ -230,13 +269,13 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
             onClick={onBack}
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-300 active:bg-neutral-800"
           >
-            <ArrowLeft size={16} />戻る
+            <ArrowLeft size={16} />{c.back}
           </button>
           <button
             onClick={onCancel}
             className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-neutral-500 active:bg-neutral-800"
           >
-            <X size={14} />キャンセル
+            <X size={14} />{c.cancel}
           </button>
         </div>
         <div className="flex items-center justify-center gap-2 text-sm flex-wrap">
@@ -248,7 +287,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
           <span className="text-neutral-500">→</span>
           <span className={`rounded px-2 py-1 font-bold ${teamBadgeClass}`}>#{player.back_number}</span>
           <span className="text-neutral-500">→</span>
-          <span className="text-neutral-400 text-xs">エリアを選択</span>
+          <span className="text-neutral-400 text-xs">{ct.selectArea}</span>
         </div>
       </div>
 
@@ -273,7 +312,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
                 gridTemplateRows: 'repeat(4, minmax(56px, 1fr))',
               }}
             >
-              {COURT_ZONES.map((zone) => {
+              {courtZones.map((zone) => {
                 const disabled = is3pt ? !zone.is3pt : zone.is3pt;
                 const stat = zoneStats.get(zone.id) ?? { made: 0, attempted: 0 };
                 const bg   = !disabled ? heatBg(stat.made, stat.attempted) : '';
@@ -305,7 +344,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
                           {Math.round(stat.made / stat.attempted * 100)}%
                         </span>
                         <span className="text-[8px] mt-0.5 leading-tight opacity-60 text-center" style={{ color: tc || '#fff' }}>
-                          {zone.label.replace(/^(ミドル|3PT|ペイント)\s?/, '')}
+                          {zone.label}
                         </span>
                       </>
                     ) : (
@@ -315,7 +354,7 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
                           {zone.shortLabel}
                         </span>
                         <span className="mt-0.5 text-[10px] font-medium leading-tight text-neutral-200">
-                          {zone.label.replace(/^(ミドル|3PT|ペイント)\s?/, '')}
+                          {zone.label}
                         </span>
                       </>
                     )}
@@ -329,15 +368,15 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
           {/* 凡例 */}
           <div className="mt-3 flex flex-wrap justify-center gap-3 text-xs">
             <span className="flex items-center gap-1.5 text-neutral-500">
-              <span className="h-2.5 w-2.5 rounded border border-neutral-600 bg-neutral-700 inline-block" />ペイント/ゴール下
+              <span className="h-2.5 w-2.5 rounded border border-neutral-600 bg-neutral-700 inline-block" />{ct.legendPaint}
             </span>
             <span className="flex items-center gap-1.5 text-neutral-500">
-              <span className="h-2.5 w-2.5 rounded border border-neutral-600 bg-neutral-700 inline-block" />ミドル
+              <span className="h-2.5 w-2.5 rounded border border-neutral-600 bg-neutral-700 inline-block" />{ct.legendMid}
             </span>
             <span className="flex items-center gap-1.5 text-neutral-500">
-              <span className="h-2.5 w-2.5 rounded border border-amber-700/50 bg-amber-900/20 inline-block" />3PT
+              <span className="h-2.5 w-2.5 rounded border border-amber-700/50 bg-amber-900/20 inline-block" />{ct.legend3pt}
             </span>
-            {filteredLogs.length > 0 && LEGEND.map(({ color, label }) => (
+            {filteredLogs.length > 0 && legend.map(({ color, label }) => (
               <span key={label} className="flex items-center gap-1.5 text-neutral-500">
                 <span className="h-2.5 w-2.5 rounded inline-block" style={{ background: color }} />{label}
               </span>

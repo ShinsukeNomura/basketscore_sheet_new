@@ -22,12 +22,10 @@ import { setGameLabels } from '@/lib/storage';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 
-const LOCALES = [
-  { code: 'ja',    label: '日本語',  flag: '🇯🇵' },
-  { code: 'en',    label: 'English', flag: '🇺🇸' },
-  { code: 'zh',    label: '简体中文', flag: '🇨🇳' },
-  { code: 'zh-TW', label: '繁體中文', flag: '🇹🇼' },
-] as const;
+const LOCALE_CODES = ['ja', 'en', 'zh', 'zh-TW'] as const;
+const LOCALE_FLAGS: Record<string, string> = {
+  ja: '🇯🇵', en: '🇺🇸', zh: '🇨🇳', 'zh-TW': '🇹🇼',
+};
 
 function formatDate(iso: string, locale: string): string {
   if (locale === 'en')    return new Date(iso).toLocaleDateString('en-US',  { year: 'numeric', month: 'short', day: 'numeric' });
@@ -38,7 +36,9 @@ function formatDate(iso: string, locale: string): string {
 
 function LangSwitcher({ current, basePath }: { current: string; basePath: string }) {
   const [open, setOpen] = useState(false);
-  const cur = LOCALES.find((l) => l.code === current) ?? LOCALES[0];
+  const langs = useDictionary().languages;
+  const curLabel = langs[current as keyof typeof langs] ?? langs.ja;
+  const curFlag = LOCALE_FLAGS[current] ?? '🇯🇵';
   return (
     <div className="relative">
       <button
@@ -46,19 +46,19 @@ function LangSwitcher({ current, basePath }: { current: string; basePath: string
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/40 text-xs font-semibold active:bg-white/10 transition-colors"
       >
         <Globe size={12} />
-        <span>{cur.flag} {cur.label}</span>
+        <span>{curFlag} {curLabel}</span>
       </button>
       {open && (
         <div className="absolute right-0 top-full mt-1 z-30 bg-neutral-800 border border-white/10 rounded-xl shadow-xl overflow-hidden min-w-[120px]">
-          {LOCALES.filter((l) => l.code !== current).map((l) => (
+          {LOCALE_CODES.filter((code) => code !== current).map((code) => (
             <a
-              key={l.code}
-              href={`/${l.code}${basePath}`}
+              key={code}
+              href={`/${code}${basePath}`}
               className="flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 transition-colors"
               onClick={() => setOpen(false)}
             >
-              <span>{l.flag}</span>
-              <span>{l.label}</span>
+              <span>{LOCALE_FLAGS[code]}</span>
+              <span>{langs[code]}</span>
             </a>
           ))}
         </div>
@@ -309,21 +309,31 @@ export default function HomePage() {
         </div>
 
         {/* アクションボタン行 */}
-        <div className="flex gap-2 mt-3 flex-wrap justify-center items-start">
-          <div className="flex flex-col items-center gap-1 max-w-[200px]">
-            <button
-              onClick={handleSync}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
-            >
-              <RefreshCw size={12} className={cn(syncing && 'animate-spin')} />
-              {syncing ? h.syncing : syncMsg ?? h.cloudSync}
-            </button>
-            {showCloudFetchHint && !syncing && !syncMsg && (
-              <p className="text-[10px] text-amber-400/45 text-center leading-snug px-1">
-                ⚠️ {h.cloudFetchStaleHint}
-              </p>
+        {showCloudFetchHint && !syncing && !syncMsg && (
+          <p className="text-[10px] text-amber-400/50 text-center mt-2 px-4 leading-snug">
+            {h.cloudFetchStaleHint}
+          </p>
+        )}
+        <div className="flex gap-2 mt-2 flex-wrap justify-center items-center">
+          <button
+            onClick={handleSync}
+            title={syncMsg ?? h.cloudSync}
+            aria-label={syncMsg ?? h.cloudSync}
+            className={cn(
+              'relative flex flex-col items-center justify-center gap-0.5 min-w-[52px] px-2.5 py-1.5 rounded-2xl border text-[10px] font-bold leading-none active:scale-95 transition-all',
+              showCloudFetchHint && !syncing && !syncMsg
+                ? 'bg-sky-950/40 border-sky-500/35 text-sky-300/90'
+                : 'bg-white/6 border-white/10 text-white/50 active:bg-white/10',
             )}
-          </div>
+          >
+            {showCloudFetchHint && !syncing && !syncMsg && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-2 ring-neutral-950" />
+            )}
+            <RefreshCw size={14} className={cn('shrink-0', syncing && 'animate-spin')} />
+            <span className="max-w-[52px] truncate">
+              {syncing ? h.syncing : syncMsg ? h.cloudSyncDoneShort : h.cloudSyncShort}
+            </span>
+          </button>
           <button
             onClick={() => setMyTeamsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"

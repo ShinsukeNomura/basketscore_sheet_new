@@ -34,7 +34,9 @@
   "home": {
     "subtitle": "Real-time basketball stats, one hand",
     "cloudSync": "Fetch Latest from Cloud",
-    "cloudFetchStaleHint": "Tap to fetch the latest data recorded on your phone",
+    "cloudSyncShort": "Fetch",
+    "cloudSyncDoneShort": "Done",
+    "cloudFetchStaleHint": "Sync from phone",
     "syncing": "Syncing...",
     "syncDone": "Synced ({count} games)",
     "syncFail": "Sync failed",
@@ -253,7 +255,183 @@
     "saveFail": "Failed to send to cloud",
     "nextGame": "Create Next Game",
     "goHome": "Go Home",
-    "resumeGame": "Resume Recording"
+    "resumeGame": "Resume Recording",
+    "saveErrorDetail": "Save error (details)",
+    "unknownError": "Unknown error",
+    "unexpectedError": "Unexpected error",
+    "aiErrorPrefix": "Error: {error}",
+    "mvp": "MVP"
+  },
+
+  "sync": {
+    "loading": "Loading...",
+    "notLoggedIn": "Not signed in. Please sign out and sign in again.",
+    "saveDone": "Saved",
+    "savePartial": "Partially saved ({synced}/{total}): {detail}",
+    "saveFail": "Failed to save to cloud",
+    "unexpected": "Unexpected error",
+    "unknown": "Unknown error"
+  },
+
+  "statsSheet": {
+    "title": "Stats Detail",
+    "noStats": "No stats recorded",
+    "teamTotal": "Team Total",
+    "totalAbbr": "TOT",
+    "shootMap": "Shot Map",
+    "legendPts": "Points",
+    "legend2pt": "2PT (made/att)",
+    "legend3pt": "3PT (made/att)",
+    "legendFt": "FT (made/att)",
+    "legendRbd": "Rebounds",
+    "legendAst": "Assists",
+    "legendStl": "Steals",
+    "legendBlk": "Blocks",
+    "legendFoul": "Fouls",
+    "legendTov": "Turnovers"
+  },
+
+  "court": {
+    "noShotData": "No shot data",
+    "selectArea": "Select area",
+    "made": "Made",
+    "miss": "Miss",
+    "legendPaint": "Paint / Rim",
+    "legendMid": "Mid-range",
+    "legend3pt": "3PT",
+    "legend60": "60%+",
+    "legend4060": "40-60%",
+    "legend2040": "20-40%",
+    "legend20": "<20%",
+    "zones": {
+      "restricted": "Under rim",
+      "paintLeft": "Paint left",
+      "paintRight": "Paint right",
+      "midLeftCorner": "Mid left corner",
+      "midLeftWing": "Mid left wing",
+      "midCenter": "Mid center",
+      "midRightWing": "Mid right wing",
+      "midRightCorner": "Mid right corner",
+      "threeLeftCorner": "3PT left corner",
+      "threeLeftWing": "3PT left wing",
+      "threeCenter": "3PT top",
+      "threeRightWing": "3PT right wing",
+      "threeRightCorner": "3PT right corner"
+    }
+  },
+
+  "teamSection": {
+    "roster": "Roster",
+    "substitute": "Sub",
+    "teamFouls": "Team F",
+    "penalty": "Bonus",
+    "noMembers": "No players registered",
+    "noMembersHint": "Add players via the Roster button"
+  },
+
+  "timeline": {
+    "empty": "No entries yet",
+    "team": "Team",
+    "oppTov": "Opp TOV",
+    "undo": "Undo"
+  },
+
+  "actions": {
+    "2PT_MADE": "2PT made",
+    "2PT_MISS": "2PT miss",
+    "3PT_MADE": "3PT made",
+    "3PT_MISS": "3PT miss",
+    "FT_MADE": "FT made",
+    "FT_MISS": "FT miss",
+    "ORBD": "ORbd",
+    "DRBD": "DRbd",
+    "AST": "Ast",
+    "STL": "Stl",
+    "BLK": "Blk",
+    "TOV": "Tov",
+    "FOUL": "Foul"
+  },
+
+  "statsPanel": {
+    "categorySuccess": "made",
+    "categoryMiss": "miss",
+    "legendOrbd": "Off reb",
+    "legendDrbd": "Def reb",
+    "legendAst": "Assist",
+    "legendStl": "Steal",
+    "legendBlk": "Block",
+    "legendFoul": "Foul",
+    "legendTov": "Turnover",
+    "pro": "PRO"
+  },
+
+  "substitution": {
+    "title": "Substitution",
+    "step1": "① Tap a player on court",
+    "step2": "② Tap a bench player to sub in",
+    "courtOut": "On court (OUT)",
+    "benchIn": "Bench (IN)",
+    "noBench": "No bench players",
+    "selectCourtFirst": "— Select an on-court player first"
+  },
+
+  "myTeamsSheet": {
+    "back": "Back",
+    "teamList": "Team list",
+    "title": "My Teams",
+    "selectTitle": "Select team",
+    "editTitle": "Edit team",
+    "newTitle": "Register new team",
+    "premiumTitle": "Premium",
+    "deleteConfirm": "Delete this team?",
+    "otherManual": "Other (manual entry)",
+    "noTeams": "No registered teams",
+    "addTeam": "Add team",
+    "select": "Select",
+    "noMembers": "No roster",
+    "memberCount": "{count} players",
+    "teamName": "Team name",
+    "teamNamePlaceholder": "e.g. Team A",
+    "membersLabel": "Roster (jersey #)",
+    "saveTeam": "Save",
+    "tapToRemove": "Tap to remove",
+    "backNumberShort": "Jersey #",
+    "multiTeamTitle": "Register multiple teams",
+    "multiTeamDesc": "Premium lets you register multiple teams with saved jersey numbers and colors for one-tap selection when creating games.",
+    "featureUnlimited": "Unlimited games",
+    "featureMultiTeam": "Multiple team management",
+    "featureAi": "AI stats analysis reports",
+    "featureCloud": "Cloud sync across devices",
+    "featurePdf": "PDF score sheet export"
+  },
+
+  "premiumSuccess": {
+    "activating": "Activating Premium...",
+    "verifying": "Verifying your payment.\nPlease wait a moment.",
+    "activated": "Premium Activated!",
+    "thanks": "Thank you!\nAll premium features are now unlocked.",
+    "redirecting": "Redirecting in 2 seconds...",
+    "delayed": "Taking a bit longer than expected",
+    "delayedHint": "Your payment was successful.\nPlease check the home screen in a few minutes.",
+    "createGame": "Create a game"
+  },
+
+  "jersey": {
+    "white": "White",
+    "black": "Black",
+    "navy": "Navy",
+    "red": "Red",
+    "yellow": "Yellow",
+    "green": "Green",
+    "purple": "Purple",
+    "orange": "Orange"
+  },
+
+  "languages": {
+    "ja": "日本語",
+    "en": "English",
+    "zh": "简体中文",
+    "zh-TW": "繁體中文"
   },
 
   "analysis": {
@@ -287,7 +465,8 @@
     "upgradePremium": "Upgrade to Premium",
     "backToTeam": "Back to Team",
     "playerDetail": "#{num} ({team}) / {games} games / {pts} pts",
-    "networkError": "Network error. Please try again."
+    "networkError": "Network error. Please try again.",
+    "shootMap": "Shot Map"
   },
 
   "premium": {
@@ -432,7 +611,13 @@
     "cloudUploadManual": "Tap \"Send to Cloud\" on the end screen to confirm the final save.",
     "cloudDownloadTitle": "View data on PC or another device",
     "cloudDownloadBody": "On the home screen, tap \"Fetch Latest from Cloud\" to download the latest games sent from your phone. Scores and heatmaps will update on this device.",
-    "cloudDirectionNote": "\"Send to Cloud\" uploads data. \"Fetch Latest from Cloud\" downloads data."
+    "cloudDirectionNote": "\"Send to Cloud\" uploads data. \"Fetch Latest from Cloud\" downloads data.",
+    "statBtn2pt": "Points (shot made)",
+    "statBtnMiss": "Missed shots (no points)",
+    "statBtnRbd": "Offensive / Defensive rebound",
+    "statBtnAst": "Assist / Steal / Block",
+    "statBtnFoul": "Foul",
+    "statBtnTov": "Turnover (top of stats panel)"
   },
 
   "privacy": {

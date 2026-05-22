@@ -34,7 +34,9 @@
   "home": {
     "subtitle": "單手即時記錄籃球比賽",
     "cloudSync": "從雲端取得最新資料",
-    "cloudFetchStaleHint": "若在手機端有更新，請點按按鈕取得最新資料",
+    "cloudSyncShort": "取得",
+    "cloudSyncDoneShort": "完成",
+    "cloudFetchStaleHint": "同步手機更新",
     "syncing": "同步中...",
     "syncDone": "同步完成（{count}場）",
     "syncFail": "同步失敗",
@@ -253,7 +255,183 @@
     "saveFail": "傳送至雲端失敗",
     "nextGame": "建立下一場比賽",
     "goHome": "返回首頁",
-    "resumeGame": "繼續記錄"
+    "resumeGame": "繼續記錄",
+    "saveErrorDetail": "儲存錯誤（詳情）",
+    "unknownError": "未知錯誤",
+    "unexpectedError": "意外錯誤",
+    "aiErrorPrefix": "錯誤: {error}",
+    "mvp": "MVP"
+  },
+
+  "sync": {
+    "loading": "載入中",
+    "notLoggedIn": "未登入。請登出後重新登入。",
+    "saveDone": "已儲存",
+    "savePartial": "部分儲存 ({synced}/{total}): {detail}",
+    "saveFail": "傳送至雲端失敗",
+    "unexpected": "意外錯誤",
+    "unknown": "未知錯誤"
+  },
+
+  "statsSheet": {
+    "title": "詳細數據",
+    "noStats": "尚無數據記錄",
+    "teamTotal": "球隊合計",
+    "totalAbbr": "計",
+    "shootMap": "投籃熱區圖",
+    "legendPts": "得分",
+    "legend2pt": "2分(中/投)",
+    "legend3pt": "3分(中/投)",
+    "legendFt": "罰球(中/投)",
+    "legendRbd": "籃板",
+    "legendAst": "助攻",
+    "legendStl": "抄截",
+    "legendBlk": "阻攻",
+    "legendFoul": "犯規",
+    "legendTov": "失誤"
+  },
+
+  "court": {
+    "noShotData": "尚無投籃資料",
+    "selectArea": "選擇區域",
+    "made": "命中",
+    "miss": "未中",
+    "legendPaint": "油漆區/籃下",
+    "legendMid": "中距離",
+    "legend3pt": "三分",
+    "legend60": "60%+",
+    "legend4060": "40-60%",
+    "legend2040": "20-40%",
+    "legend20": "<20%",
+    "zones": {
+      "restricted": "籃下",
+      "paintLeft": "油漆區左",
+      "paintRight": "油漆區右",
+      "midLeftCorner": "中距離左底角",
+      "midLeftWing": "中距離左翼",
+      "midCenter": "中距離中央",
+      "midRightWing": "中距離右翼",
+      "midRightCorner": "中距離右底角",
+      "threeLeftCorner": "三分左底角",
+      "threeLeftWing": "三分左翼",
+      "threeCenter": "三分頂弧",
+      "threeRightWing": "三分右翼",
+      "threeRightCorner": "三分右底角"
+    }
+  },
+
+  "teamSection": {
+    "roster": "隊員",
+    "substitute": "換人",
+    "teamFouls": "球隊犯規",
+    "penalty": "加罰",
+    "noMembers": "尚未登錄隊員",
+    "noMembersHint": "請透過「隊員」按鈕新增"
+  },
+
+  "timeline": {
+    "empty": "尚無記錄",
+    "team": "球隊",
+    "oppTov": "對方失誤",
+    "undo": "復原"
+  },
+
+  "actions": {
+    "2PT_MADE": "2分命中",
+    "2PT_MISS": "2分未中",
+    "3PT_MADE": "3分命中",
+    "3PT_MISS": "3分未中",
+    "FT_MADE": "罰球命中",
+    "FT_MISS": "罰球未中",
+    "ORBD": "進攻籃板",
+    "DRBD": "防守籃板",
+    "AST": "助攻",
+    "STL": "抄截",
+    "BLK": "阻攻",
+    "TOV": "失誤",
+    "FOUL": "犯規"
+  },
+
+  "statsPanel": {
+    "categorySuccess": "命中",
+    "categoryMiss": "未中",
+    "legendOrbd": "進攻籃板",
+    "legendDrbd": "防守籃板",
+    "legendAst": "助攻",
+    "legendStl": "抄截",
+    "legendBlk": "阻攻",
+    "legendFoul": "犯規",
+    "legendTov": "失誤",
+    "pro": "PRO"
+  },
+
+  "substitution": {
+    "title": "換人",
+    "step1": "① 點擊場上球員",
+    "step2": "② 點擊替補完成換人",
+    "courtOut": "場上（換下）",
+    "benchIn": "替補（換上）",
+    "noBench": "替補席無球員",
+    "selectCourtFirst": "— 請先選擇場上球員"
+  },
+
+  "myTeamsSheet": {
+    "back": "返回",
+    "teamList": "球隊列表",
+    "title": "我的球隊",
+    "selectTitle": "選擇球隊",
+    "editTitle": "編輯球隊",
+    "newTitle": "登錄新球隊",
+    "premiumTitle": "進階版",
+    "deleteConfirm": "確定刪除此球隊嗎？",
+    "otherManual": "其他（手動輸入）",
+    "noTeams": "尚無登錄球隊",
+    "addTeam": "新增球隊",
+    "select": "選擇",
+    "noMembers": "未登錄隊員",
+    "memberCount": "{count}人",
+    "teamName": "球隊名稱",
+    "teamNamePlaceholder": "例: A隊",
+    "membersLabel": "隊員（背號）",
+    "saveTeam": "儲存",
+    "tapToRemove": "點擊刪除",
+    "backNumberShort": "背號",
+    "multiTeamTitle": "登錄多支球隊",
+    "multiTeamDesc": "進階版可登錄多支球隊，儲存背號與球衣顏色，建立比賽時一鍵選擇。",
+    "featureUnlimited": "無限比賽記錄",
+    "featureMultiTeam": "多球隊管理",
+    "featureAi": "AI統計分析報告",
+    "featureCloud": "雲端同步・多裝置",
+    "featurePdf": "PDF得分表匯出"
+  },
+
+  "premiumSuccess": {
+    "activating": "正在啟用進階版...",
+    "verifying": "正在驗證付款。\n請稍候。",
+    "activated": "進階版啟用成功！",
+    "thanks": "感謝您的支持。\n所有進階功能現已解鎖。",
+    "redirecting": "2秒後跳轉至建立比賽頁面...",
+    "delayed": "啟用時間較長",
+    "delayedHint": "付款已完成。\n請幾分鐘後在首頁確認。",
+    "createGame": "建立比賽"
+  },
+
+  "jersey": {
+    "white": "白",
+    "black": "黑",
+    "navy": "藏青",
+    "red": "紅",
+    "yellow": "黃",
+    "green": "綠",
+    "purple": "紫",
+    "orange": "橙"
+  },
+
+  "languages": {
+    "ja": "日本語",
+    "en": "English",
+    "zh": "简体中文",
+    "zh-TW": "繁體中文"
   },
 
   "analysis": {
@@ -287,7 +465,8 @@
     "upgradePremium": "升級至進階版",
     "backToTeam": "返回球隊分析",
     "playerDetail": "#{num}（{team}）/ {games}場 / 合計{pts}分",
-    "networkError": "網路錯誤，請重試。"
+    "networkError": "網路錯誤，請重試。",
+    "shootMap": "投籃熱區圖"
   },
 
   "premium": {
@@ -432,7 +611,13 @@
     "cloudUploadManual": "在結束畫面點擊「傳送至雲端」按鈕，可完成手動最終確認儲存。",
     "cloudDownloadTitle": "在其他裝置或電腦上查看（電腦・其他裝置）",
     "cloudDownloadBody": "要從手機取得最新比賽資料，請在首頁點擊「從雲端取得最新資料」。雲端最新列表將下載至本裝置，得分與熱區圖會更新。",
-    "cloudDirectionNote": "「傳送至雲端」是上傳，「從雲端取得最新資料」則是下載。"
+    "cloudDirectionNote": "「傳送至雲端」是上傳，「從雲端取得最新資料」則是下載。",
+    "statBtn2pt": "得分（投籃命中）",
+    "statBtnMiss": "未中（不得分）",
+    "statBtnRbd": "進攻/防守籃板",
+    "statBtnAst": "助攻/抄截/阻攻",
+    "statBtnFoul": "犯規",
+    "statBtnTov": "失誤（面板頂部）"
   },
 
   "privacy": {
