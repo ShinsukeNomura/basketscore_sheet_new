@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ColorPicker } from '@/components/ColorPicker';
 import { JerseyColorId, DEFAULT_WHITE_COLOR } from '@/lib/colors';
@@ -285,8 +285,13 @@ function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange:
   const mt = dict.myTeamsSheet;
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  function add() {
+  const keepFocus = useCallback(() => {
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  const add = useCallback(() => {
     const num = input.trim();
     if (!num) return;
     if (!/^\d{1,2}$/.test(num)) { setError(g.errorInvalidNumber); return; }
@@ -294,23 +299,36 @@ function PlayerNumberInput({ numbers, onChange }: { numbers: string[]; onChange:
     onChange([...numbers, num]);
     setInput('');
     setError('');
-  }
+    keepFocus();
+  }, [input, numbers, onChange, g, keepFocus]);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <input
-          type="number"
+          ref={inputRef}
+          type="tel"
           inputMode="numeric"
+          pattern="[0-9]*"
           value={input}
-          onChange={(e) => { setInput(e.target.value); setError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
+          onChange={(e) => { setInput(e.target.value.replace(/\D/g, '')); setError(''); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              add();
+            }
+          }}
           placeholder={mt.backNumberShort}
           maxLength={2}
           className="flex-1 bg-white/8 text-white font-semibold rounded-xl px-4 py-3 text-base placeholder:text-white/20 outline-none focus:ring-2 focus:ring-blue-500/60"
         />
         <button
-          onClick={add}
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            add();
+          }}
           className="px-4 py-3 rounded-xl bg-blue-600 active:bg-blue-700 text-white font-bold text-sm"
         >
           {c.add}
