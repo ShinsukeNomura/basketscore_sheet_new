@@ -12,11 +12,12 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Plus, Trash2, Users, ChevronLeft, Download } from 'lucide-react';
-import { fetchUserTeams, UserTeam } from '@/lib/myTeams';
+import { pullUserTeamsFromCloud, UserTeam } from '@/lib/myTeams';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface RosterSheetProps {
   open:           boolean;
+  userId?:        string;
   team:           Team | null;
   allPlayers:     Player[];
   playerFouls:    Record<string, number>;
@@ -29,6 +30,7 @@ interface RosterSheetProps {
 
 export function RosterSheet({
   open,
+  userId,
   team,
   allPlayers,
   playerFouls,
@@ -47,8 +49,12 @@ export function RosterSheet({
   const [myTeams,     setMyTeams]     = useState<UserTeam[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function openImport() {
-    setMyTeams(fetchUserTeams(''));
+  async function openImport() {
+    if (userId) {
+      setMyTeams(await pullUserTeamsFromCloud(userId));
+    } else {
+      setMyTeams([]);
+    }
     setImportOpen(true);
   }
 

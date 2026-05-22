@@ -8,6 +8,7 @@ import {
   GameSummary, FREE_GAME_LIMIT,
 } from '@/lib/storage';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
+import { pullUserTeamsFromCloud } from '@/lib/myTeams';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -185,7 +186,10 @@ export default function HomePage() {
       return;
     }
     // getGamesIndex() はすでにユーザー固有キーを参照するため追加フィルタ不要
-    const cloud = await fetchGamesFromCloud(user.id);
+    const [cloud] = await Promise.all([
+      fetchGamesFromCloud(user.id),
+      pullUserTeamsFromCloud(user.id),
+    ]);
     if (cloud !== null && cloud.length > 0) {
       setGames(mergeCloudGamesIntoIndex(cloud));
     } else {
@@ -204,7 +208,10 @@ export default function HomePage() {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
-    const cloud = await fetchGamesFromCloud(user.id);
+    const [cloud] = await Promise.all([
+      fetchGamesFromCloud(user.id),
+      pullUserTeamsFromCloud(user.id),
+    ]);
     if (cloud !== null) {
       const merged = cloud.length > 0 ? mergeCloudGamesIntoIndex(cloud) : getGamesIndex();
       setGames(merged);

@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { setStorageUser } from '@/lib/storage';
 import { setAiStorageUser } from '@/lib/aiReportCache';
+import { setMyTeamsUser, pullUserTeamsFromCloud } from '@/lib/myTeams';
 
 export type UserPlan = 'free' | 'premium';
 
@@ -53,7 +54,11 @@ export function useAuth(): AuthState & {
         setUser(session?.user ?? null);
         setStorageUser(session?.user?.id ?? null);
         setAiStorageUser(session?.user?.id ?? null);
-        if (session?.user) fetchPlan(session.user.id, session.user.email);
+        setMyTeamsUser(session?.user?.id ?? null);
+        if (session?.user) {
+          fetchPlan(session.user.id, session.user.email);
+          void pullUserTeamsFromCloud(session.user.id);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -63,8 +68,11 @@ export function useAuth(): AuthState & {
       setUser(session?.user ?? null);
       setStorageUser(session?.user?.id ?? null);
       setAiStorageUser(session?.user?.id ?? null);
-      if (session?.user) fetchPlan(session.user.id, session.user.email);
-      else setPlan('free');
+      setMyTeamsUser(session?.user?.id ?? null);
+      if (session?.user) {
+        fetchPlan(session.user.id, session.user.email);
+        void pullUserTeamsFromCloud(session.user.id);
+      } else setPlan('free');
     });
 
     return () => subscription.unsubscribe();
@@ -91,6 +99,7 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut();
     setStorageUser(null);
     setAiStorageUser(null);
+    setMyTeamsUser(null);
   }, []);
 
   const resetPassword = useCallback(async (email: string): Promise<{ error: string | null }> => {

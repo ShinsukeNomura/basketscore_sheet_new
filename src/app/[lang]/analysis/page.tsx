@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchUserTeams, saveUserTeam, UserTeam } from '@/lib/myTeams';
+import { pullUserTeamsFromCloud, saveUserTeam, UserTeam } from '@/lib/myTeams';
 import {
   buildTeamAnalysis, getAllTeamNamesFromHistory,
   getPlayerShotLogs,
@@ -421,9 +421,9 @@ export default function AnalysisPage() {
 
   useEffect(() => { if (!loading && !user) window.location.href = `/${locale}/login`; }, [user, loading, locale]);
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     if (!user) return;
-    const rt   = fetchUserTeams(user.id);
+    const rt   = await pullUserTeamsFromCloud(user.id);
     const hist = getAllTeamNamesFromHistory();
     setRegisteredTeams(rt);
     setHistoryTeamNames(hist);
@@ -434,7 +434,7 @@ export default function AnalysisPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { void loadData(); }, [loadData]);
 
   const allTeamNames = useMemo(() => {
     const regNames = new Set(registeredTeams.map(t=>t.team_name));

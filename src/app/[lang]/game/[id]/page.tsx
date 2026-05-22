@@ -41,7 +41,7 @@ export default function GamePage() {
 
   useEffect(() => () => { void saveToCloud(); }, [saveToCloud]);
 
-  const { isPremium } = useAuth();
+  const { user, isPremium } = useAuth();
 
   const [subTeam,        setSubTeam]        = useState<Team | null>(null);
   const [subOpen,        setSubOpen]        = useState(false);
@@ -242,6 +242,7 @@ export default function GamePage() {
       />
       <RosterSheet
         open={rosterOpen}
+        userId={user?.id}
         team={rosterTeam}
         allPlayers={allPlayers}
         playerFouls={playerFouls}

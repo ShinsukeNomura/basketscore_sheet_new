@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ColorPicker } from '@/components/ColorPicker';
 import { JerseyColorId, DEFAULT_WHITE_COLOR } from '@/lib/colors';
-import { UserTeam, fetchUserTeams, saveUserTeam, deleteUserTeam } from '@/lib/myTeams';
+import { UserTeam, fetchUserTeams, saveUserTeam, deleteUserTeam, pullUserTeamsFromCloud } from '@/lib/myTeams';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, ChevronLeft, Pencil, Check, Users, Crown } from 'lucide-react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
@@ -28,11 +28,16 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
   const [editing, setEditing] = useState<UserTeam | null>(null);
   const [mode,    setMode]    = useState<'list' | 'edit' | 'premium'>('list');
 
-  const load = useCallback(() => {
-    setTeams(fetchUserTeams(userId));
+  const load = useCallback(async () => {
+    if (userId) {
+      const merged = await pullUserTeamsFromCloud(userId);
+      setTeams(merged);
+    } else {
+      setTeams(fetchUserTeams(''));
+    }
   }, [userId]);
 
-  useEffect(() => { if (open) { load(); setMode('list'); } }, [open, load]);
+  useEffect(() => { if (open) { void load(); setMode('list'); } }, [open, load]);
 
   function handleNew() {
     if (!isPremium && teams.length >= 1) {
@@ -52,15 +57,15 @@ export function MyTeamsSheet({ open, userId, userEmail, isPremium = false, onClo
     if (!editing || !editing.team_name.trim()) return;
     const result = saveUserTeam(userId, editing, editing.id || undefined);
     if (result) {
-      load();
+      void load();
       setMode('list');
     }
   }
 
   function handleDelete(id: string) {
     if (!confirm(mt.deleteConfirm)) return;
-    deleteUserTeam(id);
-    load();
+    deleteUserTeam(id, userId);
+    void load();
   }
 
   async function handleUpgrade() {
