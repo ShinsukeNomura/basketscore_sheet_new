@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Game, Period, Team } from '@/types';
 import { cn } from '@/lib/utils';
-import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList } from 'lucide-react';
+import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList, Settings2 } from 'lucide-react';
 import { periodLabel, isOT } from '@/lib/period';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -22,13 +22,14 @@ interface GameHeaderProps {
   onGoHome:       () => void;
   onShowStats:    () => void;
   onShowRunning:  () => void;
+  onEditSetup?:   () => void;
 }
 
 const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
 
 export function GameHeader({
   game, ourTeam, theirTeam, ourScore, theirScore,
-  onChangePeriod, onEndGame, onRenameGame, onGoHome, onShowStats, onShowRunning,
+  onChangePeriod, onEndGame, onRenameGame, onGoHome, onShowStats, onShowRunning, onEditSetup,
 }: GameHeaderProps) {
   const dict = useDictionary();
   const g = dict.game;
@@ -98,6 +99,16 @@ export function GameHeader({
             </button>
           )}
         </div>
+
+        {onEditSetup && (
+          <button
+            onPointerDown={onEditSetup}
+            className="p-1.5 rounded-lg text-white/35 active:text-sky-300 active:bg-white/10 transition-colors shrink-0"
+            aria-label={g.editGameTitle}
+          >
+            <Settings2 size={16} />
+          </button>
+        )}
 
         {/* ランニングスコアボタン */}
         <button

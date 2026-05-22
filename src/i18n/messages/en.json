@@ -89,6 +89,9 @@
 
   "game": {
     "createTitle": "Create New Game",
+    "editGameTitle": "Game Setup",
+    "backToRecording": "Back to Recording",
+    "saveAndResume": "Save & Resume",
     "gameType": "Game Type",
     "date": "Date",
     "scorekeeper": "Scorekeeper",

@@ -476,6 +476,11 @@ export function useGameState(gameId: string) {
     return flushSave(state);
   }, [state, flushSave]);
 
+  const reloadFromStorage = useCallback(() => {
+    const local = loadPersistedGame(gameId);
+    if (local) dispatch({ type: 'LOAD_PERSISTED', payload: local });
+  }, [gameId]);
+
   return {
     game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
     allPlayers: state.allPlayers, selectedStat: state.selectedStat,
@@ -486,6 +491,6 @@ export function useGameState(gameId: string) {
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
-    logTeamTov, remapTovReasons, saveGame,
+    logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
   };
 }

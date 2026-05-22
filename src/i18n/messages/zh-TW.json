@@ -89,6 +89,9 @@
 
   "game": {
     "createTitle": "建立新比賽",
+    "editGameTitle": "比賽設定",
+    "backToRecording": "返回記錄",
+    "saveAndResume": "儲存並返回",
     "gameType": "比賽類型",
     "date": "日期",
     "scorekeeper": "記分員",

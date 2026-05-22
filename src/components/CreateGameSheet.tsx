@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createNewGame, isFreeLimitReached, FREE_GAME_LIMIT } from '@/lib/storage';
+import { createNewGame, updateGameSetup, loadPersistedGame, isFreeLimitReached, FREE_GAME_LIMIT } from '@/lib/storage';
 import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -221,11 +221,14 @@ function todayString(): string {
 }
 
 interface Props {
-  open:    boolean;
-  onClose: () => void;
+  open:     boolean;
+  onClose:  () => void;
+  /** 指定時は既存試合の設定編集（記録画面から戻る） */
+  gameId?:  string;
+  onSaved?: () => void;
 }
 
-export function CreateGameSheet({ open, onClose }: Props) {
+export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
   const router = useRouter();
   const { isPremium, user } = useAuth();
   const dict   = useDictionary();
@@ -233,6 +236,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const g = dict.game;
 
   const GAME_TYPES = [g.typePractice, g.typeOfficial, g.typeCup, g.typeOther];
+  const isEdit = !!gameId;
 
   const [limitReached,  setLimitReached]  = useState(false);
   const [gameType,      setGameType]      = useState(() => g.typePractice);
@@ -249,14 +253,38 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
 
   useEffect(() => {
-    if (open) setLimitReached(!isPremium && isFreeLimitReached());
-  }, [open, isPremium]);
+    if (open && !isEdit) setLimitReached(!isPremium && isFreeLimitReached());
+  }, [open, isPremium, isEdit]);
 
-  // ロケール切替時に gameType を同期
+  // 編集モード: 既存試合データをフォームに読み込む
   useEffect(() => {
-    setGameType(g.typePractice);
+    if (!open || !gameId) return;
+    const p = loadPersistedGame(gameId);
+    if (!p) return;
+    const type =
+      GAME_TYPES.find((t) => t === p.game.game_name) ?? p.game.game_name;
+    setGameType(type);
+    setDate(p.game.date);
+    setScorekeeper(p.game.scorekeeper ?? '');
+    setWhiteName(p.ourTeam.team_name);
+    setWhiteColor((p.ourTeam.color || DEFAULT_WHITE_COLOR) as JerseyColorId);
+    setDarkName(p.theirTeam.team_name);
+    setDarkColor((p.theirTeam.color || DEFAULT_DARK_COLOR) as JerseyColorId);
+    setWhitePlayers(
+      p.allPlayers.filter((pl) => pl.team_id === p.ourTeam.id).map((pl) => pl.back_number),
+    );
+    setDarkPlayers(
+      p.allPlayers.filter((pl) => pl.team_id === p.theirTeam.id).map((pl) => pl.back_number),
+    );
+    setErrors({});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale]);
+  }, [open, gameId]);
+
+  // ロケール切替時に gameType を同期（新規作成時のみ）
+  useEffect(() => {
+    if (!isEdit) setGameType(g.typePractice);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale, isEdit]);
 
   const validate = useCallback((): boolean => {
     const e: typeof errors = {};
@@ -292,9 +320,18 @@ export function CreateGameSheet({ open, onClose }: Props) {
     setMyTeamsOpen(false);
   }
 
+  const resetForm = useCallback(() => {
+    setGameType(g.typePractice);
+    setDate(todayString());
+    setScorekeeper('');
+    setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
+    setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
+    setErrors({});
+  }, [g.typePractice]);
+
   const handleCreate = useCallback(() => {
     if (!validate()) return;
-    const id = createNewGame({
+    const params = {
       gameType,
       date:           date || todayString(),
       scorekeeper:    scorekeeper.trim() || undefined,
@@ -305,16 +342,24 @@ export function CreateGameSheet({ open, onClose }: Props) {
       whitePlayers,
       bluePlayers:    darkPlayers,
       userId:         user?.id,
-    });
-    setGameType(g.typePractice);
-    setDate(todayString());
-    setScorekeeper('');
-    setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
-    setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
-    setErrors({});
+    };
+
+    if (isEdit && gameId) {
+      if (!updateGameSetup(gameId, params)) return;
+      onSaved?.();
+      onClose();
+      return;
+    }
+
+    const id = createNewGame(params);
+    resetForm();
     onClose();
     router.push(`/${locale}/game/${id}`);
-  }, [gameType, date, scorekeeper, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router, locale, g, user?.id]);
+  }, [
+    gameType, date, scorekeeper, whiteName, whiteColor, whitePlayers,
+    darkName, darkColor, darkPlayers, validate, onClose, router, locale,
+    isEdit, gameId, onSaved, user?.id, resetForm,
+  ]);
 
   function handleClose() { setErrors({}); onClose(); }
 
@@ -338,7 +383,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
           showCloseButton={false}
           className="bg-neutral-950 border-t border-white/10 rounded-t-2xl overflow-y-auto max-h-[92dvh]"
         >
-          {limitReached ? (
+          {limitReached && !isEdit ? (
             <>
               <SheetHeader className="mb-5 flex-row items-center gap-2">
                 <button onClick={handleClose} className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 shrink-0 -ml-1">
@@ -354,9 +399,11 @@ export function CreateGameSheet({ open, onClose }: Props) {
               <SheetHeader className="mb-5 flex-row items-center gap-2">
                 <button onClick={handleClose} className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 shrink-0 -ml-1">
                   <ChevronLeft size={20} />
-                  <span className="text-xs font-medium">{g.closeSheet}</span>
+                  <span className="text-xs font-medium">{isEdit ? g.backToRecording : g.closeSheet}</span>
                 </button>
-                <SheetTitle className="text-white text-base flex-1">{g.createTitle}</SheetTitle>
+                <SheetTitle className="text-white text-base flex-1">
+                  {isEdit ? g.editGameTitle : g.createTitle}
+                </SheetTitle>
               </SheetHeader>
 
               <div className="flex flex-col gap-5 pb-4">
@@ -432,7 +479,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     placeholder={g.whiteTeamPlaceholder}
                     onChange={(v) => { setWhiteName(v); setErrors((p) => ({ ...p, white: '' })); }}
                     error={errors.white}
-                    autoFocus
+                    autoFocus={!isEdit}
                   />
                   <div className="flex flex-col gap-2">
                     <label className="text-white/35 text-xs font-semibold tracking-wider uppercase px-0.5">
@@ -483,7 +530,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
                   onClick={handleCreate}
                   className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors"
                 >
-                  {g.startGame}
+                  {isEdit ? g.saveAndResume : g.startGame}
                   <ChevronRight size={18} />
                 </button>
 

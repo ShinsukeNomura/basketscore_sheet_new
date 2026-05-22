@@ -89,6 +89,9 @@
 
   "game": {
     "createTitle": "新しい試合を作成",
+    "editGameTitle": "試合設定",
+    "backToRecording": "記録に戻る",
+    "saveAndResume": "保存して記録に戻る",
     "gameType": "試合の種類",
     "date": "日付",
     "scorekeeper": "スコア記載者",

@@ -33,7 +33,7 @@ export default function GamePage() {
     selectStat, logStat, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer, removePlayer, toggleCourt,
-    renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons,
+    renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons, reloadFromStorage,
   } = useGameState(gameId);
 
   const { isPremium } = useAuth();
@@ -118,6 +118,7 @@ export default function GamePage() {
         onEndGame={endGame}
         onRenameGame={renameGame}
         onGoHome={() => router.push(`/${lang}`)}
+        onEditSetup={() => setCreateOpen(true)}
         onShowStats={() => setStatsOpen(true)}
         onShowRunning={() => router.push(`/${lang}/game/${gameId}/running`)}
       />
@@ -246,11 +247,20 @@ export default function GamePage() {
       />
       <CreateGameSheet
         open={createOpen}
+        gameId={gameId}
         onClose={() => setCreateOpen(false)}
+        onSaved={() => {
+          setCreateOpen(false);
+          reloadFromStorage();
+        }}
       />
       <StatsSheet
         open={statsOpen}
         onClose={() => setStatsOpen(false)}
+        onEditSetup={() => {
+          setStatsOpen(false);
+          setCreateOpen(true);
+        }}
         ourTeam={ourTeam}
         theirTeam={theirTeam}
         allPlayers={allPlayers}

@@ -243,21 +243,23 @@ function TeamTable({
 
 // ────────── メインコンポーネント ──────────
 interface StatsSheetProps {
-  open:       boolean;
-  onClose:    () => void;
-  ourTeam:    Team;
-  theirTeam:  Team;
-  allPlayers: Player[];
-  logs:       StatsLog[];   // アクティブログ（is_deleted=false）
-  ourTov:     number;
-  theirTov:   number;
+  open:         boolean;
+  onClose:      () => void;
+  onEditSetup?: () => void;
+  ourTeam:      Team;
+  theirTeam:    Team;
+  allPlayers:   Player[];
+  logs:         StatsLog[];   // アクティブログ（is_deleted=false）
+  ourTov:       number;
+  theirTov:     number;
 }
 
 export function StatsSheet({
-  open, onClose, ourTeam, theirTeam, allPlayers, logs, ourTov, theirTov,
+  open, onClose, onEditSetup, ourTeam, theirTeam, allPlayers, logs, ourTov, theirTov,
 }: StatsSheetProps) {
   const dict = useDictionary();
   const ss = dict.statsSheet;
+  const g = dict.game;
   const c = dict.common;
   const ourRows   = useMemo(() => computeRows(logs, allPlayers, ourTeam.id),   [logs, allPlayers, ourTeam.id]);
   const theirRows = useMemo(() => computeRows(logs, allPlayers, theirTeam.id), [logs, allPlayers, theirTeam.id]);
@@ -279,6 +281,14 @@ export function StatsSheet({
           </button>
           <BarChart2 size={15} className="text-white/40" />
           <SheetTitle className="text-white text-sm flex-1">{ss.title}</SheetTitle>
+          {onEditSetup && (
+            <button
+              onClick={onEditSetup}
+              className="text-sky-400 text-[11px] font-semibold shrink-0 active:text-sky-200"
+            >
+              {g.editGameTitle}
+            </button>
+          )}
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto sheet-scroll">

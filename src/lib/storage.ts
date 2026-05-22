@@ -243,3 +243,67 @@ export function createNewGame(params: CreateGameParams): string {
   savePersistedGame(persisted, 0, 0, params.userId);
   return id;
 }
+
+/** 記録画面から試合設定シートで編集した内容を反映 */
+export function updateGameSetup(gameId: string, params: CreateGameParams): boolean {
+  const persisted = loadPersistedGame(gameId);
+  if (!persisted) return false;
+
+  const now = new Date().toISOString();
+  const sk = params.scorekeeper?.trim();
+  const game: Game = {
+    ...persisted.game,
+    game_name: params.gameType,
+    date:      params.date || persisted.game.date,
+  };
+  if (sk) game.scorekeeper = sk;
+  else delete game.scorekeeper;
+
+  const ourTeam: Team = {
+    ...persisted.ourTeam,
+    team_name: params.whiteTeamName,
+    color:     params.whiteTeamColor || 'white',
+  };
+  const theirTeam: Team = {
+    ...persisted.theirTeam,
+    team_name: params.blueTeamName,
+    color:     params.blueTeamColor || 'navy',
+  };
+
+  const hasLogs = persisted.logs.some((l) => !l.is_deleted);
+  let allPlayers = persisted.allPlayers;
+
+  if (!hasLogs && (params.whitePlayers?.length || params.bluePlayers?.length)) {
+    allPlayers = [];
+    const addPlayers = (teamId: string, numbers: string[]) => {
+      numbers.forEach((num, i) => {
+        allPlayers.push({
+          id:          makeId(),
+          team_id:     teamId,
+          back_number: num,
+          name:        '',
+          is_on_court: i < 5,
+          created_at:  now,
+        });
+      });
+    };
+    if (params.whitePlayers?.length) addPlayers(ourTeam.id, params.whitePlayers);
+    if (params.bluePlayers?.length)  addPlayers(theirTeam.id, params.bluePlayers);
+  }
+
+  const active = persisted.logs.filter((l) => !l.is_deleted);
+  const ourScore = active
+    .filter((l) => l.team_id === ourTeam.id)
+    .reduce((s, l) => s + l.points, 0);
+  const theirScore = active
+    .filter((l) => l.team_id === theirTeam.id)
+    .reduce((s, l) => s + l.points, 0);
+
+  savePersistedGame(
+    { game, ourTeam, theirTeam, allPlayers, logs: persisted.logs },
+    ourScore,
+    theirScore,
+    params.userId,
+  );
+  return true;
+}
