@@ -26,7 +26,7 @@ interface EndGameOverlayProps {
   onShowStats:    () => void;
   onShowRunning:  () => void;
   onResume:       () => void;
-  onSave:         () => Promise<boolean>;
+  onSave:         () => Promise<{ ok: boolean; error?: string }>;
 }
 
 // ================================================================
@@ -172,12 +172,12 @@ export function EndGameOverlay({
     if (saving) return;
     setSaving(true);
     setSaveMsg(null);
-    const ok = await onSave();
-    setSaveMsg(ok
+    const result = await onSave();
+    setSaveMsg(result.ok
       ? (user ? eg.saveDone : eg.saveLocalOnly)
-      : eg.saveFail);
+      : (result.error ? `${eg.saveFail}: ${result.error}` : eg.saveFail));
     setSaving(false);
-    if (ok) setTimeout(() => setSaveMsg(null), 3000);
+    if (result.ok) setTimeout(() => setSaveMsg(null), 3000);
   };
   const diff = ourScore - theirScore;
   const winnerTeam: Team | null =

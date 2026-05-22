@@ -295,11 +295,21 @@ export function useGameState(gameId: string) {
     return { gameState, ourScore, theirScore };
   }, []);
 
-  const flushSave = useCallback(async (s: InternalState): Promise<boolean> => {
-    if (!s.isLoaded) return false;
-    const { gameState } = persistState(s, userId);
-    if (userId) return syncToCloud(gameState, userId);
-    return true;
+  const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
+    if (!s.isLoaded) return { ok: false, error: '読み込み中' };
+    let { gameState } = persistState(s, userId);
+    if (!userId) return { ok: true };
+
+    const sync = await syncToCloud(gameState, userId);
+    if (sync.state && sync.state.game.id !== gameState.game.id) {
+      gameState = sync.state;
+      const active = gameState.logs.filter((l) => !l.is_deleted);
+      const ourScore   = active.filter((l) => l.team_id === gameState.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
+      const theirScore = active.filter((l) => l.team_id === gameState.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
+      savePersistedGame(gameState, ourScore, theirScore, userId);
+      dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
+    }
+    return sync.ok ? { ok: true } : { ok: false, error: sync.error };
   }, [persistState, userId]);
 
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
@@ -440,7 +450,7 @@ export function useGameState(gameId: string) {
     dispatch({ type: 'REMAP_TOV_REASONS', payload: { newMode } });
   }, []);
 
-  const saveGame = useCallback(async (): Promise<boolean> => {
+  const saveGame = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     return flushSave(state);
   }, [state, flushSave]);

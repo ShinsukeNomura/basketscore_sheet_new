@@ -2,6 +2,13 @@ import { supabase } from './supabase';
 import { syncGameCore } from './syncGameCore';
 import { PersistedGameState, GameSummary } from '@/types';
 
+export interface SyncCloudResult {
+  ok: boolean;
+  error?: string;
+  /** ID 再発行後の状態（localStorage 更新用） */
+  state?: PersistedGameState;
+}
+
 // ================================================================
 // クラウドへの同期（API経由 → 失敗時は直接 upsert）
 // ================================================================
@@ -9,8 +16,13 @@ import { PersistedGameState, GameSummary } from '@/types';
 export async function syncToCloud(
   state: PersistedGameState,
   userId: string,
-): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
+): Promise<SyncCloudResult> {
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    const refreshed = await supabase.auth.refreshSession();
+    session = refreshed.data.session;
+  }
+
   if (session?.access_token) {
     try {
       const res = await fetch('/api/games/sync', {
@@ -21,17 +33,35 @@ export async function syncToCloud(
         },
         body: JSON.stringify({ state }),
       });
-      const data = await res.json() as { ok?: boolean; errors?: string[]; error?: string };
-      if (res.ok && data.ok) return true;
-      console.error('[sync] API failed:', data.errors ?? data.error);
+      const data = await res.json() as {
+        ok?: boolean;
+        errors?: string[];
+        error?: string;
+        state?: PersistedGameState;
+      };
+      if (res.ok && data.ok) {
+        return { ok: true, state: data.state ?? state };
+      }
+      const apiErr = data.errors?.join(' / ') ?? data.error ?? `HTTP ${res.status}`;
+      console.error('[sync] API failed:', apiErr);
+
+      if (res.status === 500 && data.errors?.length) {
+        return { ok: false, error: data.errors[0] };
+      }
+      if (res.status === 500 && data.error?.includes('SERVICE_ROLE')) {
+        return { ok: false, error: 'サーバー設定（SERVICE_ROLE_KEY）を確認してください' };
+      }
     } catch (e) {
       console.error('[sync] API network error:', e);
     }
   }
 
   const result = await syncGameCore(supabase, state, userId);
-  if (!result.ok) console.error('[sync] direct failed:', result.errors);
-  return result.ok;
+  if (!result.ok) {
+    console.error('[sync] direct failed:', result.errors);
+    return { ok: false, error: result.errors[0] ?? '同期に失敗しました', state: result.state };
+  }
+  return { ok: true, state: result.state ?? state };
 }
 
 function scoreFromLogs(
