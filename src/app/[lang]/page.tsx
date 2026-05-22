@@ -14,8 +14,9 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import {
   ChevronRight, ChevronDown, Plus, Trash2, Clock, Crown,
-  LogOut, RefreshCw, BookOpen, Users, BarChart2, Tag, ChevronUp, Globe,
+  LogOut, RefreshCw, BookOpen, Users, BarChart2, Tag, ChevronUp, Globe, MessageCircle,
 } from 'lucide-react';
+import { getContactFormUrl } from '@/lib/contact';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 import { GameLabelSheet } from '@/components/GameLabelSheet';
 import { setGameLabels } from '@/lib/storage';
@@ -142,6 +143,7 @@ export default function HomePage() {
   const { user, isPremium, signOut, loading } = useAuth();
   const dict = useDictionary();
   const h = dict.home;
+  const contactFormUrl = getContactFormUrl();
   const locale = useLocale();
 
   const [games,       setGames]       = useState<GameSummary[]>([]);
@@ -358,6 +360,16 @@ export default function HomePage() {
             <BarChart2 size={12} />{h.analysis}
             {isPremium && <Crown size={9} className="text-amber-400" />}
           </Link>
+          {contactFormUrl && (
+            <a
+              href={contactFormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
+            >
+              <MessageCircle size={12} />{h.contact}
+            </a>
+          )}
           {/* 言語切替 */}
           <LangSwitcher current={locale} basePath="" />
         </div>
@@ -487,7 +499,17 @@ export default function HomePage() {
         className="fixed bottom-0 inset-x-0 px-4 pt-2 bg-neutral-950/90 backdrop-blur-md border-t border-white/5"
         style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex justify-center gap-4 pb-2">
+        <div className="flex justify-center gap-4 pb-2 flex-wrap">
+          {contactFormUrl && (
+            <a
+              href={contactFormUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/15 text-[10px] active:text-white/40"
+            >
+              {h.contact}
+            </a>
+          )}
           <Link href={`/${locale}/privacy`} className="text-white/15 text-[10px] active:text-white/40">{dict.nav.privacy}</Link>
           <Link href={`/${locale}/terms`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.terms}</Link>
           <Link href={`/${locale}/legal`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.legal}</Link>

@@ -59,6 +59,7 @@
     "labelFilter": "Label",
     "allGames": "All Games",
     "editLabel": "Label",
+    "contact": "Contact",
     "deleteConfirm": "Delete this game?",
     "errorTitle": "Something went wrong",
     "errorHint": "Please try reloading the app.\nContact support if the issue persists."
