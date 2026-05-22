@@ -167,17 +167,23 @@ export function EndGameOverlay({
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (saving) return;
     setSaving(true);
     setSaveMsg(null);
+    setSaveError(null);
     const result = await onSave();
-    setSaveMsg(result.ok
-      ? (user ? eg.saveDone : eg.saveLocalOnly)
-      : (result.error ? `${eg.saveFail}: ${result.error}` : eg.saveFail));
+    if (result.ok) {
+      setSaveMsg(user ? eg.saveDone : eg.saveLocalOnly);
+      setSaveError(null);
+      setTimeout(() => setSaveMsg(null), 3000);
+    } else {
+      setSaveMsg(eg.saveFail);
+      setSaveError(result.error ?? '不明なエラー');
+    }
     setSaving(false);
-    if (result.ok) setTimeout(() => setSaveMsg(null), 3000);
   };
   const diff = ourScore - theirScore;
   const winnerTeam: Team | null =
@@ -419,6 +425,11 @@ export function EndGameOverlay({
           <RefreshCw size={18} className={cn(saving && 'animate-spin')} />
           {saving ? eg.saving : saveMsg ?? eg.cloudSave}
         </button>
+        {saveError && (
+          <p className="text-red-400 text-xs leading-relaxed px-1 -mt-1 break-all">
+            {saveError}
+          </p>
+        )}
         {/* 4: AI分析（バイオレット）*/}
         <button onClick={handleAI}
           className="flex items-center justify-center gap-2 w-full bg-violet-600/80 active:bg-violet-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">

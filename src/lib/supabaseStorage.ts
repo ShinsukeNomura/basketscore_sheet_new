@@ -23,6 +23,8 @@ export async function syncToCloud(
     session = refreshed.data.session;
   }
 
+  let lastError = 'ログインセッションがありません。再ログインしてください。';
+
   if (session?.access_token) {
     try {
       const res = await fetch('/api/games/sync', {
@@ -33,7 +35,7 @@ export async function syncToCloud(
         },
         body: JSON.stringify({ state }),
       });
-      const data = await res.json() as {
+      const data = await res.json().catch(() => ({})) as {
         ok?: boolean;
         errors?: string[];
         error?: string;
@@ -42,26 +44,21 @@ export async function syncToCloud(
       if (res.ok && data.ok) {
         return { ok: true, state: data.state ?? state };
       }
-      const apiErr = data.errors?.join(' / ') ?? data.error ?? `HTTP ${res.status}`;
-      console.error('[sync] API failed:', apiErr);
-
-      if (res.status === 500 && data.errors?.length) {
-        return { ok: false, error: data.errors[0] };
-      }
-      if (res.status === 500 && data.error?.includes('SERVICE_ROLE')) {
-        return { ok: false, error: 'サーバー設定（SERVICE_ROLE_KEY）を確認してください' };
-      }
+      lastError = data.errors?.join(' / ') ?? data.error ?? `APIエラー (HTTP ${res.status})`;
+      console.error('[sync] API failed:', lastError);
     } catch (e) {
+      lastError = e instanceof Error ? e.message : 'ネットワークエラー';
       console.error('[sync] API network error:', e);
     }
   }
 
   const result = await syncGameCore(supabase, state, userId);
-  if (!result.ok) {
-    console.error('[sync] direct failed:', result.errors);
-    return { ok: false, error: result.errors[0] ?? '同期に失敗しました', state: result.state };
+  if (result.ok) {
+    return { ok: true, state: result.state ?? state };
   }
-  return { ok: true, state: result.state ?? state };
+  const directErr = result.errors.join(' / ') || lastError;
+  console.error('[sync] direct failed:', directErr);
+  return { ok: false, error: directErr, state: result.state };
 }
 
 function scoreFromLogs(

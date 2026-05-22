@@ -8,18 +8,13 @@ export interface SyncResult {
   state?: PersistedGameState;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isUuid(id: string): boolean {
-  return UUID_RE.test(id);
+/** プレースホルダだけ ID を再発行（text 型の本番 ID はそのまま使う） */
+function isPlaceholderId(id: string): boolean {
+  return id === 'our' || id === 'their' || id === 'demo' || id.length < 4;
 }
 
 function newId(): string {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
 /** 古い形式の ID（our/their や短い文字列）を UUID に置き換える */
@@ -57,7 +52,7 @@ export function remapStateToValidIds(state: PersistedGameState): PersistedGameSt
 }
 
 function prepareState(state: PersistedGameState): PersistedGameState {
-  if (isUuid(state.game.id) && isUuid(state.ourTeam.id) && isUuid(state.theirTeam.id)) {
+  if (!isPlaceholderId(state.game.id) && !isPlaceholderId(state.ourTeam.id) && !isPlaceholderId(state.theirTeam.id)) {
     return state;
   }
   return remapStateToValidIds(state);
