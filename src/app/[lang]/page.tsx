@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { getGamesIndex, deleteGame, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
+import { getGamesIndex, deleteGame, mergeCloudGamesIntoIndex, GameSummary, FREE_GAME_LIMIT } from '@/lib/storage';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
 import { useAuth } from '@/hooks/useAuth';
@@ -169,13 +169,11 @@ export default function HomePage() {
       return;
     }
     // getGamesIndex() はすでにユーザー固有キーを参照するため追加フィルタ不要
-    const local = getGamesIndex();
-    setGames(local);
     const cloud = await fetchGamesFromCloud(user.id);
-    if (cloud !== null) {
-      const localIds = new Set(local.map((g) => g.id));
-      const cloudOnlyGames = cloud.filter((g) => !localIds.has(g.id));
-      if (cloudOnlyGames.length > 0) setGames((prev) => [...prev, ...cloudOnlyGames]);
+    if (cloud !== null && cloud.length > 0) {
+      setGames(mergeCloudGamesIntoIndex(cloud));
+    } else {
+      setGames(getGamesIndex());
     }
   }, [user?.id]);
 
@@ -190,16 +188,13 @@ export default function HomePage() {
     if (syncing || !user?.id) return;
     setSyncing(true);
     setSyncMsg(null);
-    const local = getGamesIndex();
     const cloud = await fetchGamesFromCloud(user.id);
     if (cloud !== null) {
-      const localIds = new Set(local.map((g) => g.id));
-      const cloudOnlyGames = cloud.filter((g) => !localIds.has(g.id));
-      const merged = [...local, ...cloudOnlyGames];
+      const merged = cloud.length > 0 ? mergeCloudGamesIntoIndex(cloud) : getGamesIndex();
       setGames(merged);
       setSyncMsg(h.syncDone.replace('{count}', String(merged.length)));
     } else {
-      setGames(local);
+      setGames(getGamesIndex());
       setSyncMsg(h.syncCloudFail);
     }
     setSyncing(false);

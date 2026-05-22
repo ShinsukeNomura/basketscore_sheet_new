@@ -281,42 +281,94 @@ export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
   const { user } = useAuth();
 
-  // --- ロード: localStorage → なければクラウド ---
   const userId = user?.id;
+
+  const persistState = useCallback((s: InternalState, uid?: string) => {
+    const activeLogs = s.logs.filter((l) => !l.is_deleted);
+    const ourScore   = activeLogs.filter((l) => l.team_id === s.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
+    const theirScore = activeLogs.filter((l) => l.team_id === s.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
+    const gameState: PersistedGameState = {
+      game: s.game, ourTeam: s.ourTeam, theirTeam: s.theirTeam,
+      allPlayers: s.allPlayers, logs: s.logs,
+    };
+    savePersistedGame(gameState, ourScore, theirScore, uid);
+    return { gameState, ourScore, theirScore };
+  }, []);
+
+  const flushSave = useCallback(async (s: InternalState): Promise<boolean> => {
+    if (!s.isLoaded) return false;
+    const { gameState } = persistState(s, userId);
+    if (userId) return syncToCloud(gameState, userId);
+    return true;
+  }, [persistState, userId]);
+
+  // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
   useEffect(() => {
-    const persisted = loadPersistedGame(gameId);
-    if (persisted) {
-      dispatch({ type: 'LOAD_PERSISTED', payload: persisted });
-    } else {
-      // localStorage になければクラウドから取得（ユーザー認証必須）
-      loadGameFromCloud(gameId, userId)
-        .then((cloud) => {
-          const placeholder = createPlaceholderState(gameId);
-          dispatch({ type: 'LOAD_PERSISTED', payload: cloud ?? { game: placeholder.game, ourTeam: placeholder.ourTeam, theirTeam: placeholder.theirTeam, allPlayers: [], logs: [] } });
-        })
-        .catch(() => {
-          const p = createPlaceholderState(gameId);
-          dispatch({ type: 'LOAD_PERSISTED', payload: { game: p.game, ourTeam: p.ourTeam, theirTeam: p.theirTeam, allPlayers: [], logs: [] } });
-        });
+    let cancelled = false;
+
+    async function load() {
+      const local = loadPersistedGame(gameId);
+      const localLogCount = (local?.logs ?? []).filter((l) => !l.is_deleted).length;
+
+      if (userId) {
+        try {
+          const cloud = await loadGameFromCloud(gameId, userId);
+          if (cancelled) return;
+          if (cloud) {
+            const cloudLogCount = cloud.logs.filter((l) => !l.is_deleted).length;
+            const useCloud = !local || cloudLogCount > localLogCount;
+            const payload = useCloud ? cloud : local!;
+            if (useCloud) {
+              persistState({
+                game: payload.game, ourTeam: payload.ourTeam, theirTeam: payload.theirTeam,
+                allPlayers: payload.allPlayers, logs: payload.logs,
+                selectedStat: null, flashPlayerId: null, isLoaded: true,
+              }, userId);
+            }
+            dispatch({ type: 'LOAD_PERSISTED', payload });
+            return;
+          }
+        } catch {
+          // fall through to local
+        }
+      }
+
+      if (cancelled) return;
+      if (local) {
+        dispatch({ type: 'LOAD_PERSISTED', payload: local });
+        return;
+      }
+
+      const placeholder = createPlaceholderState(gameId);
+      dispatch({
+        type: 'LOAD_PERSISTED',
+        payload: { game: placeholder.game, ourTeam: placeholder.ourTeam, theirTeam: placeholder.theirTeam, allPlayers: [], logs: [] },
+      });
     }
-  }, [gameId, userId]);
+
+    load();
+    return () => { cancelled = true; };
+  }, [gameId, userId, persistState]);
 
   // --- localStorage + クラウド への同期（デバウンス 300ms） ---
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!state.isLoaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      const activeLogs = state.logs.filter((l) => !l.is_deleted);
-      const ourScore   = activeLogs.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0);
-      const theirScore = activeLogs.filter((l) => l.team_id === state.theirTeam.id).reduce((s, l) => s + l.points, 0);
-      const gameState  = { game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam, allPlayers: state.allPlayers, logs: state.logs };
-      savePersistedGame(gameState, ourScore, theirScore, user?.id);
-      // ログイン済みならクラウドにも同期
-      if (user?.id) syncToCloud(gameState, user.id);
-    }, 300);
+    saveTimer.current = setTimeout(() => { void flushSave(state); }, 300);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [state, user?.id]);
+  }, [state, flushSave]);
+
+  // 試合終了時はデバウンスを待たず即時クラウド同期
+  const prevStatus = useRef<GameStatus | null>(null);
+  useEffect(() => {
+    if (!state.isLoaded) return;
+    if (prevStatus.current !== 'finished' && state.game.status === 'finished') {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      void flushSave(state);
+    }
+    prevStatus.current = state.game.status;
+  }, [state.game.status, state.isLoaded, state, flushSave]);
 
   // --- 派生値 ---
   const activeLogs = useMemo(() => state.logs.filter((l) => !l.is_deleted), [state.logs]);
@@ -389,18 +441,9 @@ export function useGameState(gameId: string) {
   }, []);
 
   const saveGame = useCallback(async (): Promise<boolean> => {
-    if (!state.isLoaded) return false;
-    const active = state.logs.filter((l) => !l.is_deleted);
-    const ourScore   = active.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0);
-    const theirScore = active.filter((l) => l.team_id === state.theirTeam.id).reduce((s, l) => s + l.points, 0);
-    const gameState: PersistedGameState = {
-      game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
-      allPlayers: state.allPlayers, logs: state.logs,
-    };
-    savePersistedGame(gameState, ourScore, theirScore, user?.id);
-    if (user?.id) await syncToCloud(gameState, user.id);
-    return true;
-  }, [state, user?.id]);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    return flushSave(state);
+  }, [state, flushSave]);
 
   return {
     game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,

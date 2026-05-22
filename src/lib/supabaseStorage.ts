@@ -8,8 +8,9 @@ import { PersistedGameState, GameSummary } from '@/types';
 export async function syncToCloud(
   state: PersistedGameState,
   userId: string,
-): Promise<void> {
-  // game
+): Promise<boolean> {
+  let ok = true;
+
   const { error: gameErr } = await supabase.from('games').upsert({
     id:             state.game.id,
     user_id:        userId,
@@ -18,50 +19,69 @@ export async function syncToCloud(
     status:         state.game.status,
     current_period: state.game.current_period,
   }, { onConflict: 'id' });
-  if (gameErr) { console.error('[sync] game upsert failed:', gameErr.message); return; }
+  if (gameErr) {
+    console.error('[sync] game upsert failed:', gameErr.message);
+    return false;
+  }
 
-  // teams
   const { error: teamErr } = await supabase.from('teams').upsert([
-    { id: state.ourTeam.id,   game_id: state.game.id, team_name: state.ourTeam.team_name,   is_ours: true,  color: state.ourTeam.color },
-    { id: state.theirTeam.id, game_id: state.game.id, team_name: state.theirTeam.team_name, is_ours: false, color: state.theirTeam.color },
+    { id: state.ourTeam.id,   game_id: state.game.id, team_name: state.ourTeam.team_name,   is_ours: true,  color: state.ourTeam.color ?? 'white' },
+    { id: state.theirTeam.id, game_id: state.game.id, team_name: state.theirTeam.team_name, is_ours: false, color: state.theirTeam.color ?? 'navy' },
   ], { onConflict: 'id' });
-  if (teamErr) { console.error('[sync] teams upsert failed:', teamErr.message); return; }
+  if (teamErr) {
+    console.error('[sync] teams upsert failed:', teamErr.message);
+    ok = false;
+  }
 
-  // players
   if (state.allPlayers.length > 0) {
-    const { error: playerErr } = await supabase.from('players').upsert(
-      state.allPlayers.map((p) => ({
-        id:          p.id,
-        team_id:     p.team_id,
-        game_id:     state.game.id,
-        back_number: p.back_number,
-        name:        p.name ?? '',
-        is_on_court: p.is_on_court,
-      })),
-      { onConflict: 'id' },
-    );
-    if (playerErr) { console.error('[sync] players upsert failed:', playerErr.message); return; }
+    const rows = state.allPlayers.map((p) => ({
+      id:          p.id,
+      team_id:     p.team_id,
+      back_number: p.back_number,
+      name:        p.name ?? '',
+      is_on_court: p.is_on_court,
+    }));
+    const { error: playerErr } = await supabase.from('players').upsert(rows, { onConflict: 'id' });
+    if (playerErr) console.error('[sync] players upsert failed:', playerErr.message);
   }
 
-  // stats_logs
   if (state.logs.length > 0) {
-    const { error: logErr } = await supabase.from('stats_logs').upsert(
-      state.logs.map((l) => ({
-        id:          l.id,
-        game_id:     l.game_id,
-        team_id:     l.team_id,
-        player_id:   l.player_id ?? null,
-        period:      l.period,
-        timestamp:   l.timestamp,
-        action_type: l.action_type,
-        points:      l.points,
-        is_deleted:  l.is_deleted,
-        link_id:     l.link_id ?? null,
-      })),
-      { onConflict: 'id' },
-    );
-    if (logErr) { console.error('[sync] stats_logs upsert failed:', logErr.message); }
+    const logRows = state.logs.map((l) => ({
+      id:          l.id,
+      game_id:     l.game_id,
+      team_id:     l.team_id,
+      player_id:   l.player_id ?? null,
+      period:      l.period,
+      timestamp:   l.timestamp,
+      action_type: l.action_type,
+      points:      l.points,
+      is_deleted:  l.is_deleted,
+      link_id:     l.link_id ?? null,
+    }));
+    const BATCH = 200;
+    for (let i = 0; i < logRows.length; i += BATCH) {
+      const chunk = logRows.slice(i, i + BATCH);
+      const { error: logErr } = await supabase.from('stats_logs').upsert(chunk, { onConflict: 'id' });
+      if (logErr) {
+        console.error('[sync] stats_logs upsert failed:', logErr.message);
+        ok = false;
+      }
+    }
   }
+
+  return ok;
+}
+
+function scoreFromLogs(
+  logs: { team_id: string; points?: number; is_deleted?: boolean }[],
+  ourTeamId: string,
+  theirTeamId: string,
+): { ourScore: number; theirScore: number } {
+  const active = logs.filter((l) => !l.is_deleted);
+  return {
+    ourScore:   active.filter((l) => l.team_id === ourTeamId).reduce((s, l) => s + (l.points ?? 0), 0),
+    theirScore: active.filter((l) => l.team_id === theirTeamId).reduce((s, l) => s + (l.points ?? 0), 0),
+  };
 }
 
 // ================================================================
@@ -72,7 +92,7 @@ export async function syncToCloud(
 export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[] | null> {
   const { data: games, error } = await supabase
     .from('games')
-    .select('id, game_name, date, status, teams(id, team_name, is_ours), stats_logs(team_id, points, is_deleted)')
+    .select('id, game_name, date, status, teams(id, team_name, is_ours)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -82,6 +102,21 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
   }
   if (!games?.length) return [];
 
+  const gameIds = games.map((g) => g.id);
+  const { data: allLogs, error: logsErr } = await supabase
+    .from('stats_logs')
+    .select('game_id, team_id, points, is_deleted')
+    .in('game_id', gameIds);
+
+  if (logsErr) console.error('[fetchGames] stats_logs error:', logsErr.message);
+
+  const logsByGame = new Map<string, typeof allLogs>();
+  for (const log of allLogs ?? []) {
+    const list = logsByGame.get(log.game_id) ?? [];
+    list.push(log);
+    logsByGame.set(log.game_id, list);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (games as any[]).flatMap((g) => {
     try {
@@ -89,13 +124,9 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
       const ourTeam   = g.teams?.find((t: any) =>  t.is_ours);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const theirTeam = g.teams?.find((t: any) => !t.is_ours);
-      if (!ourTeam || !theirTeam) return []; // チームデータが不完全なゲームはスキップ
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const active     = (g.stats_logs ?? []).filter((l: any) => !l.is_deleted);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ourScore   = active.filter((l: any) => l.team_id === ourTeam.id).reduce((s: number, l: any) => s + (l.points ?? 0), 0);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const theirScore = active.filter((l: any) => l.team_id === theirTeam.id).reduce((s: number, l: any) => s + (l.points ?? 0), 0);
+      if (!ourTeam || !theirTeam) return [];
+      const logs = logsByGame.get(g.id) ?? [];
+      const { ourScore, theirScore } = scoreFromLogs(logs, ourTeam.id, theirTeam.id);
       return [{
         id:            g.id,
         game_name:     g.game_name ?? '練習試合',
@@ -105,9 +136,10 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
         theirTeamName: theirTeam.team_name || '相手',
         ourScore,
         theirScore,
+        user_id:       userId,
       } as GameSummary];
     } catch {
-      return []; // 破損データは無視
+      return [];
     }
   });
 }
@@ -119,26 +151,29 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
 export async function loadGameFromCloud(gameId: string, userId?: string): Promise<PersistedGameState | null> {
   let gameQuery = supabase.from('games').select('*').eq('id', gameId);
   if (userId) gameQuery = gameQuery.eq('user_id', userId);
-  const [gameRes, teamsRes, playersRes, logsRes] = await Promise.all([
-    gameQuery.single(),
-    supabase.from('teams').select('*').eq('game_id', gameId),
-    supabase.from('players').select('*').eq('game_id', gameId),
+
+  const gameRes = await gameQuery.single();
+  if (!gameRes.data) return null;
+
+  const teamsRes = await supabase.from('teams').select('*').eq('game_id', gameId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const teams = (teamsRes.data ?? []) as any[];
+  const ourTeam   = teams.find((t) => t.is_ours);
+  const theirTeam = teams.find((t) => !t.is_ours);
+  if (!ourTeam || !theirTeam) return null;
+
+  const teamIds = [ourTeam.id, theirTeam.id];
+  const [playersRes, logsRes] = await Promise.all([
+    supabase.from('players').select('*').in('team_id', teamIds),
     supabase.from('stats_logs').select('*').eq('game_id', gameId),
   ]);
 
-  if (!gameRes.data) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g       = gameRes.data as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const teams   = (teamsRes.data   ?? []) as any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const players = (playersRes.data ?? []) as any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const logs    = (logsRes.data    ?? []) as any[];
-
-  const ourTeam   = teams.find((t) => t.is_ours);
-  const theirTeam = teams.find((t) => !t.is_ours);
-  if (!ourTeam || !theirTeam) return null;
 
   return {
     game: {

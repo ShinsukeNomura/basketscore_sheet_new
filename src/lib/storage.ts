@@ -58,6 +58,7 @@ export function isFreeLimitReached(): boolean {
 }
 
 function makeId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
@@ -76,6 +77,31 @@ export function getGamesIndex(): GameSummary[] {
 
 function setGamesIndex(index: GameSummary[]): void {
   localStorage.setItem(IDX_KEY(), JSON.stringify(index));
+}
+
+/** クラウド一覧でローカルインデックスを更新（スコア・ステータスはクラウド優先） */
+export function mergeCloudGamesIntoIndex(cloud: GameSummary[]): GameSummary[] {
+  const index = getGamesIndex();
+  const byId = new Map(index.map((g) => [g.id, g]));
+  for (const cg of cloud) {
+    const existing = byId.get(cg.id);
+    byId.set(cg.id, existing
+      ? {
+          ...existing,
+          game_name:     cg.game_name,
+          date:          cg.date,
+          status:        cg.status,
+          ourTeamName:   cg.ourTeamName,
+          theirTeamName: cg.theirTeamName,
+          ourScore:      cg.ourScore,
+          theirScore:    cg.theirScore,
+          user_id:       cg.user_id ?? existing.user_id,
+        }
+      : cg);
+  }
+  const merged = Array.from(byId.values()).sort((a, b) => b.date.localeCompare(a.date));
+  setGamesIndex(merged);
+  return merged;
 }
 
 // ============================================================
