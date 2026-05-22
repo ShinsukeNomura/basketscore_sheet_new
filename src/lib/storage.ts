@@ -175,6 +175,13 @@ export function deleteGame(id: string): void {
   setGamesIndex(index);
 }
 
+/** クラウド同期で game ID が変わったとき、古い ID の一覧・本体を削除 */
+export function removeStaleGameEntry(staleId: string, keepId: string): void {
+  if (typeof window === 'undefined' || !staleId || staleId === keepId) return;
+  localStorage.removeItem(GAME_KEY(staleId));
+  setGamesIndex(getGamesIndex().filter((g) => g.id !== staleId));
+}
+
 // ============================================================
 // 新規ゲーム作成
 // ============================================================

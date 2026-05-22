@@ -10,9 +10,9 @@ export interface SyncResult {
   state?: PersistedGameState;
 }
 
-/** プレースホルダだけ ID を再発行（text 型の本番 ID はそのまま使う） */
+/** プレースホルダ ID のみ再発行（短い本番 ID はそのまま） */
 function isPlaceholderId(id: string): boolean {
-  return id === 'our' || id === 'their' || id === 'demo' || id.length < 4;
+  return id === 'our' || id === 'their' || id === 'demo';
 }
 
 function newId(): string {

@@ -108,7 +108,7 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
   const { data: games, error } = await supabase
     .from('games')
     .select('id, game_name, date, status, user_id, teams(id, team_name, is_ours)')
-    .or(`user_id.eq.${userId},user_id.is.null`)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {

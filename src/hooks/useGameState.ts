@@ -3,9 +3,10 @@
 import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
 import { ACTION_POINTS } from '@/lib/stats';
-import { loadPersistedGame, savePersistedGame } from '@/lib/storage';
+import { loadPersistedGame, savePersistedGame, removeStaleGameEntry } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
 import { shouldPreferCloud } from '@/lib/cloudGameMerge';
+import { isReadyForCloudSync } from '@/lib/gameSyncGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
@@ -308,14 +309,21 @@ export function useGameState(gameId: string) {
   const runCloudSync = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     if (!s.isLoaded) return { ok: false, error: syncT.loading };
     let { gameState } = persistState(s, userId);
+    if (!isReadyForCloudSync(gameState)) {
+      return { ok: false, error: syncT.loading };
+    }
     if (!userId) {
       setCloudSyncStatus('offline');
       return { ok: false, error: syncT.notLoggedIn };
     }
 
+    const idsBeforeSync = new Set([gameId, gameState.game.id]);
     setCloudSyncStatus('syncing');
     const cloud = await syncToCloud(gameState, userId);
     if (cloud.state && cloud.state.game.id !== gameState.game.id) {
+      for (const staleId of idsBeforeSync) {
+        removeStaleGameEntry(staleId, cloud.state.game.id);
+      }
       gameState = cloud.state;
       const active = gameState.logs.filter((l) => !l.is_deleted);
       const ourScore   = active.filter((l) => l.team_id === gameState.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
@@ -342,7 +350,7 @@ export function useGameState(gameId: string) {
     }
     setCloudSyncStatus('error');
     return { ok: false, error: cloud.error ?? syncT.saveFail };
-  }, [persistState, userId, syncT]);
+  }, [persistState, userId, syncT, gameId]);
 
   const flushSave = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     try {
