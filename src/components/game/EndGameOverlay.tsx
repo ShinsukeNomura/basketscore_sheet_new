@@ -179,9 +179,7 @@ export function EndGameOverlay({
     try {
       const result = await onSave();
       if (result.ok) {
-        setSaveMsg(result.error && result.error.startsWith(sync.saveDone)
-          ? result.error
-          : (user ? eg.saveDone : eg.saveLocalOnly));
+        setSaveMsg(user ? eg.cloudSaveDone : eg.saveLocalOnly);
         setSaveError(null);
         setTimeout(() => setSaveMsg(null), 4000);
       } else {

@@ -340,20 +340,12 @@ export function useGameState(gameId: string) {
     }
     if (cloud.ok) {
       setCloudSyncStatus('saved');
-      const detail = cloud.logsTotal != null
-        ? `（${cloud.logsSynced ?? cloud.logsTotal}/${cloud.logsTotal}）`
-        : '';
-      return { ok: true, error: detail ? `${syncT.saveDone}${detail}` : undefined };
+      return { ok: true };
     }
     if (cloud.partial) {
       setCloudSyncStatus('error');
-      return {
-        ok: false,
-        error: syncT.savePartial
-          .replace('{synced}', String(cloud.logsSynced))
-          .replace('{total}', String(cloud.logsTotal))
-          .replace('{detail}', cloud.error ?? ''),
-      };
+      console.warn('[cloud sync] partial save', cloud.logsSynced, '/', cloud.logsTotal, cloud.error);
+      return { ok: false, error: syncT.savePartial };
     }
     setCloudSyncStatus('error');
     return { ok: false, error: cloud.error ?? syncT.saveFail };

@@ -176,7 +176,7 @@ export function RosterSheet({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl max-h-[88dvh] flex flex-col pb-safe"
+        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl max-h-[88dvh] flex flex-col pb-safe px-4"
       >
         <SheetHeader className="shrink-0 mb-3 flex-row items-center gap-2 p-4 pb-0">
           <button
@@ -261,43 +261,61 @@ export function RosterSheet({
           )}
         </div>
 
-        {/* 登録チームから読み込む */}
-        <div className="shrink-0 border-t border-white/8 pt-3 mt-2">
+        {/* 選手登録（視線誘導） */}
+        <div
+          className={cn(
+            'shrink-0 mt-2 rounded-2xl border-2 p-3.5 space-y-3',
+            'border-sky-500/55 bg-sky-950/35 shadow-[0_0_24px_rgba(14,165,233,0.12)]',
+          )}
+        >
+          <div>
+            <p className="text-sky-300 text-sm font-bold">{g.rosterSetupTitle}</p>
+            <p className="text-sky-200/45 text-[11px] mt-0.5 leading-snug">{g.rosterSetupHint}</p>
+          </div>
+
           {!importOpen ? (
             <button
               onClick={openImport}
-              className="w-full flex items-center justify-center gap-2 py-2 mb-2 rounded-xl bg-white/4 border border-white/8 text-white/40 text-xs font-semibold active:bg-white/8 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-sky-500/20 border-2 border-sky-400/45 text-sky-100 text-sm font-bold active:bg-sky-500/30 transition-colors"
             >
-              <Download size={13} />{g.importFromMyTeam}
+              <Download size={16} className="text-sky-300" />
+              {g.importFromMyTeam}
             </button>
           ) : (
-            <div className="mb-3 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-white/8">
-                <span className="text-white/50 text-xs font-semibold">{g.importSelect}</span>
-                <button onClick={() => setImportOpen(false)} className="text-white/30 text-xs active:text-white/60">{g.importCancel}</button>
+            <div className="rounded-xl bg-neutral-900/90 border-2 border-sky-400/35 overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-sky-500/25 bg-sky-950/40">
+                <span className="text-sky-200/80 text-xs font-semibold">{g.importSelect}</span>
+                <button
+                  onClick={() => setImportOpen(false)}
+                  className="text-sky-300/70 text-xs font-semibold active:text-sky-200"
+                >
+                  {g.importCancel}
+                </button>
               </div>
               {myTeams.length === 0 ? (
-                <p className="text-white/25 text-xs text-center py-3">{g.noMyTeams}</p>
+                <p className="text-white/35 text-xs text-center py-4">{g.noMyTeams}</p>
               ) : (
                 myTeams.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => handleImport(t)}
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-left active:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-left active:bg-sky-500/15 border-b border-white/5 last:border-0 transition-colors"
                   >
                     <span className="text-white text-sm font-bold">{t.team_name}</span>
-                    <span className="text-white/30 text-xs">{g.playerCount.replace('{count}', String(t.backNumbers.length))}</span>
+                    <span className="text-sky-200/50 text-xs">
+                      {g.playerCount.replace('{count}', String(t.backNumbers.length))}
+                    </span>
                   </button>
                 ))
               )}
             </div>
           )}
-        </div>
 
-        {/* 追加フォーム */}
-        <div className="shrink-0 pt-0">
           <div className="flex gap-2 items-start">
-            <div className="flex flex-col flex-1 gap-1">
+            <div className="flex flex-col flex-1 gap-1.5">
+              <label className="text-sky-300/70 text-[11px] font-semibold tracking-wide px-0.5">
+                {g.backNumber}
+              </label>
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -313,25 +331,26 @@ export function RosterSheet({
                   }}
                   onKeyDown={handleKey}
                   className={cn(
-                    'flex-1 bg-white/8 text-white text-base font-bold rounded-xl px-4 py-3',
-                    'placeholder:text-white/20 outline-none',
-                    'focus:ring-2 transition-all',
-                    error ? 'ring-2 ring-red-500' : 'focus:ring-white/30',
+                    'flex-1 bg-sky-950/50 text-white text-lg font-black rounded-xl px-4 py-3.5',
+                    'border-2 placeholder:text-white/25 outline-none transition-all',
+                    error
+                      ? 'border-red-500 ring-2 ring-red-500/40'
+                      : 'border-sky-400/50 focus:border-sky-300 focus:ring-2 focus:ring-sky-400/35',
                   )}
                 />
                 <button
                   onPointerDown={handleAdd}
                   className={cn(
-                    'flex items-center gap-1.5 px-5 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 min-h-[48px]',
-                    cfg.accentDot, 'text-white',
+                    'flex items-center gap-1.5 px-5 py-3.5 rounded-xl font-bold text-sm text-white transition-all active:scale-95 min-h-[52px]',
+                    'bg-sky-600 border-2 border-sky-400/50 active:bg-sky-500 shadow-md shadow-sky-900/40',
                   )}
                 >
-                  <Plus size={16} />
+                  <Plus size={18} />
                   {c.add}
                 </button>
               </div>
               {error && (
-                <p className="text-red-400 text-xs px-1">{error}</p>
+                <p className="text-red-400 text-xs px-1 font-medium">{error}</p>
               )}
             </div>
           </div>
