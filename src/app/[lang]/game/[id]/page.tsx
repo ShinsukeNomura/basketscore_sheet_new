@@ -66,7 +66,9 @@ export default function GamePage() {
     setCourtMapPlayer(null);
   }
 
-  function handleCourtBack() { setCourtMapPlayer(null); }
+  function handleCourtBack() {
+    setCourtMapPlayer(null);
+  }
 
   function handleCourtCancel() {
     setCourtMapPlayer(null);

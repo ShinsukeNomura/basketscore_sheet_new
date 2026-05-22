@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { ArrowLeft, X } from 'lucide-react';
+import { ChevronLeft, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { CourtLocation, ActionType, Player, StatsLog } from '@/types';
 
 // ──────────── ゾーン定義 ────────────
@@ -236,10 +237,23 @@ interface CourtMapProps {
 
 export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, shotLogs = [] }: CourtMapProps) {
   const dict = useDictionary();
+  const g = dict.game;
   const ct = dict.court;
   const c = dict.common;
   const courtZones = useCourtZones();
   const legend = useHeatLegend();
+
+  const handleBack = useCallback(() => {
+    onBack();
+  }, [onBack]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleBack();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleBack]);
   const is3pt  = action === '3PT_MADE' || action === '3PT_MISS';
   const isMade = action === '2PT_MADE' || action === '3PT_MADE';
   const shotLabel   = is3pt ? '3PT' : '2PT';
@@ -260,39 +274,50 @@ export function CourtMap({ action, player, isOurs, onSelect, onBack, onCancel, s
     : 'bg-rose-900/60 text-rose-200 border border-rose-700/50';
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-neutral-950">
+    <div className="fixed inset-0 z-50 flex flex-col bg-neutral-950 pt-safe">
 
       {/* ヘッダー */}
-      <div className="shrink-0 border-b border-neutral-800 bg-neutral-900/80 backdrop-blur-sm px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
+      <div className="shrink-0 border-b border-neutral-800 bg-neutral-900/90 backdrop-blur-sm px-4 pb-3">
+        <div className="flex items-center gap-2 min-h-[44px]">
           <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-300 active:bg-neutral-800"
+            type="button"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              handleBack();
+            }}
+            className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1 min-h-[44px] px-1"
+            aria-label={g.courtMapBack}
           >
-            <ArrowLeft size={16} />{c.back}
+            <ChevronLeft size={20} />
+            <span className="text-xs font-semibold">{g.courtMapBack}</span>
           </button>
+          <div className="flex-1 min-w-0 text-center">
+            <p className="text-white/80 text-sm font-bold truncate">#{player.back_number}</p>
+            <p className="text-white/35 text-[10px] truncate">{ct.selectArea}</p>
+          </div>
           <button
-            onClick={onCancel}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-neutral-500 active:bg-neutral-800"
+            type="button"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              onCancel();
+            }}
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] text-white/35 active:text-white/70 shrink-0"
+            aria-label={c.cancel}
           >
-            <X size={14} />{c.cancel}
+            <X size={18} />
           </button>
         </div>
-        <div className="flex items-center justify-center gap-2 text-sm flex-wrap">
-          <span className={`rounded px-2 py-1 font-bold ${teamBadgeClass}`}>{shotLabel}</span>
-          <span className="text-neutral-500">→</span>
-          <span className={`rounded px-2 py-1 font-bold ${isMade ? 'bg-emerald-900/60 text-emerald-200' : 'bg-rose-900/60 text-rose-200'}`}>
+        <div className="flex items-center justify-center gap-1.5 text-[11px] flex-wrap mt-1">
+          <span className={cn('rounded px-2 py-0.5 font-bold', teamBadgeClass)}>{shotLabel}</span>
+          <span className="text-white/25">·</span>
+          <span className={cn('rounded px-2 py-0.5 font-bold', isMade ? 'bg-emerald-900/50 text-emerald-200' : 'bg-rose-900/50 text-rose-200')}>
             {resultLabel}
           </span>
-          <span className="text-neutral-500">→</span>
-          <span className={`rounded px-2 py-1 font-bold ${teamBadgeClass}`}>#{player.back_number}</span>
-          <span className="text-neutral-500">→</span>
-          <span className="text-neutral-400 text-xs">{ct.selectArea}</span>
         </div>
       </div>
 
       {/* コートマップ */}
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto p-4 pb-safe">
         <div className="mx-auto max-w-lg">
           <div className="relative rounded-xl border-2 border-neutral-700 bg-neutral-900/50 p-3">
 
