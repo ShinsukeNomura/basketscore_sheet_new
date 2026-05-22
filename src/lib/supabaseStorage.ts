@@ -203,6 +203,7 @@ export async function loadGameFromCloud(gameId: string, userId?: string): Promis
     game: {
       id: g.id, game_name: g.game_name, date: g.date,
       status: g.status, current_period: g.current_period, created_at: g.created_at,
+      ...(g.scorekeeper ? { scorekeeper: g.scorekeeper as string } : {}),
     },
     ourTeam: {
       id: ourTeam.id, game_id: g.id, team_name: ourTeam.team_name,

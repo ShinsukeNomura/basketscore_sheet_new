@@ -99,6 +99,10 @@ export function generateGamePDF(
   ctext('BASKETBALL GAME STATS REPORT', y, 14, 'bold');
   ctext(game.game_name, y + 7, 10);
   ctext(game.date, y + 13, 10);
+  if (game.scorekeeper) {
+    ctext(`Recorder: ${game.scorekeeper}`, y + 19, 9);
+    y += 6;
+  }
   y += 22;
 
   // ── スコア ──

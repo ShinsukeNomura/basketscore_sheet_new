@@ -72,6 +72,7 @@ async function upsertGames(
     date:           state.game.date,
     status:         state.game.status,
     current_period: period,
+    ...(state.game.scorekeeper ? { scorekeeper: state.game.scorekeeper } : {}),
   };
   let { error } = await db.from('games').upsert({ ...base, user_id: userId }, { onConflict: 'id' });
   if (!error) return null;

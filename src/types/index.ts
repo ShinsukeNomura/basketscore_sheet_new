@@ -48,6 +48,8 @@ export interface Game {
   status:         GameStatus;
   current_period: Period;
   created_at:     string;
+  /** スコア記載者名（任意） */
+  scorekeeper?:   string;
 }
 
 export interface Team {

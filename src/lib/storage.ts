@@ -182,6 +182,7 @@ export function deleteGame(id: string): void {
 export interface CreateGameParams {
   gameType:       string;
   date:           string;
+  scorekeeper?:   string;
   whiteTeamName:  string;
   whiteTeamColor: string;
   blueTeamName:   string;
@@ -195,6 +196,7 @@ export function createNewGame(params: CreateGameParams): string {
   const id  = makeId();
   const now = new Date().toISOString();
 
+  const sk = params.scorekeeper?.trim();
   const game: Game = {
     id,
     game_name:      params.gameType,
@@ -202,6 +204,7 @@ export function createNewGame(params: CreateGameParams): string {
     status:         'progress',
     current_period: 1,
     created_at:     now,
+    ...(sk ? { scorekeeper: sk } : {}),
   };
   const ourTeam: Team = {
     id:         makeId(),

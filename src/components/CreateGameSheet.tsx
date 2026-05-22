@@ -114,10 +114,10 @@ function UpgradeButton({ userId, userEmail }: { userId?: string; userEmail?: str
 // テキスト入力フィールド
 // ────────────────────────────────────
 function Field({
-  label, sublabel, value, placeholder, onChange, error, autoFocus,
+  label, sublabel, value, placeholder, onChange, error, autoFocus, maxLength = 20,
 }: {
   label: string; sublabel?: string; value: string; placeholder: string;
-  onChange: (v: string) => void; error?: string; autoFocus?: boolean;
+  onChange: (v: string) => void; error?: string; autoFocus?: boolean; maxLength?: number;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -131,7 +131,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        maxLength={20}
+        maxLength={maxLength}
         className={cn(
           'bg-white/8 text-white font-semibold rounded-xl px-4 py-3.5 text-base',
           'placeholder:text-white/20 outline-none focus:ring-2 transition-all',
@@ -237,6 +237,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
   const [limitReached,  setLimitReached]  = useState(false);
   const [gameType,      setGameType]      = useState(() => g.typePractice);
   const [date,          setDate]          = useState(todayString);
+  const [scorekeeper,   setScorekeeper]   = useState('');
   const [whiteName,     setWhiteName]     = useState('');
   const [whiteColor,    setWhiteColor]    = useState<JerseyColorId>(DEFAULT_WHITE_COLOR);
   const [whitePlayers,  setWhitePlayers]  = useState<string[]>([]);
@@ -296,6 +297,7 @@ export function CreateGameSheet({ open, onClose }: Props) {
     const id = createNewGame({
       gameType,
       date:           date || todayString(),
+      scorekeeper:    scorekeeper.trim() || undefined,
       whiteTeamName:  whiteName.trim(),
       whiteTeamColor: whiteColor,
       blueTeamName:   darkName.trim(),
@@ -306,12 +308,13 @@ export function CreateGameSheet({ open, onClose }: Props) {
     });
     setGameType(g.typePractice);
     setDate(todayString());
+    setScorekeeper('');
     setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
     setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
     setErrors({});
     onClose();
     router.push(`/${locale}/game/${id}`);
-  }, [gameType, date, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router, locale, g]);
+  }, [gameType, date, scorekeeper, whiteName, whiteColor, whitePlayers, darkName, darkColor, darkPlayers, validate, onClose, router, locale, g, user?.id]);
 
   function handleClose() { setErrors({}); onClose(); }
 
@@ -391,6 +394,16 @@ export function CreateGameSheet({ open, onClose }: Props) {
                     className="bg-white/8 text-white font-semibold rounded-xl px-4 py-3.5 text-base outline-none focus:ring-2 focus:ring-blue-500/60 transition-all [color-scheme:dark]"
                   />
                 </div>
+
+                {/* スコア記載者 */}
+                <Field
+                  label={g.scorekeeper}
+                  sublabel={g.scorekeeperOptional}
+                  value={scorekeeper}
+                  placeholder={g.scorekeeperPlaceholder}
+                  onChange={setScorekeeper}
+                  maxLength={30}
+                />
 
                 {/* チーム（白） */}
                 <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
