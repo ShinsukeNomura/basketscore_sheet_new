@@ -31,6 +31,27 @@
     "legal": "Specified Commercial Transactions"
   },
 
+  "transfer": {
+    "incomingTitle": "Game data received",
+    "incomingBody": "{from} sent you \"{game}\". Accept it?",
+    "accept": "Accept",
+    "ignore": "Ignore",
+    "acceptFail": "Failed to accept",
+    "limitReached": "Free plan allows up to {limit} games. To accept, delete one game from Home, then tap Accept again.",
+    "unknownSender": "Another user",
+    "sendTitle": "Send game",
+    "sendHint": "Send all recorded data for \"{game}\" to another account.",
+    "recipientEmail": "Recipient email",
+    "sendAction": "Send",
+    "sendSuccess": "Sent to {email}. It will appear in their list after they accept.",
+    "sendFail": "Failed to send",
+    "invalidEmail": "Invalid email address",
+    "userNotFound": "No account found for this email",
+    "selfTransfer": "You cannot send to yourself",
+    "gameNotFound": "Game not found (save to cloud before sending)",
+    "sendToAccount": "Send"
+  },
+
   "home": {
     "subtitle": "Real-time basketball stats, one hand",
     "cloudSync": "Fetch Latest from Cloud",

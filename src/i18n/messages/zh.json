@@ -31,6 +31,27 @@
     "legal": "特定商业交易说明"
   },
 
+  "transfer": {
+    "incomingTitle": "收到比赛数据",
+    "incomingBody": "{from} 向您发送了「{game}」。是否接收？",
+    "accept": "接收",
+    "ignore": "忽略",
+    "acceptFail": "接收失败",
+    "limitReached": "免费版最多{limit}场比赛。若要接收，请先在首页删除1场比赛，然后再次点击「接收」。",
+    "unknownSender": "其他用户",
+    "sendTitle": "发送比赛",
+    "sendHint": "将「{game}」的全部记录数据发送到对方账户。",
+    "recipientEmail": "对方邮箱",
+    "sendAction": "发送",
+    "sendSuccess": "已发送至 {email}。对方接收后将显示在比赛列表中。",
+    "sendFail": "发送失败",
+    "invalidEmail": "邮箱格式不正确",
+    "userNotFound": "未找到该邮箱的账户",
+    "selfTransfer": "不能发送给自己",
+    "gameNotFound": "未找到比赛数据（请先保存到云端）",
+    "sendToAccount": "发送"
+  },
+
   "home": {
     "subtitle": "实时篮球比赛记录，单手操作",
     "cloudSync": "从云端获取最新数据",

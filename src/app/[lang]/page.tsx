@@ -15,8 +15,11 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import {
   ChevronRight, ChevronDown, Plus, Trash2, Clock, Crown,
-  LogOut, RefreshCw, BookOpen, Users, BarChart2, Tag, ChevronUp, Globe, MessageCircle,
+  LogOut, RefreshCw, BookOpen, Users, BarChart2, Tag, ChevronUp, Globe, MessageCircle, Send,
 } from 'lucide-react';
+import { GameTransferBanner } from '@/components/GameTransferBanner';
+import { SendGameTransferSheet } from '@/components/SendGameTransferSheet';
+import { fetchPendingTransfers, type PendingGameTransfer } from '@/lib/gameTransfer';
 import { getContactFormUrl } from '@/lib/contact';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
 import { GameLabelSheet } from '@/components/GameLabelSheet';
@@ -69,10 +72,11 @@ function LangSwitcher({ current, basePath }: { current: string; basePath: string
   );
 }
 
-function GameCard({ game, onDelete, onLabel, locale, dict }: {
+function GameCard({ game, onDelete, onLabel, onSend, locale, dict }: {
   game: GameSummary;
   onDelete: (id: string) => void;
   onLabel: (game: GameSummary) => void;
+  onSend:  (game: GameSummary) => void;
   locale: string;
   dict: ReturnType<typeof useDictionary>;
 }) {
@@ -82,6 +86,7 @@ function GameCard({ game, onDelete, onLabel, locale, dict }: {
   const theyWon = isFinished && diff < 0;
   const hasLabels = (game.labels?.length ?? 0) > 0;
   const h = dict.home;
+  const tr = dict.transfer;
 
   return (
     <div className="rounded-2xl bg-white/5 transition-colors overflow-hidden">
@@ -109,6 +114,14 @@ function GameCard({ game, onDelete, onLabel, locale, dict }: {
           </div>
           <ChevronRight size={16} className="text-white/20 shrink-0" />
         </Link>
+        <button
+          type="button"
+          onClick={() => onSend(game)}
+          className="p-3 rounded-xl text-white/20 active:text-sky-400 active:bg-sky-950/40 transition-colors shrink-0"
+          aria-label={tr.sendToAccount}
+        >
+          <Send size={14} />
+        </button>
         <button
           onClick={() => onLabel(game)}
           className={cn(
@@ -156,6 +169,8 @@ export default function HomePage() {
   const [filterLabel, setFilterLabel] = useState<string>('');
   const [filterOpen,  setFilterOpen]  = useState(false);
   const [lastCloudFetchAt, setLastCloudFetchAt] = useState<number | null>(null);
+  const [transfers,        setTransfers]        = useState<PendingGameTransfer[]>([]);
+  const [sendTransferGame, setSendTransferGame] = useState<GameSummary | null>(null);
 
   const CLOUD_FETCH_STALE_MS = 5 * 60 * 1000;
   const showCloudFetchHint = !!user?.id && (
@@ -180,6 +195,18 @@ export default function HomePage() {
     if (!loading && !user) window.location.href = `/${locale}/login`;
   }, [user, loading, locale]);
 
+  const loadTransfers = useCallback(async () => {
+    if (!user?.id) {
+      setTransfers([]);
+      return;
+    }
+    try {
+      setTransfers(await fetchPendingTransfers());
+    } catch {
+      setTransfers([]);
+    }
+  }, [user?.id]);
+
   const loadGames = useCallback(async () => {
     if (!user?.id) {
       setGames([]);
@@ -189,13 +216,14 @@ export default function HomePage() {
     const [cloud] = await Promise.all([
       fetchGamesFromCloud(user.id),
       pullUserTeamsFromCloud(user.id),
+      loadTransfers(),
     ]);
     if (cloud !== null && cloud.length > 0) {
       setGames(mergeCloudGamesIntoIndex(cloud));
     } else {
       setGames(getGamesIndex());
     }
-  }, [user?.id]);
+  }, [user?.id, loadTransfers]);
 
   useEffect(() => { if (!loading) loadGames(); }, [loading, loadGames]);
 
@@ -382,6 +410,19 @@ export default function HomePage() {
         </div>
       </div>
 
+      <GameTransferBanner
+        transfers={transfers}
+        isPremium={isPremium}
+        onAccepted={() => { void loadGames(); }}
+        onRejected={(id) => setTransfers((prev) => prev.filter((t) => t.id !== id))}
+      />
+
+      <SendGameTransferSheet
+        game={sendTransferGame}
+        open={!!sendTransferGame}
+        onClose={() => setSendTransferGame(null)}
+      />
+
       {/* ── コンテンツ ── */}
       <div className="px-4 pb-56">
 
@@ -393,7 +434,7 @@ export default function HomePage() {
             </div>
             <div className="flex flex-col gap-2">
               {activeGames.map((g) => (
-                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} locale={locale} dict={dict} />
+                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} />
               ))}
             </div>
           </section>
@@ -478,7 +519,7 @@ export default function HomePage() {
                             </div>
                             <div className="flex flex-col gap-2">
                               {mGames.map((g) => (
-                                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} locale={locale} dict={dict} />
+                                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} />
                               ))}
                             </div>
                           </div>

@@ -31,6 +31,27 @@
     "legal": "特定商取引法に基づく表記"
   },
 
+  "transfer": {
+    "incomingTitle": "試合データが届いています",
+    "incomingBody": "{from} から「{game}」が送られました。受け取りますか？",
+    "accept": "受け取る",
+    "ignore": "無視する",
+    "acceptFail": "受け取りに失敗しました",
+    "limitReached": "無料プランは{limit}試合までです。受け取るには、ホームで不要な試合を1件削除してから、もう一度「受け取る」を押してください。",
+    "unknownSender": "別のユーザー",
+    "sendTitle": "試合を送る",
+    "sendHint": "「{game}」の記録データを、相手アカウントに送ります。",
+    "recipientEmail": "相手のメールアドレス",
+    "sendAction": "送信する",
+    "sendSuccess": "{email} に試合データを送りました。相手が受け取ると一覧に表示されます。",
+    "sendFail": "送信に失敗しました",
+    "invalidEmail": "メールアドレスの形式が正しくありません",
+    "userNotFound": "このメールアドレスのアカウントが見つかりません",
+    "selfTransfer": "自分自身には送れません",
+    "gameNotFound": "試合データが見つかりません（クラウドに保存してから送ってください）",
+    "sendToAccount": "送る"
+  },
+
   "home": {
     "subtitle": "片手でリアルタイム記録",
     "cloudSync": "クラウドから最新データを取得",

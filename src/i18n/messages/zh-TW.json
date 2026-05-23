@@ -31,6 +31,27 @@
     "legal": "特定商業交易說明"
   },
 
+  "transfer": {
+    "incomingTitle": "收到比賽資料",
+    "incomingBody": "{from} 向您傳送了「{game}」。是否接收？",
+    "accept": "接收",
+    "ignore": "忽略",
+    "acceptFail": "接收失敗",
+    "limitReached": "免費版最多{limit}場比賽。若要接收，請先在首頁刪除1場比賽，然後再次點擊「接收」。",
+    "unknownSender": "其他使用者",
+    "sendTitle": "傳送比賽",
+    "sendHint": "將「{game}」的全部記錄資料傳送到對方帳號。",
+    "recipientEmail": "對方電子郵件",
+    "sendAction": "傳送",
+    "sendSuccess": "已傳送至 {email}。對方接收後將顯示在比賽列表中。",
+    "sendFail": "傳送失敗",
+    "invalidEmail": "電子郵件格式不正確",
+    "userNotFound": "找不到此電子郵件的帳號",
+    "selfTransfer": "不能傳送給自己",
+    "gameNotFound": "找不到比賽資料（請先儲存到雲端）",
+    "sendToAccount": "傳送"
+  },
+
   "home": {
     "subtitle": "單手即時記錄籃球比賽",
     "cloudSync": "從雲端取得最新資料",
