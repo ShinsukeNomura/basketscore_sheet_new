@@ -341,7 +341,7 @@
     "teamFouls": "Team F",
     "penalty": "Bonus",
     "noMembers": "No players registered",
-    "noMembersHint": "Add players via the Roster button"
+    "noMembersHint": "Add players via the Substitution button"
   },
 
   "timeline": {
@@ -565,8 +565,8 @@
     "step1FieldColor": "Jersey Color",
     "step1FieldColorVal": "Jersey color for each team",
     "step2Title": "Register Players",
-    "step2Card1": "Tap the Roster button",
-    "step2Card1Desc": "Tap \"Roster\" next to the team name in the recording screen",
+    "step2Card1": "Tap the Substitution button",
+    "step2Card1Desc": "Tap \"Substitution\" next to the team name in the recording screen",
     "step2Hint": "First 5 players are placed on court. Players 6+ are on bench.",
     "step2Card2": "Substitutions",
     "step2Card2Desc": "Tap \"Sub\" next to the team name → select players to swap",

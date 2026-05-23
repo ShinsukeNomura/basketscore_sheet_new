@@ -8,7 +8,6 @@ import { TeamSection }           from '@/components/game/TeamSection';
 import { StatsPanel }            from '@/components/game/StatsPanel';
 import { Timeline }              from '@/components/game/Timeline';
 import { SubstitutionSheet }     from '@/components/game/SubstitutionSheet';
-import { RosterSheet }           from '@/components/game/RosterSheet';
 import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
@@ -32,8 +31,8 @@ export default function GamePage() {
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
-    addPlayer, removePlayer, toggleCourt,
-    renameTeam, renameGame, recolorTeam, logTeamTov, remapTovReasons, reloadFromStorage,
+    addPlayer,
+    renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
     cloudSyncStatus, saveToCloud,
   } = useGameState(gameId);
 
@@ -45,8 +44,6 @@ export default function GamePage() {
 
   const [subTeam,        setSubTeam]        = useState<Team | null>(null);
   const [subOpen,        setSubOpen]        = useState(false);
-  const [rosterTeam,     setRosterTeam]     = useState<Team | null>(null);
-  const [rosterOpen,     setRosterOpen]     = useState(false);
   const [createOpen,     setCreateOpen]     = useState(false);
   const [statsOpen,      setStatsOpen]      = useState(false);
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
@@ -141,7 +138,6 @@ export default function GamePage() {
           flashPlayerId={flashPlayerId}
           onPlayerClick={handlePlayerClick}
           onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
-          onRoster={(t)     => { setRosterTeam(t); setRosterOpen(true); }}
           onRenameTeam={renameTeam}
         />
       </div>
@@ -177,7 +173,6 @@ export default function GamePage() {
           flashPlayerId={flashPlayerId}
           onPlayerClick={handlePlayerClick}
           onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
-          onRoster={(t)     => { setRosterTeam(t); setRosterOpen(true); }}
           onRenameTeam={renameTeam}
         />
       </div>
@@ -241,18 +236,6 @@ export default function GamePage() {
         onSubstitute={substitute}
         onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
-      />
-      <RosterSheet
-        open={rosterOpen}
-        userId={user?.id}
-        team={rosterTeam}
-        allPlayers={allPlayers}
-        playerFouls={playerFouls}
-        onAddPlayer={addPlayer}
-        onRemovePlayer={removePlayer}
-        onToggleCourt={toggleCourt}
-        onRecolorTeam={recolorTeam}
-        onClose={() => setRosterOpen(false)}
       />
       <CreateGameSheet
         open={createOpen}

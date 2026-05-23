@@ -341,7 +341,7 @@
     "teamFouls": "球隊犯規",
     "penalty": "加罰",
     "noMembers": "尚未登錄隊員",
-    "noMembersHint": "請透過「隊員」按鈕新增"
+    "noMembersHint": "請透過「換人」按鈕新增"
   },
 
   "timeline": {
@@ -565,8 +565,8 @@
     "step1FieldColor": "球衣顏色",
     "step1FieldColorVal": "各隊的球衣顏色",
     "step2Title": "登錄球員",
-    "step2Card1": "點擊名單按鈕",
-    "step2Card1Desc": "在記錄畫面中點擊隊名旁的「名單」按鈕",
+    "step2Card1": "點擊換人按鈕",
+    "step2Card1Desc": "在記錄畫面中點擊隊名旁的「換人」按鈕",
     "step2Hint": "前5名球員在場，第6名起為板凳",
     "step2Card2": "球員替換",
     "step2Card2Desc": "點擊隊名旁的「換人」→ 選擇要替換的球員",

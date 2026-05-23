@@ -19,14 +19,13 @@ interface TeamSectionProps {
   flashPlayerId:    string | null;
   onPlayerClick:    (player: Player) => void;
   onSubstitute:     (team: Team) => void;
-  onRoster:         (team: Team) => void;
   onRenameTeam:     (teamId: string, name: string) => void;
 }
 
 export function TeamSection({
   team, courtPlayers, totalPlayerCount, playerFouls, teamFoulCount,
   selectedStat, flashPlayerId,
-  onPlayerClick, onSubstitute, onRoster, onRenameTeam,
+  onPlayerClick, onSubstitute, onRenameTeam,
 }: TeamSectionProps) {
   const ts = useDictionary().teamSection;
   const cfg = getColorConfig(team.color);
@@ -81,21 +80,16 @@ export function TeamSection({
           )}
         </div>
 
-        {/* メンバー / 交代ボタン（onClick: Sheetのドラッグ検知と競合しないよう） */}
-        <div className="flex gap-1 shrink-0 items-center">
-          {([ts.roster, ts.substitute] as const).map((label) => (
-            <button
-              key={label}
-              onClick={() => label === ts.roster ? onRoster(team) : onSubstitute(team)}
-              className={cn(
-                'text-[10px] font-semibold px-2 py-0.5 rounded-lg transition-colors min-h-[22px]',
-                cfg.btnText, cfg.btnBg,
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <button
+          type="button"
+          onClick={() => onSubstitute(team)}
+          className={cn(
+            'shrink-0 text-[10px] font-semibold px-2.5 py-0.5 rounded-lg transition-colors min-h-[22px]',
+            cfg.btnText, cfg.btnBg,
+          )}
+        >
+          {ts.substitute}
+        </button>
       </div>
 
       {/* チームファウル帯 */}
@@ -140,7 +134,7 @@ export function TeamSection({
       {/* メンバー未登録アラート */}
       {totalPlayerCount === 0 ? (
         <button
-          onClick={() => onRoster(team)}
+          onClick={() => onSubstitute(team)}
           className={cn(
             'flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5 rounded-xl',
             'border-2 border-dashed active:opacity-70 transition-opacity',
@@ -169,7 +163,7 @@ export function TeamSection({
           {Array.from({ length: Math.max(0, 5 - courtPlayers.length) }).map((_, i) => (
             <button
               key={`empty-${i}`}
-              onClick={() => onRoster(team)}
+              onClick={() => onSubstitute(team)}
               className={cn(
                 'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[52px]',
                 'active:opacity-60 transition-opacity',

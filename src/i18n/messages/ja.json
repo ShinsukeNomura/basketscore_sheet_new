@@ -341,7 +341,7 @@
     "teamFouls": "チームF",
     "penalty": "ペナルティ",
     "noMembers": "メンバーが登録されていません",
-    "noMembersHint": "「メンバー」ボタンから追加してください"
+    "noMembersHint": "「交代」ボタンから追加してください"
   },
 
   "timeline": {
@@ -565,8 +565,8 @@
     "step1FieldColor": "ジャージカラー",
     "step1FieldColorVal": "各チームのユニフォーム色",
     "step2Title": "メンバーを登録する",
-    "step2Card1": "メンバーボタンをタップ",
-    "step2Card1Desc": "スコア記録画面でチーム名横の「メンバー」をタップ",
+    "step2Card1": "交代ボタンをタップ",
+    "step2Card1Desc": "スコア記録画面でチーム名横の「交代」をタップ",
     "step2Hint": "最初の5人はコート入り・6人目からベンチ",
     "step2Card2": "選手交代",
     "step2Card2Desc": "チーム名横の「交代」をタップ → コート選手とベンチ選手を選ぶ",

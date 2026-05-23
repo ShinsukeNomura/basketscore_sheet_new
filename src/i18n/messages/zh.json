@@ -341,7 +341,7 @@
     "teamFouls": "球队犯规",
     "penalty": "加罚",
     "noMembers": "尚未登记队员",
-    "noMembersHint": "请通过「队员」按钮添加"
+    "noMembersHint": "请通过「换人」按钮添加"
   },
 
   "timeline": {
@@ -565,8 +565,8 @@
     "step1FieldColor": "球衣颜色",
     "step1FieldColorVal": "各队的球衣颜色",
     "step2Title": "登记球员",
-    "step2Card1": "点击名单按钮",
-    "step2Card1Desc": "在记录画面中点击队名旁的「名单」按钮",
+    "step2Card1": "点击换人按钮",
+    "step2Card1Desc": "在记录画面中点击队名旁的「换人」按钮",
     "step2Hint": "前5名球员在场，第6名起为替补",
     "step2Card2": "球员替换",
     "step2Card2Desc": "点击队名旁的「换人」→ 选择要替换的球员",
