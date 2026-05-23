@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   ChevronLeft, Plus, Users, BarChart2, ClipboardList, Trophy,
   RefreshCw, Crown, Sparkles, FileText, Smartphone, AlertCircle,
-  RotateCcw, ArrowLeftRight,
+  RotateCcw, ArrowLeftRight, History, Send, Inbox,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDictionary, hasLocale, defaultLocale, locales, type Locale } from '@/i18n/getDictionary';
@@ -222,6 +222,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3StlLink}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3StlLinkDesc}</p>
               </div>
+              <StepCard icon={History} title={g.step3Timeline} desc={g.step3TimelineDesc} color="bg-violet-700/70" />
               <StepCard icon={RotateCcw} title={g.step3Undo} desc={g.step3UndoDesc} color="bg-neutral-600" />
             </div>
           </section>
@@ -258,6 +259,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                   [g.step5StatsDetail, g.step5StatsDetailVal],
                   [g.step5Ai,          g.step5AiVal],
                   [g.step5Pdf,         g.step5PdfVal],
+                  [g.step5Image,       g.step5ImageVal],
                   [g.step5Resume,      g.step5ResumeVal],
                   [g.step5Next,        g.step5NextVal],
                 ].map(([title, desc]) => (
@@ -350,6 +352,17 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-white/65 text-sm leading-relaxed">{g.cloudDownloadBody}</p>
               </div>
               <p className="text-white/30 text-xs text-center px-2 leading-relaxed">{g.cloudDirectionNote}</p>
+              <div className="rounded-2xl bg-violet-950/30 border border-violet-500/25 p-4 flex flex-col gap-2">
+                <p className="text-violet-300/90 text-xs font-black tracking-wide">{g.cloudTransferTitle}</p>
+                <div className="flex items-start gap-2">
+                  <Send size={14} className="text-violet-400 shrink-0 mt-0.5" />
+                  <p className="text-white/65 text-sm leading-relaxed">{g.cloudTransferSend}</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Inbox size={14} className="text-violet-400 shrink-0 mt-0.5" />
+                  <p className="text-white/65 text-sm leading-relaxed">{g.cloudTransferReceive}</p>
+                </div>
+              </div>
             </div>
           </section>
 
