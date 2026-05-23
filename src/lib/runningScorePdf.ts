@@ -80,9 +80,13 @@ export const RUNNING_SCORE_PDF_STYLE = `
   }
   .sheet-running h2 { font-size: 6.5pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; flex: 0 0 auto; }
   .rs-columns {
-    flex: 1 1 auto; min-height: 0;
+    flex: 0 0 auto;
     display: flex; flex-direction: row; flex-wrap: wrap;
-    align-content: space-between; justify-content: flex-start; gap: 1.5mm;
+    align-content: flex-start; justify-content: flex-start; gap: 1.5mm;
+  }
+  .sheet-bottom.has-ai .rs-columns {
+    flex: 1 1 auto; min-height: 0;
+    align-content: space-between;
   }
   .rs-col { flex: 0 0 auto; }
   .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 0.5mm; }

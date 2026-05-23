@@ -60,17 +60,26 @@ const BASE_STYLE = `
   .quarter-table td { padding: 1px 3px; border-bottom: 1px solid #e5e7eb; line-height: 1.2; }
   .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 0.5mm; }
   .sheet-stats {
-    flex: 1 1 auto; min-height: 0;
     display: flex; flex-direction: column; justify-content: flex-start;
-    margin-top: auto;
   }
-  .stats-pair { display: flex; gap: 2mm; flex: 1 1 auto; align-items: stretch; }
+  .stats-pair { display: flex; gap: 2mm; flex: 0 0 auto; align-items: flex-start; }
   .stats-pair .stats-block { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .stats-pair h2 { font-size: 7pt; margin: 0 0 0.5mm; flex: 0 0 auto; }
-  .stats-pair table { font-size: 6pt; margin: 0; flex: 1 1 auto; width: 100%; }
-  .stats-pair th { background: #1e40af; color: white; padding: 2px 3px; line-height: 1.2; }
-  .stats-pair td { padding: 2px 3px; line-height: 1.3; border-bottom: 1px solid #e5e7eb; }
+  .stats-pair table {
+    font-size: 6pt; margin: 0; flex: 0 0 auto; width: 100%;
+    border-collapse: collapse; table-layout: auto;
+  }
+  .stats-pair th {
+    background: #1e40af; color: white; padding: 2px 3px; line-height: 1.2;
+    white-space: nowrap; text-align: center; font-weight: 700;
+  }
+  .stats-pair td {
+    padding: 2px 3px; line-height: 1.3; border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap; text-align: center;
+  }
+  .stats-pair th.left, .stats-pair td.left { text-align: left; }
   .stats-pair tr:nth-child(even) { background: #f9fafb; }
+  .sheet-stats { flex: 0 0 auto; margin-top: 0; }
   .sheet-bottom {
     flex: 1 1 54%; min-height: 0;
     border-top: 1px solid #d1d5db;
@@ -80,9 +89,37 @@ const BASE_STYLE = `
     display: flex; flex-direction: row;
     align-items: stretch; gap: 2mm;
   }
-  .sheet-top-expand { flex: 1 1 auto; }
-  .sheet-bottom-compact { flex: 0 0 auto; min-height: auto; }
-  .sheet-bottom-compact .sheet-running { width: 100%; max-width: none; border-left: none; padding-left: 0; height: auto; }
+  /* AIなし: 上段を伸ばさず、ランニングを下にコンパクト配置 */
+  .a4-sheet.no-ai {
+    justify-content: flex-start;
+    gap: 2mm;
+  }
+  .a4-sheet.no-ai .sheet-top {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+  .a4-sheet.no-ai .sheet-bottom {
+    flex: 0 0 auto;
+    min-height: auto;
+    display: block;
+    padding-top: 1.5mm;
+  }
+  .a4-sheet.no-ai .sheet-running {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    border-left: none;
+    padding-left: 0;
+  }
+  .a4-sheet.no-ai .rs-columns {
+    flex: 0 0 auto;
+    align-content: flex-start;
+    justify-content: flex-start;
+  }
+  .a4-sheet.has-ai .sheet-top { flex: 1 1 42%; }
+  .a4-sheet.has-ai .sheet-stats { flex: 1 1 auto; margin-top: auto; min-height: 0; }
+  .a4-sheet.has-ai .stats-pair { flex: 1 1 auto; align-items: stretch; }
+  .a4-sheet.has-ai .stats-pair table { flex: 1 1 auto; }
   .sheet-foot {
     flex: 0 0 auto;
     font-size: 5pt; color: #6b7280; line-height: 1.15;
@@ -99,7 +136,7 @@ const BASE_STYLE = `
       max-height: none; gap: 2mm; padding: 0 1mm;
     }
     .sheet-top { flex: 0 0 auto; }
-    .sheet-bottom { flex: 0 0 auto; min-height: auto; }
+    .a4-sheet.no-ai .sheet-bottom { flex: 0 0 auto; min-height: auto; }
     .sheet-bottom.has-ai { flex-direction: column; }
     .sheet-running { max-width: 100%; border-left: none; padding-left: 0; height: auto; }
     .sheet-ai .ai-body { column-count: 1; }
@@ -249,8 +286,8 @@ export function buildGameScoreSheetDocument(
   const aiHtml = hasAi && aiReport ? buildAiPanelHtml(aiReport) : '';
 
   const bodyHtml = `
-    <div class="a4-sheet">
-      <div class="sheet-top${hasAi ? '' : ' sheet-top-expand'}">
+    <div class="a4-sheet${hasAi ? ' has-ai' : ' no-ai'}">
+      <div class="sheet-top">
         <div class="sheet-head">
           <h1>${escapeHtml(labels.title)}</h1>
           <div class="meta-row">
@@ -285,7 +322,7 @@ export function buildGameScoreSheetDocument(
         </section>
       </div>
 
-      <div class="sheet-bottom${hasAi ? ' has-ai' : ' sheet-bottom-compact'}">
+      <div class="sheet-bottom${hasAi ? ' has-ai' : ''}">
         ${aiHtml}
         ${runningHtml || ''}
       </div>
