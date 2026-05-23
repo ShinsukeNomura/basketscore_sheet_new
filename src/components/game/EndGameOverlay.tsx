@@ -270,11 +270,6 @@ export function EndGameOverlay({
     setScoreSheetPreview(doc);
   };
 
-  const exportScoreSheetPdf = async () => {
-    if (!scoreSheetPreview) return;
-    const { printGameScoreSheet } = await import('@/lib/generatePDF');
-    printGameScoreSheet(scoreSheetPreview, dict.pdf.popupBlocked);
-  };
 
   const handleAI = async () => {
     if (aiReport) { setShowReport((v) => !v); return; }
@@ -324,10 +319,13 @@ export function EndGameOverlay({
         <ScoreSheetPreviewSheet
           document={scoreSheetPreview}
           onClose={() => setScoreSheetPreview(null)}
-          onExportPdf={exportScoreSheetPdf}
           title={dict.pdf.scoreSheet.title}
           backLabel={dict.common.back}
           exportLabel={dict.pdf.exportPdf}
+          shareLabel={dict.pdf.share}
+          shareDoneLabel={dict.pdf.shareDone}
+          shareFallbackLabel={dict.pdf.shareFallback}
+          popupBlocked={dict.pdf.popupBlocked}
         />
       )}
 

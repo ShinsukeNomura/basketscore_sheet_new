@@ -5,6 +5,9 @@ import { fillTemplate, formatLocaleDateTime } from '@/lib/localeFormat';
 import { filterActivePeriods, getEffectiveRegularQuarters, isPracticeGame } from '@/lib/gameFormat';
 import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE } from '@/lib/runningScorePdf';
 import { formatAiReportBody, AI_REPORT_PDF_STYLE, type ScoreSheetAiReport } from '@/lib/scoreSheetAiHtml';
+import { printGameScoreSheet } from '@/lib/scoreSheetExport';
+
+export { printGameScoreSheet } from '@/lib/scoreSheetExport';
 
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 export type { ScoreSheetAiReport };
@@ -87,9 +90,21 @@ const BASE_STYLE = `
   .sheet-foot .app-line { text-align: center; color: #9ca3af; font-size: 5pt; margin: 0; }
   ${RUNNING_SCORE_PDF_STYLE}
   ${AI_REPORT_PDF_STYLE}
+  @media screen and (max-width: 480px) {
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    .a4-sheet {
+      width: 100%; max-width: 100%; height: auto; min-height: auto;
+      max-height: none; gap: 2mm; padding: 0 1mm;
+    }
+    .sheet-top { flex: 0 0 auto; }
+    .sheet-bottom { flex: 0 0 auto; min-height: auto; }
+    .sheet-bottom.has-ai { flex-direction: column; }
+    .sheet-running { max-width: 100%; border-left: none; padding-left: 0; height: auto; }
+    .sheet-ai .ai-body { column-count: 1; }
+  }
   @media print {
     html, body { height: ${PAGE_H}; overflow: hidden; }
-    .a4-sheet { page-break-inside: avoid; height: ${PAGE_H}; }
+    .a4-sheet { page-break-inside: avoid; height: ${PAGE_H}; width: 202mm; max-width: 202mm; }
   }
 `;
 
@@ -287,23 +302,6 @@ export function buildGameScoreSheetDocument(
     `<body>${bodyHtml}</body></html>`;
 
   return { title, htmlLang, fullHtml };
-}
-
-export function printGameScoreSheet(
-  doc: GameScoreSheetDocument,
-  popupBlocked: string,
-): void {
-  const win = window.open('', '_blank', 'width=820,height=1160');
-  if (!win) {
-    alert(popupBlocked);
-    return;
-  }
-  win.document.write(doc.fullHtml);
-  win.document.close();
-  win.onload = () => {
-    win.focus();
-    win.print();
-  };
 }
 
 export function generateGamePDF(
