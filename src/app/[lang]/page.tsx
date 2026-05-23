@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   getGamesIndex, deleteGame, mergeCloudGamesIntoIndex,
   getLastCloudFetchAt, setLastCloudFetchAt as persistLastCloudFetchAt,
-  GameSummary, FREE_GAME_LIMIT,
+  GameSummary, FREE_GAME_LIMIT, GUEST_GAME_LIMIT,
 } from '@/lib/storage';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
 import { pullUserTeamsFromCloud } from '@/lib/myTeams';
@@ -72,13 +72,14 @@ function LangSwitcher({ current, basePath }: { current: string; basePath: string
   );
 }
 
-function GameCard({ game, onDelete, onLabel, onSend, locale, dict }: {
+function GameCard({ game, onDelete, onLabel, onSend, locale, dict, showSend = true }: {
   game: GameSummary;
   onDelete: (id: string) => void;
   onLabel: (game: GameSummary) => void;
   onSend:  (game: GameSummary) => void;
   locale: string;
   dict: ReturnType<typeof useDictionary>;
+  showSend?: boolean;
 }) {
   const isFinished = game.status === 'finished';
   const diff = game.ourScore - game.theirScore;
@@ -114,14 +115,16 @@ function GameCard({ game, onDelete, onLabel, onSend, locale, dict }: {
           </div>
           <ChevronRight size={16} className="text-white/20 shrink-0" />
         </Link>
-        <button
-          type="button"
-          onClick={() => onSend(game)}
-          className="p-3 rounded-xl text-white/20 active:text-sky-400 active:bg-sky-950/40 transition-colors shrink-0"
-          aria-label={tr.sendToAccount}
-        >
-          <Send size={14} />
-        </button>
+        {showSend && (
+          <button
+            type="button"
+            onClick={() => onSend(game)}
+            className="p-3 rounded-xl text-white/20 active:text-sky-400 active:bg-sky-950/40 transition-colors shrink-0"
+            aria-label={tr.sendToAccount}
+          >
+            <Send size={14} />
+          </button>
+        )}
         <button
           onClick={() => onLabel(game)}
           className={cn(
@@ -154,7 +157,7 @@ function GameCard({ game, onDelete, onLabel, onSend, locale, dict }: {
 }
 
 export default function HomePage() {
-  const { user, isPremium, signOut, loading } = useAuth();
+  const { user, isPremium, signOut, loading, isGuest } = useAuth();
   const dict = useDictionary();
   const h = dict.home;
   const contactFormUrl = getContactFormUrl();
@@ -192,11 +195,11 @@ export default function HomePage() {
   }, [loading, user, locale]);
 
   useEffect(() => {
-    if (!loading && !user) window.location.href = `/${locale}/login`;
-  }, [user, loading, locale]);
+    if (!loading && !user && !isGuest) window.location.href = `/${locale}/login`;
+  }, [user, loading, isGuest, locale]);
 
   const loadTransfers = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || isGuest) {
       setTransfers([]);
       return;
     }
@@ -208,11 +211,14 @@ export default function HomePage() {
   }, [user?.id]);
 
   const loadGames = useCallback(async () => {
+    if (isGuest) {
+      setGames(getGamesIndex());
+      return;
+    }
     if (!user?.id) {
       setGames([]);
       return;
     }
-    // getGamesIndex() はすでにユーザー固有キーを参照するため追加フィルタ不要
     const [cloud] = await Promise.all([
       fetchGamesFromCloud(user.id),
       pullUserTeamsFromCloud(user.id),
@@ -223,7 +229,7 @@ export default function HomePage() {
     } else {
       setGames(getGamesIndex());
     }
-  }, [user?.id, loadTransfers]);
+  }, [user?.id, isGuest, loadTransfers]);
 
   useEffect(() => { if (!loading) loadGames(); }, [loading, loadGames]);
 
@@ -314,7 +320,12 @@ export default function HomePage() {
     });
 
 
-  if (loading || !user) {
+  const gameLimit = isGuest ? GUEST_GAME_LIMIT : FREE_GAME_LIMIT;
+  const atGameLimit = isGuest
+    ? games.length >= GUEST_GAME_LIMIT
+    : !isPremium && games.length >= FREE_GAME_LIMIT;
+
+  if (loading || (!user && !isGuest)) {
     return (
       <div className="h-dvh flex items-center justify-center bg-neutral-950">
         <div className="w-7 h-7 border-2 border-white/15 border-t-white/60 rounded-full animate-spin" />
@@ -333,25 +344,45 @@ export default function HomePage() {
         <h1 className="text-white font-black text-2xl tracking-tight">Basketball Score</h1>
         <p className="text-white/30 text-sm mt-1">{h.subtitle}</p>
 
-        {/* ユーザー情報 */}
-        <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-white/5 border border-white/8">
-          {isPremium ? <Crown size={12} className="text-amber-400" /> : <span className="w-2 h-2 rounded-full bg-white/30" />}
-          <span className="text-white/40 text-xs truncate max-w-[160px]">{user?.email}</span>
-          {isPremium && (
-            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">PRO</span>
-          )}
-          <button onClick={signOut} className="text-white/25 hover:text-white/60 transition-colors ml-1" aria-label="logout">
-            <LogOut size={12} />
-          </button>
-        </div>
+        {/* ユーザー情報 / ゲスト */}
+        {isGuest ? (
+          <div className="flex flex-col items-center gap-2 mt-4 w-full max-w-sm">
+            <span className="text-[10px] font-bold text-sky-400/90 bg-sky-500/10 border border-sky-500/25 px-2.5 py-0.5 rounded-full">
+              {h.guestBadge}
+            </span>
+            <Link
+              href={`/${locale}/login`}
+              className="text-sky-400 text-xs font-semibold underline underline-offset-2 active:text-sky-200"
+            >
+              {h.guestBannerCta}
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-white/5 border border-white/8">
+            {isPremium ? <Crown size={12} className="text-amber-400" /> : <span className="w-2 h-2 rounded-full bg-white/30" />}
+            <span className="text-white/40 text-xs truncate max-w-[160px]">{user?.email}</span>
+            {isPremium && (
+              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">PRO</span>
+            )}
+            <button onClick={signOut} className="text-white/25 hover:text-white/60 transition-colors ml-1" aria-label="logout">
+              <LogOut size={12} />
+            </button>
+          </div>
+        )}
 
         {/* アクションボタン行 */}
-        {showCloudFetchHint && !syncing && !syncMsg && (
+        {isGuest && (
+          <p className="text-[11px] text-white/40 text-center mt-3 px-5 leading-relaxed max-w-md">
+            {h.guestBanner}
+          </p>
+        )}
+        {showCloudFetchHint && !syncing && !syncMsg && !isGuest && (
           <p className="text-[10px] text-amber-400/50 text-center mt-2 px-4 leading-snug">
             {h.cloudFetchStaleHint}
           </p>
         )}
         <div className="flex gap-2 mt-2 flex-wrap justify-center items-center">
+          {!isGuest && (
           <button
             onClick={handleSync}
             title={syncMsg ?? h.cloudSync}
@@ -371,18 +402,22 @@ export default function HomePage() {
               {syncing ? h.syncing : syncMsg ? h.cloudSyncDoneShort : h.cloudSyncShort}
             </span>
           </button>
+          )}
+          {!isGuest && (
           <button
             onClick={() => setMyTeamsOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
           >
             <Users size={12} />{h.myTeams}
           </button>
+          )}
           <Link
             href={`/${locale}/guide`}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
           >
             <BookOpen size={12} />{h.guide}
           </Link>
+          {!isGuest && (
           <Link
             href={`/${locale}/analysis`}
             className={cn(
@@ -395,6 +430,7 @@ export default function HomePage() {
             <BarChart2 size={12} />{h.analysis}
             {isPremium && <Crown size={9} className="text-amber-400" />}
           </Link>
+          )}
           {contactFormUrl && (
             <a
               href={contactFormUrl}
@@ -410,18 +446,21 @@ export default function HomePage() {
         </div>
       </div>
 
-      <GameTransferBanner
-        transfers={transfers}
-        isPremium={isPremium}
-        onAccepted={() => { void loadGames(); }}
-        onRejected={(id) => setTransfers((prev) => prev.filter((t) => t.id !== id))}
-      />
-
-      <SendGameTransferSheet
-        game={sendTransferGame}
-        open={!!sendTransferGame}
-        onClose={() => setSendTransferGame(null)}
-      />
+      {!isGuest && (
+        <>
+          <GameTransferBanner
+            transfers={transfers}
+            isPremium={isPremium}
+            onAccepted={() => { void loadGames(); }}
+            onRejected={(id) => setTransfers((prev) => prev.filter((t) => t.id !== id))}
+          />
+          <SendGameTransferSheet
+            game={sendTransferGame}
+            open={!!sendTransferGame}
+            onClose={() => setSendTransferGame(null)}
+          />
+        </>
+      )}
 
       {/* ── コンテンツ ── */}
       <div className="px-4 pb-56">
@@ -434,7 +473,7 @@ export default function HomePage() {
             </div>
             <div className="flex flex-col gap-2">
               {activeGames.map((g) => (
-                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} />
+                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} showSend={!isGuest} />
               ))}
             </div>
           </section>
@@ -519,7 +558,7 @@ export default function HomePage() {
                             </div>
                             <div className="flex flex-col gap-2">
                               {mGames.map((g) => (
-                                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} />
+                                <GameCard key={g.id} game={g} onDelete={handleDelete} onLabel={setLabelTarget} onSend={setSendTransferGame} locale={locale} dict={dict} showSend={!isGuest} />
                               ))}
                             </div>
                           </div>
@@ -562,13 +601,22 @@ export default function HomePage() {
           <Link href={`/${locale}/terms`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.terms}</Link>
           <Link href={`/${locale}/legal`}   className="text-white/15 text-[10px] active:text-white/40">{dict.nav.legal}</Link>
         </div>
-        {!isPremium && games.length >= FREE_GAME_LIMIT ? (
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
-          >
-            <Crown size={18} />{h.upgradeToPremium}
-          </button>
+        {atGameLimit ? (
+          isGuest ? (
+            <Link
+              href={`/${locale}/login`}
+              className="flex items-center justify-center gap-2 w-full bg-blue-600 active:bg-blue-700 text-white font-black rounded-2xl py-4 text-base transition-colors"
+            >
+              {h.signInToSave}
+            </Link>
+          ) : (
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
+            >
+              <Crown size={18} />{h.upgradeToPremium}
+            </button>
+          )
         ) : (
           <button
             onClick={() => setCreateOpen(true)}
@@ -576,9 +624,11 @@ export default function HomePage() {
           >
             <Plus size={18} />
             {h.createGame}
-            {!isPremium && (
+            {(isGuest || !isPremium) && (
               <span className="ml-auto text-[11px] text-blue-300/70 font-semibold">
-                {h.remainingFree.replace('{count}', String(Math.max(0, FREE_GAME_LIMIT - games.length)))}
+                {isGuest
+                  ? h.guestRemaining.replace('{count}', String(Math.max(0, gameLimit - games.length)))
+                  : h.remainingFree.replace('{count}', String(Math.max(0, gameLimit - games.length)))}
               </span>
             )}
           </button>

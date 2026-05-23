@@ -12,15 +12,40 @@ export type { GameSummary };
 // ============================================================
 
 let _uid: string | null = null;
+let _guest = false;
 
 export function setStorageUser(uid: string | null): void {
   _uid = uid;
+  if (uid) _guest = false;
 }
 
-// キー生成: userId がセットされていればユーザー固有キーを使用
-const IDX_KEY   = () => _uid ? `bball_games_${_uid}`       : 'bball_games';
-const LABEL_KEY = () => _uid ? `bball_labels_${_uid}`      : 'bball_label_list';
-const GAME_KEY  = (id: string) => _uid ? `bball_game_${_uid}_${id}` : `bball_game_${id}`;
+export function setStorageGuestMode(guest: boolean): void {
+  _guest = guest;
+  if (guest) _uid = null;
+}
+
+export function isStorageGuestMode(): boolean {
+  return _guest && !_uid;
+}
+
+// キー生成: ゲスト > ログインユーザー > レガシー（未使用）
+const IDX_KEY   = () => {
+  if (_guest && !_uid) return 'bball_guest_games';
+  if (_uid) return `bball_games_${_uid}`;
+  return 'bball_games';
+};
+const LABEL_KEY = () => {
+  if (_guest && !_uid) return 'bball_guest_labels';
+  if (_uid) return `bball_labels_${_uid}`;
+  return 'bball_label_list';
+};
+const GAME_KEY  = (id: string) => {
+  if (_guest && !_uid) return `bball_guest_game_${id}`;
+  if (_uid) return `bball_game_${_uid}_${id}`;
+  return `bball_game_${id}`;
+};
+
+const GUEST_PREFIX = 'bball_guest_';
 
 // ============================================================
 // ラベル管理
@@ -52,9 +77,76 @@ export function setGameLabels(gameId: string, labels: string[]): void {
 }
 
 export const FREE_GAME_LIMIT = 3;
+export const GUEST_GAME_LIMIT = 1;
+
+export function getGamesIndexForScope(): GameSummary[] {
+  return getGamesIndex();
+}
 
 export function isFreeLimitReached(): boolean {
+  if (isStorageGuestMode()) return isGuestLimitReached();
   return getGamesIndex().length >= FREE_GAME_LIMIT;
+}
+
+export function isGuestLimitReached(): boolean {
+  return getGamesIndex().length >= GUEST_GAME_LIMIT;
+}
+
+export function getActiveGameLimit(): number {
+  return isStorageGuestMode() ? GUEST_GAME_LIMIT : FREE_GAME_LIMIT;
+}
+
+/** ゲスト localStorage をログインユーザーへ移行（呼び出し前に setStorageGuestMode(true)） */
+export function migrateGuestStorageToUser(userId: string): void {
+  if (typeof window === 'undefined') return;
+
+  const guestIdxKey = 'bball_guest_games';
+  const guestLabelsKey = 'bball_guest_labels';
+  let guestIndex: GameSummary[] = [];
+  try {
+    guestIndex = JSON.parse(localStorage.getItem(guestIdxKey) ?? '[]') as GameSummary[];
+  } catch { /* empty */ }
+
+  setStorageGuestMode(false);
+  setStorageUser(userId);
+
+  if (guestIndex.length === 0) {
+    localStorage.removeItem(guestIdxKey);
+    localStorage.removeItem(guestLabelsKey);
+    return;
+  }
+
+  const userIdxKey = `bball_games_${userId}`;
+  let userIndex: GameSummary[] = [];
+  try {
+    userIndex = JSON.parse(localStorage.getItem(userIdxKey) ?? '[]') as GameSummary[];
+  } catch { /* empty */ }
+
+  for (const summary of guestIndex) {
+    const guestGameKey = `${GUEST_PREFIX}game_${summary.id}`;
+    const raw = localStorage.getItem(guestGameKey);
+    if (raw) {
+      localStorage.setItem(`bball_game_${userId}_${summary.id}`, raw);
+      localStorage.removeItem(guestGameKey);
+    }
+    const migrated: GameSummary = { ...summary, user_id: userId };
+    const idx = userIndex.findIndex((g) => g.id === summary.id);
+    if (idx >= 0) userIndex[idx] = migrated;
+    else userIndex.unshift(migrated);
+  }
+
+  localStorage.setItem(userIdxKey, JSON.stringify(userIndex));
+
+  const guestLabels = localStorage.getItem(guestLabelsKey);
+  if (guestLabels) {
+    const userLabelsKey = `bball_labels_${userId}`;
+    if (!localStorage.getItem(userLabelsKey)) {
+      localStorage.setItem(userLabelsKey, guestLabels);
+    }
+    localStorage.removeItem(guestLabelsKey);
+  }
+
+  localStorage.removeItem(guestIdxKey);
 }
 
 function makeId(): string {

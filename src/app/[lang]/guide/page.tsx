@@ -352,6 +352,10 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-white/65 text-sm leading-relaxed">{g.cloudDownloadBody}</p>
               </div>
               <p className="text-white/30 text-xs text-center px-2 leading-relaxed">{g.cloudDirectionNote}</p>
+              <div className="rounded-2xl bg-sky-950/30 border border-sky-500/25 p-4 flex flex-col gap-2">
+                <p className="text-sky-300/90 text-xs font-black tracking-wide">{g.guestModeTitle}</p>
+                <p className="text-white/65 text-sm leading-relaxed">{g.guestModeDesc}</p>
+              </div>
               <div className="rounded-2xl bg-violet-950/30 border border-violet-500/25 p-4 flex flex-col gap-2">
                 <p className="text-violet-300/90 text-xs font-black tracking-wide">{g.cloudTransferTitle}</p>
                 <div className="flex items-start gap-2">

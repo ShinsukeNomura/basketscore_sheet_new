@@ -2,7 +2,11 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createNewGame, updateGameSetup, loadPersistedGame, isFreeLimitReached, FREE_GAME_LIMIT } from '@/lib/storage';
+import {
+  createNewGame, updateGameSetup, loadPersistedGame,
+  isFreeLimitReached, isGuestLimitReached, isStorageGuestMode,
+  FREE_GAME_LIMIT, GUEST_GAME_LIMIT,
+} from '@/lib/storage';
 import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -148,6 +152,27 @@ function Field({
 // ────────────────────────────────────
 const PAYWALL_ICONS = [Zap, Users, BarChart2, Cloud, FileText] as const;
 
+function GuestPaywall({ onClose, locale }: { onClose: () => void; locale: string }) {
+  const p = useDictionary().premium;
+  const router = useRouter();
+  return (
+    <div className="flex flex-col items-center text-center gap-5 py-4">
+      <h2 className="text-white font-black text-xl">{p.guestPaywallTitle}</h2>
+      <p className="text-white/40 text-sm leading-relaxed px-2">{p.guestPaywallDesc}</p>
+      <button
+        type="button"
+        onClick={() => router.push(`/${locale}/login`)}
+        className="w-full bg-blue-600 active:bg-blue-700 text-white font-black rounded-2xl py-4 text-base"
+      >
+        {p.guestPaywallCta}
+      </button>
+      <button type="button" onClick={onClose} className="text-white/30 text-sm py-2 active:text-white/60">
+        {p.close}
+      </button>
+    </div>
+  );
+}
+
 function Paywall({ onClose, user }: { onClose: () => void; user: { id: string; email?: string } | null }) {
   const dict = useDictionary();
   const p = dict.premium;
@@ -230,7 +255,7 @@ interface Props {
 
 export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
   const router = useRouter();
-  const { isPremium, user } = useAuth();
+  const { isPremium, user, isGuest } = useAuth();
   const dict   = useDictionary();
   const locale = useLocale();
   const g = dict.game;
@@ -253,8 +278,13 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
   const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
 
   useEffect(() => {
-    if (open && !isEdit) setLimitReached(!isPremium && isFreeLimitReached());
-  }, [open, isPremium, isEdit]);
+    if (!open || isEdit) return;
+    if (isGuest || isStorageGuestMode()) {
+      setLimitReached(isGuestLimitReached());
+    } else {
+      setLimitReached(!isPremium && isFreeLimitReached());
+    }
+  }, [open, isPremium, isEdit, isGuest]);
 
   // 編集モード: 既存試合データをフォームに読み込む
   useEffect(() => {
@@ -392,7 +422,11 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
                 </button>
                 <SheetTitle className="text-white text-base flex-1">{dict.premium.title}</SheetTitle>
               </SheetHeader>
-              <Paywall onClose={handleClose} user={user} />
+              {(isGuest || isStorageGuestMode()) ? (
+                <GuestPaywall onClose={handleClose} locale={locale} />
+              ) : (
+                <Paywall onClose={handleClose} user={user} />
+              )}
             </>
           ) : (
             <>

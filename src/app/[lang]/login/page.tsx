@@ -49,7 +49,7 @@ function LangSwitcher({ current, path }: { current: string; path: string }) {
 type Mode = 'signin' | 'signup';
 
 export default function LoginPage() {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, resetPassword, enterGuestMode } = useAuth();
   const dict = useDictionary();
   const d = dict.login;
   const locale = useLocale();
@@ -230,6 +230,20 @@ export default function LoginPage() {
             {d.forgotPassword}
           </button>
         )}
+
+        <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-white/8">
+          <button
+            type="button"
+            onClick={() => {
+              enterGuestMode();
+              window.location.href = `/${locale}`;
+            }}
+            className="w-full py-3.5 rounded-2xl border border-white/15 bg-white/5 text-white/80 text-sm font-bold active:bg-white/10 transition-colors"
+          >
+            {d.guestTry}
+          </button>
+          <p className="text-white/25 text-[11px] text-center leading-relaxed px-2">{d.guestHint}</p>
+        </div>
       </div>
 
       {mode === 'signup' && (
