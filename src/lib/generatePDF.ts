@@ -22,7 +22,10 @@ const BASE_STYLE = `
   }
   .a4-sheet {
     width: 200mm; max-width: 200mm; margin: 0 auto; padding: 0;
+    min-height: calc(297mm - 10mm);
+    display: flex; flex-direction: column;
   }
+  .sheet-top { flex: 0 0 auto; }
   h1 { font-size: 10pt; text-align: center; margin: 0 0 1mm; line-height: 1.15; }
   .meta { text-align: center; color: #4b5563; font-size: 6.5pt; margin-bottom: 2mm; line-height: 1.25; }
   .score-box {
@@ -45,17 +48,17 @@ const BASE_STYLE = `
   .stats-pair table { font-size: 5pt; }
   .stats-pair th, .stats-pair td { padding: 0 1px; }
   .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 1mm; }
-  .abbr { font-size: 5pt; color: #6b7280; margin-bottom: 2mm; line-height: 1.2; }
+  .abbr { font-size: 5pt; color: #6b7280; margin: 0 0 1.5mm; line-height: 1.15; }
   .sheet-bottom {
-    display: grid;
-    grid-template-columns: 1fr 64mm;
-    gap: 3mm;
-    align-items: start;
+    display: flex; flex-direction: column;
+    gap: 1.5mm;
     border-top: 1px solid #d1d5db;
-    padding-top: 2mm;
+    padding-top: 1.5mm;
   }
-  .sheet-bottom.no-ai { grid-template-columns: 1fr; }
-  .footer { font-size: 5pt; color: #9ca3af; text-align: center; margin-top: 2mm; }
+  .sheet-bottom.has-ai {
+    flex: 1 1 auto; min-height: 0;
+  }
+  .footer { font-size: 5pt; color: #9ca3af; text-align: center; margin-top: auto; padding-top: 1mm; flex: 0 0 auto; }
   ${RUNNING_SCORE_PDF_STYLE}
   ${AI_REPORT_PDF_STYLE}
   @media print {
@@ -201,10 +204,10 @@ export function buildGameScoreSheetDocument(
 
   const hasAi = Boolean(aiReport?.body.trim());
   const aiHtml = hasAi && aiReport ? buildAiPanelHtml(aiReport) : '';
-  const bottomClass = hasAi ? 'sheet-bottom' : 'sheet-bottom no-ai';
 
   const bodyHtml = `
     <div class="a4-sheet">
+    <div class="sheet-top">
       <h1>${escapeHtml(labels.title)}</h1>
       <div class="meta">
         <div>${escapeHtml(game.game_name)}</div>
@@ -233,9 +236,10 @@ export function buildGameScoreSheetDocument(
       </div>
 
       <p class="abbr"><strong>${escapeHtml(labels.abbrevTitle)}:</strong> ${escapeHtml(labels.abbrev)}</p>
+    </div>
 
-      <div class="${bottomClass}">
-        ${runningHtml || '<section class="sheet-running"></section>'}
+      <div class="sheet-bottom${hasAi ? ' has-ai' : ''}">
+        ${runningHtml || ''}
         ${aiHtml}
       </div>
 

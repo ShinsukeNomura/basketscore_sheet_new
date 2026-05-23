@@ -77,9 +77,9 @@ function renderColumn(
 }
 
 export const RUNNING_SCORE_PDF_STYLE = `
-  .sheet-running { min-width: 0; }
-  .sheet-running h2 { font-size: 7pt; margin: 0 0 1mm; color: #1e40af; border: none; padding: 0; }
-  .rs-columns { display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 1.5mm; max-width: 100%; }
+  .sheet-running { flex: 0 0 auto; width: 100%; }
+  .sheet-running h2 { font-size: 7pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; }
+  .rs-columns { display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; gap: 1.5mm; width: 100%; }
   .rs-col { flex: 0 0 auto; }
   .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 0.5mm; }
   .rs-col table { border-collapse: collapse; font-size: 5pt; line-height: 1; table-layout: fixed; width: auto; }
