@@ -166,7 +166,7 @@ export default function GamePage() {
         />
       </div>
 
-      <div className="flex-[1.2] min-h-0 overflow-hidden">
+      <div className="flex-[1.2] min-h-0 overflow-hidden relative z-0">
         <TeamSection
           team={theirTeam}
           courtPlayers={theirCourtPlayers}
@@ -182,14 +182,16 @@ export default function GamePage() {
         />
       </div>
 
-      <div className="flex-[1.6] min-h-0 flex flex-col justify-end bg-neutral-950 border-t border-white/5 relative z-10 overflow-hidden pb-safe">
-        <Timeline
-          entries={recentEntries}
-          allPlayers={allPlayers}
-          onUndo={undoLog}
-          totalCount={allTimelineEntries.length}
-          onViewAll={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/timeline`); }}
-        />
+      <div className="shrink-0 relative z-20 bg-neutral-950 border-t border-white/10 shadow-[0_-6px_16px_rgba(0,0,0,0.45)] pb-safe">
+        <div className="max-h-[38dvh] overflow-y-auto overscroll-contain">
+          <Timeline
+            entries={recentEntries}
+            allPlayers={allPlayers}
+            onUndo={undoLog}
+            totalCount={allTimelineEntries.length}
+            onViewAll={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/timeline`); }}
+          />
+        </div>
       </div>
 
       {tovPending && tovMode !== 'simple' && (

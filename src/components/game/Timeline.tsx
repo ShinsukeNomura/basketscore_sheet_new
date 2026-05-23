@@ -88,7 +88,7 @@ export function Timeline({ entries, allPlayers, onUndo, totalCount, onViewAll }:
   const hasMore = total > entries.length && onViewAll;
 
   return (
-    <div className="bg-neutral-950 px-2 py-1.5 flex flex-col gap-1.5">
+    <div className="bg-neutral-950 px-2 py-1.5 flex flex-col gap-1.5 shrink-0">
       {hasMore && (
         <button
           type="button"

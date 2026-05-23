@@ -47,7 +47,7 @@ export function TeamSection({
   }, [editVal, onRenameTeam, team.id]);
 
   return (
-    <div className={cn('flex flex-col h-full px-2 py-0.5', cfg.sectionBg)}>
+    <div className={cn('flex flex-col h-full min-h-0 overflow-hidden px-2 py-0.5', cfg.sectionBg)}>
 
       {/* チーム名行 */}
       <div className="flex items-center justify-between mb-0.5 shrink-0">
