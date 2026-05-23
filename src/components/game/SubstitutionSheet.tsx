@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, type PointerEvent } from 'react';
 import { Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,8 @@ export function SubstitutionSheet({
   const [input, setInput]       = useState('');
   const [error, setError]       = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  /** 交代でリストが差し替わった直後の outside-press / focus-out を無視 */
+  const suppressCloseRef = useRef(false);
 
   const keepFocus = useCallback(() => {
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -75,11 +77,26 @@ export function SubstitutionSheet({
     setOutPlayer((prev) => (prev?.id === player.id ? null : player));
   }
 
-  function handleBenchTap(benchPlayer: Player) {
-    if (!outPlayer) return;
-    onSubstitute(outPlayer.id, benchPlayer.id);
+  function applySubstitute(outId: string, inId: string) {
+    suppressCloseRef.current = true;
+    onSubstitute(outId, inId);
     setOutPlayer(null);
     if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+    window.setTimeout(() => { suppressCloseRef.current = false; }, 400);
+  }
+
+  function handleOpenChange(
+    nextOpen: boolean,
+    details?: { reason?: string },
+  ) {
+    if (nextOpen) return;
+    if (suppressCloseRef.current) return;
+    const reason = details?.reason;
+    if (reason === 'outside-press' || reason === 'focus-out') return;
+    setOutPlayer(null);
+    setInput('');
+    setError('');
+    onClose();
   }
 
   function handleDone() {
@@ -95,11 +112,23 @@ export function SubstitutionSheet({
 
   const cfg = getColorConfig(team?.color);
 
-  function PlayerChip({ player, isSelected, onClick }: { player: Player; isSelected?: boolean; onClick: () => void }) {
+  function PlayerChip({
+    player,
+    isSelected,
+    onClick,
+    onPointerDown,
+  }: {
+    player: Player;
+    isSelected?: boolean;
+    onClick?: () => void;
+    onPointerDown?: (e: PointerEvent<HTMLButtonElement>) => void;
+  }) {
     const fouls = playerFouls[player.id] ?? 0;
     return (
       <button
+        type="button"
         onClick={onClick}
+        onPointerDown={onPointerDown}
         className={cn(
           'flex flex-col items-center justify-center rounded-xl py-3.5 px-2 transition-all duration-75 active:scale-95 min-h-[60px]',
           cfg.cardBg, cfg.cardHover,
@@ -115,7 +144,11 @@ export function SubstitutionSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) { setOutPlayer(null); setInput(''); setError(''); onClose(); } }}>
+    <Sheet
+      open={open}
+      disablePointerDismissal
+      onOpenChange={handleOpenChange}
+    >
       <SheetContent
         side="bottom"
         showCloseButton={false}
@@ -183,7 +216,12 @@ export function SubstitutionSheet({
                 <PlayerChip
                   key={p.id}
                   player={p}
-                  onClick={() => handleBenchTap(p)}
+                  onPointerDown={(e) => {
+                    if (!outPlayer) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    applySubstitute(outPlayer.id, p.id);
+                  }}
                 />
               ))
             )}
