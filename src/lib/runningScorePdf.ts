@@ -78,17 +78,15 @@ function renderColumn(
 
 export const RUNNING_SCORE_PDF_STYLE = `
   .sheet-running {
-    flex: 0 0 auto; width: auto; max-width: 52mm;
+    flex: 0 0 auto; width: auto; max-width: 50mm; height: 100%;
     border-left: 1px solid #d1d5db; padding-left: 2mm;
-    box-sizing: border-box;
+    display: flex; flex-direction: column;
   }
-  .sheet-bottom:not(.has-ai) .sheet-running {
-    max-width: none; border-left: none; padding-left: 0; width: 100%;
-  }
-  .sheet-running h2 { font-size: 6.5pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; white-space: nowrap; }
+  .sheet-running h2 { font-size: 6.5pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; flex: 0 0 auto; }
   .rs-columns {
+    flex: 1 1 auto; min-height: 0;
     display: flex; flex-direction: row; flex-wrap: wrap;
-    align-content: flex-start; justify-content: flex-start; gap: 1.5mm;
+    align-content: space-between; justify-content: flex-start; gap: 1.5mm;
   }
   .rs-col { flex: 0 0 auto; }
   .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 0.5mm; }

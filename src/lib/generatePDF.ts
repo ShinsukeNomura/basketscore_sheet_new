@@ -9,63 +9,87 @@ import { formatAiReportBody, AI_REPORT_PDF_STYLE, type ScoreSheetAiReport } from
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 export type { ScoreSheetAiReport };
 
-/** A4用スタイル（transformなし・固定幅） */
+/** A4用スタイル（1枚全体を flex で均等配分） */
+const PAGE_H = '287mm';
+
 const BASE_STYLE = `
-  @page { size: A4 portrait; margin: 5mm; }
+  @page { size: A4 portrait; margin: 4mm; }
   * { box-sizing: border-box; }
-  html { width: 210mm; }
-  body {
-    width: 210mm; max-width: 210mm; margin: 0 auto; padding: 0;
+  html, body {
+    width: 210mm; max-width: 210mm; margin: 0; padding: 0;
     font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif;
     color: #1a1a1a; font-size: 7pt; line-height: 1.2;
-    overflow-x: hidden;
+    overflow: hidden;
   }
   .a4-sheet {
-    width: 200mm; max-width: 200mm; margin: 0 auto; padding: 0;
-    min-height: calc(297mm - 10mm);
+    width: 202mm; max-width: 202mm; margin: 0 auto;
+    height: ${PAGE_H}; max-height: ${PAGE_H};
     display: flex; flex-direction: column;
+    gap: 1.5mm;
   }
-  .sheet-top { flex: 0 0 auto; }
-  h1 { font-size: 10pt; text-align: center; margin: 0 0 1mm; line-height: 1.15; }
-  .meta { text-align: center; color: #4b5563; font-size: 6.5pt; margin-bottom: 2mm; line-height: 1.25; }
+  .sheet-top {
+    flex: 1 1 42%; min-height: 0;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    gap: 1.5mm;
+  }
+  .sheet-head { flex: 0 0 auto; }
+  h1 { font-size: 10pt; text-align: center; margin: 0; line-height: 1.15; }
+  .meta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 2mm; margin-top: 0.5mm;
+  }
+  .meta { flex: 1; text-align: left; color: #4b5563; font-size: 6.5pt; line-height: 1.25; }
   .score-box {
-    display: flex; align-items: center; justify-content: center; gap: 8mm;
-    border-top: 1.5px solid #1e40af; border-bottom: 1.5px solid #1e40af;
-    padding: 2mm 0; margin-bottom: 2mm;
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; gap: 4mm;
+    border: 1.5px solid #1e40af; border-radius: 3px;
+    padding: 1.5mm 3mm;
   }
-  .team-name { font-size: 9pt; font-weight: 900; text-align: center; }
-  .score-num { font-size: 15pt; font-weight: 900; color: #1e40af; line-height: 1; }
-  .score-sep { font-size: 10pt; font-weight: 700; color: #6b7280; }
-  h2 { font-size: 7pt; color: #1e40af; border-left: 2px solid #1e40af; padding-left: 3px; margin: 2mm 0 1mm; line-height: 1.1; }
-  table { width: 100%; border-collapse: collapse; font-size: 6pt; margin: 0 0 2mm; }
-  th { background: #1e40af; color: white; padding: 0.5px 2px; text-align: center; font-weight: bold; }
-  th.left, td.left { text-align: left; }
-  td { padding: 0 2px; border-bottom: 1px solid #e5e7eb; text-align: center; line-height: 1.1; }
-  tr:nth-child(even) { background: #f9fafb; }
-  .stats-pair { display: flex; gap: 2mm; margin-bottom: 2.5mm; }
-  .stats-pair .stats-block { flex: 1; min-width: 0; overflow: hidden; }
-  .stats-pair h2 { font-size: 7pt; margin-top: 0; }
-  .stats-pair table { font-size: 5.5pt; margin-bottom: 0; }
-  .stats-pair th { padding: 1px 2px; line-height: 1.2; }
-  .stats-pair td { padding: 1px 2px; line-height: 1.25; }
-  .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 1mm; }
-  .abbr { font-size: 5pt; color: #6b7280; margin: 0 0 1.5mm; line-height: 1.15; }
+  .team-name { font-size: 8.5pt; font-weight: 900; text-align: center; max-width: 28mm; }
+  .score-num { font-size: 14pt; font-weight: 900; color: #1e40af; line-height: 1; }
+  .score-sep { font-size: 9pt; font-weight: 700; color: #6b7280; }
+  .sheet-quarter { flex: 0 0 auto; }
+  h2 { font-size: 7pt; color: #1e40af; border-left: 2px solid #1e40af; padding-left: 3px; margin: 0 0 0.5mm; line-height: 1.1; }
+  .quarter-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin: 0; }
+  .quarter-table th { background: #1e40af; color: white; padding: 1px 3px; }
+  .quarter-table td { padding: 1px 3px; border-bottom: 1px solid #e5e7eb; line-height: 1.2; }
+  .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 0.5mm; }
+  .sheet-stats {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .stats-pair { display: flex; gap: 2mm; flex: 1 1 auto; align-items: stretch; }
+  .stats-pair .stats-block { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .stats-pair h2 { font-size: 7pt; margin: 0 0 0.5mm; flex: 0 0 auto; }
+  .stats-pair table { font-size: 6pt; margin: 0; flex: 1 1 auto; width: 100%; }
+  .stats-pair th { background: #1e40af; color: white; padding: 2px 3px; line-height: 1.2; }
+  .stats-pair td { padding: 2px 3px; line-height: 1.3; border-bottom: 1px solid #e5e7eb; }
+  .stats-pair tr:nth-child(even) { background: #f9fafb; }
   .sheet-bottom {
+    flex: 1 1 54%; min-height: 0;
     border-top: 1px solid #d1d5db;
-    padding-top: 1.5mm;
+    padding-top: 1mm;
   }
   .sheet-bottom.has-ai {
-    flex: 0 0 auto;
     display: flex; flex-direction: row;
-    align-items: flex-start; gap: 2mm;
+    align-items: stretch; gap: 2mm;
   }
-  .sheet-bottom:not(.has-ai) .sheet-running { width: 100%; }
-  .footer { font-size: 5pt; color: #9ca3af; text-align: center; margin-top: auto; padding-top: 1mm; flex: 0 0 auto; }
+  .sheet-top-expand { flex: 1 1 auto; }
+  .sheet-bottom-compact { flex: 0 0 auto; min-height: auto; }
+  .sheet-bottom-compact .sheet-running { width: 100%; max-width: none; border-left: none; padding-left: 0; height: auto; }
+  .sheet-foot {
+    flex: 0 0 auto;
+    font-size: 5pt; color: #6b7280; line-height: 1.15;
+    border-top: 1px solid #e5e7eb; padding-top: 0.5mm;
+  }
+  .sheet-foot .abbr { margin: 0 0 0.3mm; }
+  .sheet-foot .app-line { text-align: center; color: #9ca3af; font-size: 5pt; margin: 0; }
   ${RUNNING_SCORE_PDF_STYLE}
   ${AI_REPORT_PDF_STYLE}
   @media print {
-    html, body { width: 210mm; overflow: hidden; }
-    .a4-sheet { page-break-inside: avoid; }
+    html, body { height: ${PAGE_H}; overflow: hidden; }
+    .a4-sheet { page-break-inside: avoid; height: ${PAGE_H}; }
   }
 `;
 
@@ -209,43 +233,50 @@ export function buildGameScoreSheetDocument(
 
   const bodyHtml = `
     <div class="a4-sheet">
-    <div class="sheet-top">
-      <h1>${escapeHtml(labels.title)}</h1>
-      <div class="meta">
-        <div>${escapeHtml(game.game_name)}</div>
-        <div>${escapeHtml(game.date)}</div>
-        ${game.scorekeeper ? `<div>${escapeHtml(labels.recorder)}: ${escapeHtml(game.scorekeeper)}</div>` : ''}
+      <div class="sheet-top${hasAi ? '' : ' sheet-top-expand'}">
+        <div class="sheet-head">
+          <h1>${escapeHtml(labels.title)}</h1>
+          <div class="meta-row">
+            <div class="meta">
+              <div>${escapeHtml(game.game_name)} · ${escapeHtml(game.date)}</div>
+              ${game.scorekeeper ? `<div>${escapeHtml(labels.recorder)}: ${escapeHtml(game.scorekeeper)}</div>` : ''}
+            </div>
+            <div class="score-box">
+              <span class="team-name">${escapeHtml(ourTeam.team_name || 'A')}</span>
+              <span class="score-num">${ourScore}</span>
+              <span class="score-sep">-</span>
+              <span class="score-num">${theirScore}</span>
+              <span class="team-name">${escapeHtml(theirTeam.team_name || 'B')}</span>
+            </div>
+          </div>
+        </div>
+
+        <section class="sheet-quarter">
+          <h2>${escapeHtml(labels.quarterScores)}</h2>
+          ${formatNote ? `<p class="format-note">${escapeHtml(formatNote)}</p>` : ''}
+          <table class="quarter-table">
+            <tr><th class="left">${escapeHtml(labels.team)}</th>${periodHeaders}<th>${escapeHtml(labels.total)}</th></tr>
+            ${quarterRows}
+          </table>
+        </section>
+
+        <section class="sheet-stats">
+          <div class="stats-pair">
+            ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
+            ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
+          </div>
+        </section>
       </div>
 
-      <div class="score-box">
-        <span class="team-name">${escapeHtml(ourTeam.team_name || 'A')}</span>
-        <span class="score-num">${ourScore}</span>
-        <span class="score-sep">-</span>
-        <span class="score-num">${theirScore}</span>
-        <span class="team-name">${escapeHtml(theirTeam.team_name || 'B')}</span>
-      </div>
-
-      <h2>${escapeHtml(labels.quarterScores)}</h2>
-      ${formatNote ? `<p class="format-note">${escapeHtml(formatNote)}</p>` : ''}
-      <table>
-        <tr><th class="left">${escapeHtml(labels.team)}</th>${periodHeaders}<th>${escapeHtml(labels.total)}</th></tr>
-        ${quarterRows}
-      </table>
-
-      <div class="stats-pair">
-        ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
-        ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
-      </div>
-
-      <p class="abbr"><strong>${escapeHtml(labels.abbrevTitle)}:</strong> ${escapeHtml(labels.abbrev)}</p>
-    </div>
-
-      <div class="sheet-bottom${hasAi ? ' has-ai' : ''}">
+      <div class="sheet-bottom${hasAi ? ' has-ai' : ' sheet-bottom-compact'}">
         ${aiHtml}
         ${runningHtml || ''}
       </div>
 
-      <div class="footer">Basketball Score App — ${formatLocaleDateTime(htmlLang)}</div>
+      <footer class="sheet-foot">
+        <p class="abbr"><strong>${escapeHtml(labels.abbrevTitle)}:</strong> ${escapeHtml(labels.abbrev)}</p>
+        <p class="app-line">Basketball Score App — ${formatLocaleDateTime(htmlLang)}</p>
+      </footer>
     </div>
   `;
 
