@@ -156,7 +156,12 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         newLogs.push(autoTov);
       }
 
-      return { ...state, logs: [...state.logs, ...newLogs], flashPlayerId: player.id };
+      return {
+        ...state,
+        logs: [...state.logs, ...newLogs],
+        flashPlayerId: player.id,
+        selectedStat: null,
+      };
     }
 
     case 'LOG_TEAM_TOV': {
