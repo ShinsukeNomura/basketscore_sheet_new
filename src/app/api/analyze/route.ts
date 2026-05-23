@@ -5,7 +5,15 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
-    const { gameName, date, ourTeamName, theirTeamName, ourScore, theirScore, periodScores, playerStats } = await req.json();
+    const {
+      gameName, date, ourTeamName, theirTeamName, ourScore, theirScore,
+      periodScores, playerStats, practiceFormatNote,
+    } = await req.json();
+
+    const periodLine = (p: { period: number; our: number; their: number }) => {
+      const label = p.period <= 4 ? `${p.period}Q` : p.period === 5 ? 'OT1' : 'OT2';
+      return `${label}: ${ourTeamName} ${p.our} - ${p.their} ${theirTeamName}`;
+    };
 
     const prompt = `
 あなたはバスケットボールのコーチアナリストです。以下の試合データを分析して、日本語で簡潔なレポートを作成してください。
@@ -14,9 +22,9 @@ export async function POST(req: NextRequest) {
 - 試合名: ${gameName}
 - 日付: ${date}
 - スコア: ${ourTeamName} ${ourScore} - ${theirScore} ${theirTeamName}
-
+${practiceFormatNote ? `\n【試合形式】\n${practiceFormatNote}\n` : ''}
 【クォーター別スコア】
-${periodScores.map((p: {period: number; our: number; their: number}) => `${p.period}Q: ${ourTeamName} ${p.our} - ${p.their} ${theirTeamName}`).join('\n')}
+${periodScores.map(periodLine).join('\n')}
 
 【${ourTeamName} 選手スタッツ】
 ${playerStats.our.map((p: {num: string; pts: number; fg2: number; fg2a: number; fg3: number; fg3a: number; ft: number; fta: number; orbd: number; drbd: number; ast: number; stl: number; blk: number; tov: number; foul: number}) =>

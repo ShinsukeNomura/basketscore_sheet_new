@@ -484,7 +484,28 @@
     "backToTeam": "返回球隊分析",
     "playerDetail": "#{num}（{team}）/ {games}場 / 合計{pts}分",
     "networkError": "網路錯誤，請重試。",
-    "shootMap": "投籃熱區圖"
+    "shootMap": "投籃熱區圖",
+    "print": {
+      "teamTitle": "球隊分析報告 — {team}",
+      "playerTitle": "個人分析報告 — #{num}（{team}）",
+      "metaTeam": "分析期間: {games}場 ／ 產生: {date}",
+      "metaPlayer": "出場: {games}場 ／ 產生: {date}",
+      "teamSummary": "球隊概要",
+      "statsSummary": "數據概要",
+      "shootEff": "投籃效率",
+      "shootType": "類型",
+      "shootMade": "命中",
+      "shootAtt": "出手",
+      "shootPct": "命中率",
+      "avgStats": "場均數據",
+      "playerStatsCumulative": "球員數據（累計）",
+      "totalPts": "總得分",
+      "avgPtsPerGame": "場均得分",
+      "gamesPlayed": "出場場次",
+      "aiReport": "AI分析報告（Gemini）",
+      "footerTeam": "Basketball Score App — AI球隊報告 ／ {date}",
+      "footerPlayer": "Basketball Score App — AI個人報告 ／ {date}"
+    }
   },
 
   "premium": {
@@ -529,7 +550,22 @@
     "confirmPlayer": "匯出個人分析報告PDF",
     "confirmScore": "匯出得分表PDF",
     "export": "匯出",
-    "cancel": "取消"
+    "cancel": "取消",
+    "popupBlocked": "彈出視窗遭到封鎖。請允許彈出視窗後再試一次。",
+    "scoreSheet": {
+      "title": "籃球得分表",
+      "recorder": "記錄員",
+      "quarterScores": "分節得分",
+      "team": "球隊",
+      "total": "合計",
+      "playerStats": "球員數據",
+      "abbrevTitle": "縮寫",
+      "abbrev": "PTS=得分 / 2PM·2PA=兩分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罰球命中·出手 / OR=進攻籃板 / DR=防守籃板 / AST=助攻 / STL=抄截 / BLK=阻攻 / TOV=失誤 / FOUL=犯規",
+      "teamFallback": "Team",
+      "gameFormatNote": "※ {count}節制（練習賽）",
+      "runningScore": "連續記分",
+      "runningRange": "{start} – {end}"
+    }
   },
 
   "labels": {

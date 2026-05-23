@@ -125,7 +125,7 @@ export function RosterSheet({
   function PlayerRow({ player, isOnCourt }: { player: Player; isOnCourt: boolean }) {
     const fouls       = playerFouls[player.id] ?? 0;
     const isFouledOut = fouls >= 5;
-    const toggleLabel = isOnCourt ? 'コート' : 'ベンチ';
+    const toggleLabel = isOnCourt ? g.onCourt : g.benchLabel;
     const toggleDisabled = !isOnCourt && !canAddToCourt;
 
     return (

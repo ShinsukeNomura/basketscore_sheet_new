@@ -484,7 +484,28 @@
     "backToTeam": "返回球队分析",
     "playerDetail": "#{num}（{team}）/ {games}场 / 总计{pts}分",
     "networkError": "网络错误，请重试。",
-    "shootMap": "投篮热区图"
+    "shootMap": "投篮热区图",
+    "print": {
+      "teamTitle": "球队分析报告 — {team}",
+      "playerTitle": "个人分析报告 — #{num}（{team}）",
+      "metaTeam": "分析期间: {games}场 ／ 生成: {date}",
+      "metaPlayer": "出场: {games}场 ／ 生成: {date}",
+      "teamSummary": "球队概要",
+      "statsSummary": "数据概要",
+      "shootEff": "投篮效率",
+      "shootType": "类型",
+      "shootMade": "命中",
+      "shootAtt": "出手",
+      "shootPct": "命中率",
+      "avgStats": "场均数据",
+      "playerStatsCumulative": "球员数据（累计）",
+      "totalPts": "总得分",
+      "avgPtsPerGame": "场均得分",
+      "gamesPlayed": "出场场次",
+      "aiReport": "AI分析报告（Gemini）",
+      "footerTeam": "Basketball Score App — AI球队报告 ／ {date}",
+      "footerPlayer": "Basketball Score App — AI个人报告 ／ {date}"
+    }
   },
 
   "premium": {
@@ -529,7 +550,22 @@
     "confirmPlayer": "导出个人分析报告PDF",
     "confirmScore": "导出得分表PDF",
     "export": "导出",
-    "cancel": "取消"
+    "cancel": "取消",
+    "popupBlocked": "弹窗被阻止。请允许弹窗后重试。",
+    "scoreSheet": {
+      "title": "篮球得分表",
+      "recorder": "记录员",
+      "quarterScores": "分节得分",
+      "team": "球队",
+      "total": "合计",
+      "playerStats": "球员数据",
+      "abbrevTitle": "缩写",
+      "abbrev": "PTS=得分 / 2PM·2PA=两分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罚球命中·出手 / OR=进攻篮板 / DR=防守篮板 / AST=助攻 / STL=抢断 / BLK=盖帽 / TOV=失误 / FOUL=犯规",
+      "teamFallback": "Team",
+      "gameFormatNote": "※ {count}节制（练习赛）",
+      "runningScore": "连续记分",
+      "runningRange": "{start} – {end}"
+    }
   },
 
   "labels": {

@@ -1,5 +1,11 @@
 import { Game, Team, Player, StatsLog } from '@/types';
 import { periodLabel } from '@/lib/period';
+import type { Dictionary } from '@/i18n/DictionaryProvider';
+import { fillTemplate, formatLocaleDateTime } from '@/lib/localeFormat';
+import { filterActivePeriods, getEffectiveRegularQuarters, isPracticeGame } from '@/lib/gameFormat';
+import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE } from '@/lib/runningScorePdf';
+
+export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 
 const BASE_STYLE = `
   body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 12mm 15mm; font-size: 10pt; line-height: 1.5; }
@@ -17,6 +23,10 @@ const BASE_STYLE = `
   tr:nth-child(even) { background: #f9fafb; }
   .abbr { font-size: 7.5pt; color: #6b7280; margin-top: 12px; line-height: 1.6; }
   .footer { font-size: 7.5pt; color: #9ca3af; text-align: center; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+  .format-note { font-size: 8pt; color: #6b7280; margin: 4px 0 8px; }
+  body.sheet-body { display: flex; flex-direction: column; min-height: 100vh; }
+  body.sheet-body .sheet-main { flex: 1 0 auto; }
+  ${RUNNING_SCORE_PDF_STYLE}
   @media print { body { padding: 8mm 12mm; } }
 `;
 
@@ -26,12 +36,6 @@ function escapeHtml(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
-}
-
-function isoNow(): string {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 interface PlayerRow {
@@ -78,7 +82,12 @@ function periodScore(logs: StatsLog[], teamId: string, period: number): number {
     .reduce((s, l) => s + l.points, 0);
 }
 
-function playerStatsTable(team: Team, allPlayers: Player[], logs: StatsLog[]): string {
+function playerStatsTable(
+  team: Team,
+  allPlayers: Player[],
+  logs: StatsLog[],
+  labels: ScoreSheetLabels,
+): string {
   const rows = buildPlayerRows(allPlayers, logs, team.id);
   if (rows.length === 0) return '';
 
@@ -96,8 +105,9 @@ function playerStatsTable(team: Team, allPlayers: Player[], logs: StatsLog[]): s
       <td>${r.ast}</td><td>${r.stl}</td><td>${r.blk}</td><td>${r.tov}</td><td>${r.foul}</td>
     </tr>`).join('');
 
+  const teamName = escapeHtml(team.team_name || labels.teamFallback);
   return `
-    <h2>${escapeHtml(team.team_name || 'Team')} — 選手スタッツ</h2>
+    <h2>${teamName} — ${escapeHtml(labels.playerStats)}</h2>
     <table>${header}${body}</table>`;
 }
 
@@ -109,11 +119,16 @@ export function generateGamePDF(
   logs: StatsLog[],
   ourScore: number,
   theirScore: number,
+  labels: ScoreSheetLabels,
+  popupBlocked: string,
+  htmlLang: string,
 ): void {
-  const otWithScore = new Set(
-    logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period as number),
-  );
-  const periods = ([1, 2, 3, 4, 5, 6] as const).filter((p) => p <= 4 || otWithScore.has(p));
+  const periods = filterActivePeriods([1, 2, 3, 4, 5, 6], logs, game.game_name);
+  const effectiveQ = getEffectiveRegularQuarters(logs, game.game_name);
+  const formatNote =
+    isPracticeGame(game.game_name) && effectiveQ < 4
+      ? fillTemplate(labels.gameFormatNote, { count: String(effectiveQ) })
+      : '';
 
   const periodHeaders = periods.map((p) => `<th>${periodLabel(p)}</th>`).join('');
   const quarterRows = [ourTeam, theirTeam].map((team, ti) => {
@@ -127,12 +142,19 @@ export function generateGamePDF(
     </tr>`;
   }).join('');
 
+  const runningHtml = buildRunningScorePdfHtml(
+    logs, allPlayers, ourTeam, theirTeam,
+    labels.runningScore,
+    labels.runningRange,
+  );
+
   const html = `
-    <h1>バスケットボール スコアシート</h1>
+    <div class="sheet-main">
+    <h1>${escapeHtml(labels.title)}</h1>
     <div class="meta">
       <div>${escapeHtml(game.game_name)}</div>
       <div>${escapeHtml(game.date)}</div>
-      ${game.scorekeeper ? `<div>記録者: ${escapeHtml(game.scorekeeper)}</div>` : ''}
+      ${game.scorekeeper ? `<div>${escapeHtml(labels.recorder)}: ${escapeHtml(game.scorekeeper)}</div>` : ''}
     </div>
 
     <div class="score-box">
@@ -143,32 +165,33 @@ export function generateGamePDF(
       <span class="team-name">${escapeHtml(theirTeam.team_name || 'B')}</span>
     </div>
 
-    <h2>クォーター別スコア</h2>
+    <h2>${escapeHtml(labels.quarterScores)}</h2>
+    ${formatNote ? `<p class="format-note">${escapeHtml(formatNote)}</p>` : ''}
     <table>
-      <tr><th class="left">チーム</th>${periodHeaders}<th>合計</th></tr>
+      <tr><th class="left">${escapeHtml(labels.team)}</th>${periodHeaders}<th>${escapeHtml(labels.total)}</th></tr>
       ${quarterRows}
     </table>
 
-    ${playerStatsTable(ourTeam, allPlayers, logs)}
-    ${playerStatsTable(theirTeam, allPlayers, logs)}
+    ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
+    ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
 
     <div class="abbr">
-      <strong>略語:</strong>
-      PTS=得点 / 2PM・2PA=2P成功・試投 / 3PM・3PA=3P成功・試投 / FTM・FTA=FT成功・試投 /
-      OR=オフェンスリバウンド / DR=ディフェンスリバウンド / AST=アシスト / STL=スティール /
-      BLK=ブロック / TOV=ターンオーバー / FOUL=ファウル
+      <strong>${escapeHtml(labels.abbrevTitle)}:</strong>
+      ${escapeHtml(labels.abbrev)}
     </div>
-    <div class="footer">Basketball Score App — ${isoNow()}</div>
+    </div>
+    ${runningHtml}
+    <div class="footer">Basketball Score App — ${formatLocaleDateTime(htmlLang)}</div>
   `;
 
   const title = `${game.game_name}_${game.date}`;
   const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) {
-    alert('ポップアップがブロックされました。許可してから再試行してください。');
+    alert(popupBlocked);
     return;
   }
   win.document.write(
-    `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head><body>${html}</body></html>`,
+    `<!DOCTYPE html><html lang="${escapeHtml(htmlLang)}"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head><body class="sheet-body">${html}</body></html>`,
   );
   win.document.close();
   win.focus();

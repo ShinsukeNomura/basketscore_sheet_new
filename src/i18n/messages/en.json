@@ -484,7 +484,28 @@
     "backToTeam": "Back to Team",
     "playerDetail": "#{num} ({team}) / {games} games / {pts} pts",
     "networkError": "Network error. Please try again.",
-    "shootMap": "Shot Map"
+    "shootMap": "Shot Map",
+    "print": {
+      "teamTitle": "Team Analysis Report — {team}",
+      "playerTitle": "Player Analysis Report — #{num} ({team})",
+      "metaTeam": "Period: {games} games ／ Generated: {date}",
+      "metaPlayer": "Games: {games} ／ Generated: {date}",
+      "teamSummary": "Team Summary",
+      "statsSummary": "Stats Summary",
+      "shootEff": "Shooting Efficiency",
+      "shootType": "Type",
+      "shootMade": "Made",
+      "shootAtt": "Att",
+      "shootPct": "Pct",
+      "avgStats": "Per-Game Averages",
+      "playerStatsCumulative": "Player Stats (Total)",
+      "totalPts": "Total PTS",
+      "avgPtsPerGame": "Avg PTS/Game",
+      "gamesPlayed": "Games Played",
+      "aiReport": "AI Analysis Report (Gemini)",
+      "footerTeam": "Basketball Score App — AI Team Report ／ {date}",
+      "footerPlayer": "Basketball Score App — AI Player Report ／ {date}"
+    }
   },
 
   "premium": {
@@ -529,7 +550,22 @@
     "confirmPlayer": "Export Player Analysis PDF",
     "confirmScore": "Export Score Sheet PDF",
     "export": "Export",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "popupBlocked": "Pop-up was blocked. Please allow pop-ups and try again.",
+    "scoreSheet": {
+      "title": "Basketball Score Sheet",
+      "recorder": "Recorder",
+      "quarterScores": "Quarter Scores",
+      "team": "Team",
+      "total": "Total",
+      "playerStats": "Player Stats",
+      "abbrevTitle": "Abbreviations",
+      "abbrev": "PTS=Points / 2PM·2PA=2PT Made·Att / 3PM·3PA=3PT Made·Att / FTM·FTA=FT Made·Att / OR=Off. Reb / DR=Def. Reb / AST=Assist / STL=Steal / BLK=Block / TOV=Turnover / FOUL=Foul",
+      "teamFallback": "Team",
+      "gameFormatNote": "※ {count}-quarter format (practice)",
+      "runningScore": "Running Score",
+      "runningRange": "{start} – {end}"
+    }
   },
 
   "labels": {

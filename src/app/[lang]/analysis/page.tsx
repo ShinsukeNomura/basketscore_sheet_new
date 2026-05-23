@@ -84,6 +84,7 @@ function TeamAnalysisView({
 }) {
   const dict = useDictionary();
   const a = dict.analysis;
+  const locale = useLocale();
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerAnalysis | null>(null);
   const [aiReport,   setAiReport]   = useState('');
   const [aiCachedAt, setAiCachedAt] = useState('');
@@ -133,7 +134,7 @@ function TeamAnalysisView({
       {pdfConfirm && (
         <PdfConfirmDialog
           title={dict.pdf.confirmTeam}
-          onConfirm={() => { setPdfConfirm(false); printTeamReport(analysis, aiReport); }}
+          onConfirm={() => { setPdfConfirm(false); printTeamReport(analysis, aiReport, a, dict.pdf.popupBlocked, locale); }}
           onCancel={() => setPdfConfirm(false)}
         />
       )}
@@ -256,6 +257,7 @@ function PlayerDetailView({
 }: { player: PlayerAnalysis; teamName: string; onBack: () => void }) {
   const dict = useDictionary();
   const a = dict.analysis;
+  const locale = useLocale();
   const [aiReport,   setAiReport]   = useState('');
   const [aiCachedAt, setAiCachedAt] = useState('');
   const [aiLoading,  setAiLoading]  = useState(false);
@@ -299,7 +301,7 @@ function PlayerDetailView({
       {pdfConfirm && (
         <PdfConfirmDialog
           title={dict.pdf.confirmPlayer}
-          onConfirm={() => { setPdfConfirm(false); printPlayerReport(player, teamName, aiReport); }}
+          onConfirm={() => { setPdfConfirm(false); printPlayerReport(player, teamName, aiReport, a, dict.pdf.popupBlocked, locale); }}
           onCancel={() => setPdfConfirm(false)}
         />
       )}

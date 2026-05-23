@@ -6,9 +6,11 @@ import { periodLabel } from '@/lib/period';
 import { cn } from '@/lib/utils';
 import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Sparkles, Loader2, Crown, RefreshCw } from 'lucide-react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
+import { useLocale } from '@/i18n/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
+import { buildPracticeFormatNote, filterActivePeriods } from '@/lib/gameFormat';
 
 // ================================================================
 // 型
@@ -163,6 +165,7 @@ export function EndGameOverlay({
   onGoHome, onNewGame, onShowStats, onShowRunning, onResume, onSave,
 }: EndGameOverlayProps) {
   const dict = useDictionary();
+  const locale = useLocale();
   const eg = dict.endGame;
   const g = dict.game;
   const sync = dict.sync;
@@ -204,13 +207,11 @@ export function EndGameOverlay({
   const ourName   = teamLabel(ourTeam,   true,  g.ourTeam, g.theirTeam);
   const theirName = teamLabel(theirTeam, false, g.ourTeam, g.theirTeam);
 
-  // 表示するピリオド（OTは得点があるものだけ）
-  const activePeriods = useMemo(() => {
-    const otWithScore = new Set(
-      logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period)
-    );
-    return ALL_PERIODS.filter((p) => p <= 4 || otWithScore.has(p));
-  }, [logs]);
+  // 表示するピリオド（練習試合は未使用Qを除外、OTは得点があるものだけ）
+  const activePeriods = useMemo(
+    () => filterActivePeriods(ALL_PERIODS, logs, game.game_name),
+    [logs, game.game_name],
+  );
 
   // クォーター別スコア
   const periodRows = useMemo(() =>
@@ -230,7 +231,10 @@ export function EndGameOverlay({
   // PDF出力（確認後に実行）
   const executePDF = async () => {
     const { generateGamePDF } = await import('@/lib/generatePDF');
-    generateGamePDF(game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore);
+    generateGamePDF(
+      game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore,
+      dict.pdf.scoreSheet, dict.pdf.popupBlocked, locale,
+    );
   };
 
   // AI分析
@@ -267,6 +271,8 @@ export function EndGameOverlay({
           stl: c('STL'), blk: c('BLK'), tov: c('TOV'), foul: c('FOUL') };
       }).filter((r) => r.pts+r.fg2a+r.fg3a+r.fta+r.orbd+r.drbd+r.ast+r.stl+r.blk+r.tov+r.foul > 0);
 
+    const practiceFormatNote = buildPracticeFormatNote(game.game_name, logs);
+
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -275,6 +281,7 @@ export function EndGameOverlay({
         ourTeamName: ourTeam.team_name, theirTeamName: theirTeam.team_name,
         ourScore, theirScore,
         periodScores: periodRows,
+        practiceFormatNote,
         playerStats: { our: buildStats(ourTeam.id), their: buildStats(theirTeam.id) },
       }),
     });

@@ -1,4 +1,9 @@
 import { TeamAnalysis, PlayerAnalysis, pct, avg } from './analysis';
+import type { Dictionary } from '@/i18n/DictionaryProvider';
+import { fillTemplate, formatLocaleDateTime } from '@/lib/localeFormat';
+
+type AnalysisDict = Dictionary['analysis'];
+type PrintLabels = AnalysisDict['print'];
 
 const BASE_STYLE = `
   body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 15mm 20mm; font-size: 10pt; line-height: 1.6; }
@@ -19,24 +24,32 @@ const BASE_STYLE = `
   .ai-box { background: #f0f9ff; border: 1px solid #7dd3fc; border-radius: 8px; padding: 14px 16px; margin-top: 10px; }
   .ai-text { white-space: pre-wrap; line-height: 1.8; font-size: 9.5pt; }
   .footer { font-size: 7.5pt; color: #9ca3af; text-align: center; margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
-  .section-chip { display:inline-block; background:#dbeafe; color:#1e40af; border-radius:4px; padding:1px 6px; font-size:8pt; font-weight:bold; margin-right:6px; }
   @media print { body { padding: 10mm 15mm; } button { display: none; } }
 `;
 
-function shootTable(fg2m: number, fg2a: number, fg3m: number, fg3a: number, ftm: number, fta: number) {
+function shootTable(
+  fg2m: number, fg2a: number, fg3m: number, fg3a: number, ftm: number, fta: number,
+  p: PrintLabels,
+) {
   return `
   <table>
-    <tr><th>種別</th><th>成功</th><th>試投</th><th>成功率</th></tr>
+    <tr><th>${p.shootType}</th><th>${p.shootMade}</th><th>${p.shootAtt}</th><th>${p.shootPct}</th></tr>
     <tr><td>2PT</td><td>${fg2m}</td><td>${fg2a}</td><td>${pct(fg2m, fg2a)}</td></tr>
     <tr><td>3PT</td><td>${fg3m}</td><td>${fg3a}</td><td>${pct(fg3m, fg3a)}</td></tr>
     <tr><td>FT</td><td>${ftm}</td><td>${fta}</td><td>${pct(ftm, fta)}</td></tr>
   </table>`;
 }
 
-function printWindow(title: string, html: string) {
+function printWindow(title: string, html: string, popupBlocked: string, htmlLang: string) {
   const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) { alert('ポップアップがブロックされました。許可してから再試行してください。'); return; }
-  win.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${title}</title><style>${BASE_STYLE}</style></head><body>${html}</body></html>`);
+  if (!win) {
+    alert(popupBlocked);
+    return;
+  }
+  const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  win.document.write(
+    `<!DOCTYPE html><html lang="${htmlLang}"><head><meta charset="UTF-8"><title>${safeTitle}</title><style>${BASE_STYLE}</style></head><body>${html}</body></html>`,
+  );
   win.document.close();
   win.focus();
 }
@@ -44,27 +57,33 @@ function printWindow(title: string, html: string) {
 export function printTeamReport(
   analysis: TeamAnalysis,
   aiReport: string,
+  a: AnalysisDict,
+  popupBlocked: string,
+  locale: string,
 ) {
+  const p = a.print;
   const { teamName, games: g, wins } = analysis;
   const losses  = g - wins;
   const winRate = g > 0 ? Math.round(wins / g * 100) : 0;
+  const date = formatLocaleDateTime(locale);
+  const winsLabel = fillTemplate(a.wins, { wins, losses });
 
   const html = `
-  <h1>チーム分析レポート — ${teamName}</h1>
-  <p class="meta">分析期間: ${g}試合 ／ 生成: ${new Date().toLocaleString('ja-JP')}</p>
+  <h1>${fillTemplate(p.teamTitle, { team: teamName })}</h1>
+  <p class="meta">${fillTemplate(p.metaTeam, { games: g, date })}</p>
 
-  <h2>📊 チームサマリー</h2>
+  <h2>${p.teamSummary}</h2>
   <div class="stats-grid">
-    <div class="stat-box"><div class="stat-value">${g}</div><div class="stat-label">試合数</div></div>
-    <div class="stat-box"><div class="stat-value">${winRate}%</div><div class="stat-label">勝率</div><div class="stat-sub">${wins}勝${losses}敗</div></div>
-    <div class="stat-box"><div class="stat-value">${avg(analysis.totalPts, g)}</div><div class="stat-label">平均得点</div></div>
-    <div class="stat-box"><div class="stat-value">${avg(analysis.totalPtsAllowed, g)}</div><div class="stat-label">平均失点</div></div>
+    <div class="stat-box"><div class="stat-value">${g}</div><div class="stat-label">${a.games}</div></div>
+    <div class="stat-box"><div class="stat-value">${winRate}%</div><div class="stat-label">${a.winRate}</div><div class="stat-sub">${winsLabel}</div></div>
+    <div class="stat-box"><div class="stat-value">${avg(analysis.totalPts, g)}</div><div class="stat-label">${a.avgPts}</div></div>
+    <div class="stat-box"><div class="stat-value">${avg(analysis.totalPtsAllowed, g)}</div><div class="stat-label">${a.avgPtsAllowed}</div></div>
   </div>
 
-  <h2>🎯 シュート効率</h2>
-  ${shootTable(analysis.fg2m, analysis.fg2a, analysis.fg3m, analysis.fg3a, analysis.ftm, analysis.fta)}
+  <h2>${p.shootEff}</h2>
+  ${shootTable(analysis.fg2m, analysis.fg2a, analysis.fg3m, analysis.fg3a, analysis.ftm, analysis.fta, p)}
 
-  <h2>📈 試合平均スタッツ</h2>
+  <h2>${p.avgStats}</h2>
   <table>
     <tr><th>OR</th><th>DR</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>FOUL</th></tr>
     <tr>
@@ -75,50 +94,55 @@ export function printTeamReport(
     </tr>
   </table>
 
-  <h2>👥 個人スタッツ（累計）</h2>
+  <h2>${p.playerStatsCumulative}</h2>
   <table>
     <tr><th>#</th><th>PTS</th><th>2PM</th><th>2PA</th><th>2P%</th><th>3PM</th><th>3PA</th><th>3P%</th><th>FTM</th><th>FTA</th><th>OR</th><th>DR</th><th>AST</th><th>STL</th><th>TOV</th></tr>
-    ${analysis.players.map((p) => `<tr>
-      <td>#${p.backNumber}</td><td>${p.pts}</td>
-      <td>${p.fg2m}</td><td>${p.fg2a}</td><td>${pct(p.fg2m, p.fg2a)}</td>
-      <td>${p.fg3m}</td><td>${p.fg3a}</td><td>${pct(p.fg3m, p.fg3a)}</td>
-      <td>${p.ftm}</td><td>${p.fta}</td>
-      <td>${p.orbd}</td><td>${p.drbd}</td><td>${p.ast}</td><td>${p.stl}</td><td>${p.tov}</td>
+    ${analysis.players.map((pl) => `<tr>
+      <td>#${pl.backNumber}</td><td>${pl.pts}</td>
+      <td>${pl.fg2m}</td><td>${pl.fg2a}</td><td>${pct(pl.fg2m, pl.fg2a)}</td>
+      <td>${pl.fg3m}</td><td>${pl.fg3a}</td><td>${pct(pl.fg3m, pl.fg3a)}</td>
+      <td>${pl.ftm}</td><td>${pl.fta}</td>
+      <td>${pl.orbd}</td><td>${pl.drbd}</td><td>${pl.ast}</td><td>${pl.stl}</td><td>${pl.tov}</td>
     </tr>`).join('')}
   </table>
 
-  <h2>🤖 AI分析レポート（Gemini）</h2>
+  <h2>${p.aiReport}</h2>
   <div class="ai-box"><div class="ai-text">${aiReport.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>
 
-  <div class="footer">Basketball Score App — AI分析レポート ／ ${new Date().toLocaleString('ja-JP')}</div>
+  <div class="footer">${fillTemplate(p.footerTeam, { date })}</div>
   `;
 
-  printWindow(`${teamName} — チーム分析レポート`, html);
+  printWindow(fillTemplate(p.teamTitle, { team: teamName }), html, popupBlocked, locale);
 }
 
 export function printPlayerReport(
   player: PlayerAnalysis,
   teamName: string,
   aiReport: string,
+  a: AnalysisDict,
+  popupBlocked: string,
+  locale: string,
 ) {
+  const p = a.print;
   const { backNumber, games: g, pts } = player;
+  const date = formatLocaleDateTime(locale);
 
   const html = `
-  <h1>個人分析レポート — #${backNumber}（${teamName}）</h1>
-  <p class="meta">出場: ${g}試合 ／ 生成: ${new Date().toLocaleString('ja-JP')}</p>
+  <h1>${fillTemplate(p.playerTitle, { num: backNumber, team: teamName })}</h1>
+  <p class="meta">${fillTemplate(p.metaPlayer, { games: g, date })}</p>
 
-  <h2>📊 スタッツサマリー</h2>
+  <h2>${p.statsSummary}</h2>
   <div class="stats-grid">
-    <div class="stat-box"><div class="stat-value">${pts}</div><div class="stat-label">総得点</div></div>
-    <div class="stat-box"><div class="stat-value">${avg(pts, g)}</div><div class="stat-label">平均得点/試合</div></div>
-    <div class="stat-box"><div class="stat-value">${g}</div><div class="stat-label">出場試合数</div></div>
+    <div class="stat-box"><div class="stat-value">${pts}</div><div class="stat-label">${p.totalPts}</div></div>
+    <div class="stat-box"><div class="stat-value">${avg(pts, g)}</div><div class="stat-label">${p.avgPtsPerGame}</div></div>
+    <div class="stat-box"><div class="stat-value">${g}</div><div class="stat-label">${p.gamesPlayed}</div></div>
     <div class="stat-box"><div class="stat-value">${pct(player.fg2m + player.fg3m, player.fg2a + player.fg3a)}</div><div class="stat-label">FG%</div></div>
   </div>
 
-  <h2>🎯 シュート効率</h2>
-  ${shootTable(player.fg2m, player.fg2a, player.fg3m, player.fg3a, player.ftm, player.fta)}
+  <h2>${p.shootEff}</h2>
+  ${shootTable(player.fg2m, player.fg2a, player.fg3m, player.fg3a, player.ftm, player.fta, p)}
 
-  <h2>📈 試合平均スタッツ</h2>
+  <h2>${p.avgStats}</h2>
   <table>
     <tr><th>OR</th><th>DR</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>FOUL</th></tr>
     <tr>
@@ -129,11 +153,16 @@ export function printPlayerReport(
     </tr>
   </table>
 
-  <h2>🤖 AI分析レポート（Gemini）</h2>
+  <h2>${p.aiReport}</h2>
   <div class="ai-box"><div class="ai-text">${aiReport.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>
 
-  <div class="footer">Basketball Score App — AI個人分析レポート ／ ${new Date().toLocaleString('ja-JP')}</div>
+  <div class="footer">${fillTemplate(p.footerPlayer, { date })}</div>
   `;
 
-  printWindow(`#${backNumber} — 個人分析レポート`, html);
+  printWindow(
+    fillTemplate(p.playerTitle, { num: backNumber, team: teamName }),
+    html,
+    popupBlocked,
+    locale,
+  );
 }

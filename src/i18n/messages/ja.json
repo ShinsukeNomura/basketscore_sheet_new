@@ -484,7 +484,28 @@
     "backToTeam": "チーム分析に戻る",
     "playerDetail": "#{num}（{team}） ／ {games}試合 ／ 総{pts}pts",
     "networkError": "通信エラーが発生しました",
-    "shootMap": "シュートマップ"
+    "shootMap": "シュートマップ",
+    "print": {
+      "teamTitle": "チーム分析レポート — {team}",
+      "playerTitle": "個人分析レポート — #{num}（{team}）",
+      "metaTeam": "分析期間: {games}試合 ／ 生成: {date}",
+      "metaPlayer": "出場: {games}試合 ／ 生成: {date}",
+      "teamSummary": "チームサマリー",
+      "statsSummary": "スタッツサマリー",
+      "shootEff": "シュート効率",
+      "shootType": "種別",
+      "shootMade": "成功",
+      "shootAtt": "試投",
+      "shootPct": "成功率",
+      "avgStats": "試合平均スタッツ",
+      "playerStatsCumulative": "個人スタッツ（累計）",
+      "totalPts": "総得点",
+      "avgPtsPerGame": "平均得点/試合",
+      "gamesPlayed": "出場試合数",
+      "aiReport": "AI分析レポート（Gemini）",
+      "footerTeam": "Basketball Score App — AI分析レポート ／ {date}",
+      "footerPlayer": "Basketball Score App — AI個人分析レポート ／ {date}"
+    }
   },
 
   "premium": {
@@ -529,7 +550,22 @@
     "confirmPlayer": "個人分析レポートをPDF出力",
     "confirmScore": "スコアシートをPDF出力",
     "export": "出力する",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "popupBlocked": "ポップアップがブロックされました。許可してから再試行してください。",
+    "scoreSheet": {
+      "title": "バスケットボール スコアシート",
+      "recorder": "記録者",
+      "quarterScores": "クォーター別スコア",
+      "team": "チーム",
+      "total": "合計",
+      "playerStats": "選手スタッツ",
+      "abbrevTitle": "略語",
+      "abbrev": "PTS=得点 / 2PM・2PA=2P成功・試投 / 3PM・3PA=3P成功・試投 / FTM・FTA=FT成功・試投 / OR=オフェンスリバウンド / DR=ディフェンスリバウンド / AST=アシスト / STL=スティール / BLK=ブロック / TOV=ターンオーバー / FOUL=ファウル",
+      "teamFallback": "Team",
+      "gameFormatNote": "※ {count}クォーター制（練習試合）",
+      "runningScore": "ランニングスコア",
+      "runningRange": "{start} – {end}"
+    }
   },
 
   "labels": {
