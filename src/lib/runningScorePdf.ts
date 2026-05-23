@@ -3,7 +3,7 @@ import { StatsLog, Player, Team } from '@/types';
 import { fillTemplate } from '@/lib/localeFormat';
 
 /** 下余白1列に収める行数（超えたら横に次列） */
-export const RUNNING_SCORE_ROWS_PER_COLUMN = 26;
+export const RUNNING_SCORE_ROWS_PER_COLUMN = 20;
 
 function escapeHtml(s: string): string {
   return s
@@ -33,14 +33,15 @@ function rowClass(cell: RunningCell): string {
 function renderColumn(
   cells: RunningCell[],
   startN: number,
+  rowCount: number,
   ourShort: string,
   theirShort: string,
   rangeLabel: string,
 ): string {
-  const endN = startN + RUNNING_SCORE_ROWS_PER_COLUMN - 1;
+  const endN = startN + rowCount - 1;
   const cellMap = new Map(cells.map((c) => [c.n, c]));
 
-  const rows = Array.from({ length: RUNNING_SCORE_ROWS_PER_COLUMN }, (_, i) => {
+  const rows = Array.from({ length: rowCount }, (_, i) => {
     const n = startN + i;
     const cell = cellMap.get(n);
     if (!cell) {
@@ -93,33 +94,30 @@ function buildAiReportPanel(ai: RunningScorePdfAi): string {
 }
 
 export const RUNNING_SCORE_PDF_STYLE = `
-  .running-footer { margin-top: 2mm; padding-top: 2px; border-top: 1px solid #d1d5db; }
-  .running-footer-row { display: flex; flex-direction: row; align-items: flex-end; gap: 3mm; }
+  .running-footer { margin-top: 1mm; padding-top: 1px; border-top: 1px solid #d1d5db; }
+  .running-footer-row { display: flex; flex-direction: row; align-items: flex-start; gap: 2mm; }
   .rs-left { flex: 0 1 auto; min-width: 0; }
-  .running-footer h2 { font-size: 7pt; margin: 0 0 2px; color: #1e40af; border: none; padding: 0; line-height: 1.2; }
-  .rs-columns { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-end; gap: 2mm; overflow: visible; }
+  .running-footer h2 { font-size: 6.5pt; margin: 0 0 1px; color: #1e40af; border: none; padding: 0; line-height: 1.1; }
+  .rs-columns { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: 1.5mm; }
   .rs-ai-panel {
-    flex: 1 1 auto; min-width: 42mm; max-width: 78mm; align-self: stretch;
-    border: 1px solid #7dd3fc; background: #f0f9ff; border-radius: 3px;
-    padding: 2px 4px; box-sizing: border-box; max-height: 58mm; overflow: hidden;
+    flex: 1 1 auto; min-width: 38mm; max-width: 72mm;
+    border: 1px solid #7dd3fc; background: #f0f9ff; border-radius: 2px;
+    padding: 2px 3px; box-sizing: border-box;
   }
-  .rs-ai-title { font-size: 6pt; font-weight: 800; color: #1e40af; margin-bottom: 1px; line-height: 1.2; }
-  .rs-ai-meta { font-size: 4.5pt; color: #6b7280; margin-bottom: 2px; }
-  .rs-ai-text { font-size: 4.5pt; line-height: 1.28; white-space: pre-wrap; word-break: break-word; color: #1f2937; }
+  .rs-ai-title { font-size: 5.5pt; font-weight: 800; color: #1e40af; margin-bottom: 1px; line-height: 1.1; }
+  .rs-ai-meta { font-size: 4pt; color: #6b7280; margin-bottom: 1px; }
+  .rs-ai-text { font-size: 4pt; line-height: 1.22; white-space: pre-wrap; word-break: break-word; color: #1f2937; }
   .rs-col { flex: 0 0 auto; min-width: 0; }
-  .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 1px; line-height: 1.1; }
-  .rs-col table { border-collapse: collapse; font-size: 5.5pt; line-height: 1; }
-  .rs-col th { background: #e5e7eb; color: #374151; font-weight: 700; padding: 0 2px; text-align: center; border: 1px solid #d1d5db; font-size: 5pt; }
-  .rs-col td { padding: 0 2px; text-align: center; border: 1px solid #e5e7eb; height: 8px; vertical-align: middle; }
-  .rs-col .rs-th-team { max-width: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4.5pt; }
-  .rs-col .rs-p { text-align: right; font-weight: 700; font-size: 5pt; min-width: 11px; }
-  .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; min-width: 11px; font-size: 5pt; }
+  .rs-range { font-size: 4.5pt; color: #6b7280; text-align: center; margin-bottom: 1px; line-height: 1; }
+  .rs-col table { border-collapse: collapse; font-size: 5pt; line-height: 1; }
+  .rs-col th { background: #e5e7eb; color: #374151; font-weight: 700; padding: 0 1px; text-align: center; border: 1px solid #d1d5db; font-size: 4.5pt; line-height: 1; }
+  .rs-col td { padding: 0 1px; text-align: center; border: 1px solid #e5e7eb; height: 7px; vertical-align: middle; line-height: 1; }
+  .rs-col .rs-th-team { max-width: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4pt; }
+  .rs-col .rs-p { text-align: right; font-weight: 700; font-size: 4.5pt; min-width: 10px; }
+  .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; min-width: 10px; font-size: 4.5pt; }
   .rs-col tr.rs-qend td { border-bottom-width: 1.5px; border-bottom-color: #1e40af; }
-  .rs-3pt { border: 1px solid #374151; border-radius: 50%; padding: 0 1px; font-size: 4.5pt; }
-  .rs-ft { font-size: 4.5pt; }
-  @media print {
-    .running-footer { page-break-inside: avoid; }
-  }
+  .rs-3pt { border: 1px solid #374151; border-radius: 50%; padding: 0 1px; font-size: 4pt; }
+  .rs-ft { font-size: 4pt; }
 `;
 
 export function buildRunningScorePdfHtml(
@@ -137,15 +135,17 @@ export function buildRunningScorePdfHtml(
   const ourShort = (ourTeam.team_name || 'A').slice(0, 4);
   const theirShort = (theirTeam.team_name || 'B').slice(0, 4);
 
-  const colCount = Math.ceil(cells.length / RUNNING_SCORE_ROWS_PER_COLUMN);
+  const maxN = cells[cells.length - 1].n;
+  const colCount = Math.ceil(maxN / RUNNING_SCORE_ROWS_PER_COLUMN);
   const columns: string[] = [];
 
   for (let c = 0; c < colCount; c++) {
     const startN = c * RUNNING_SCORE_ROWS_PER_COLUMN + 1;
-    const endN = startN + RUNNING_SCORE_ROWS_PER_COLUMN - 1;
+    const endN = Math.min(startN + RUNNING_SCORE_ROWS_PER_COLUMN - 1, maxN);
+    const rowCount = endN - startN + 1;
     const slice = cells.filter((cell) => cell.n >= startN && cell.n <= endN);
     const rangeLabel = fillTemplate(rangeTemplate, { start: String(startN), end: String(endN) });
-    columns.push(renderColumn(slice, startN, ourShort, theirShort, rangeLabel));
+    columns.push(renderColumn(slice, startN, rowCount, ourShort, theirShort, rangeLabel));
   }
 
   const aiHtml = aiReport?.body.trim() ? buildAiReportPanel(aiReport) : '';

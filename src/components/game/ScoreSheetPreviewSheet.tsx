@@ -38,7 +38,7 @@ export function ScoreSheetPreviewSheet({
         title={doc.title}
         srcDoc={doc.fullHtml}
         className="flex-1 min-h-0 w-full bg-white border-0"
-        sandbox="allow-same-origin"
+        sandbox="allow-same-origin allow-scripts"
       />
 
       <div className="shrink-0 flex gap-3 px-4 py-4 border-t border-white/10 bg-neutral-900/95 safe-area-pb">

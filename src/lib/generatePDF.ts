@@ -7,38 +7,67 @@ import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE, type RunningScorePdf
 
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 
+export const SCORE_SHEET_FIT_SCRIPT = `
+(function(){
+  function fitScoreSheetToA4(){
+    var root=document.getElementById('print-root');
+    if(!root)return;
+    root.style.transform='none';
+    root.style.width='100%';
+    document.body.style.height='';
+    document.body.style.overflow='';
+    var mm=function(v){return v*96/25.4;};
+    var maxH=mm(297-8);
+    var maxW=mm(210-10);
+    var h=root.getBoundingClientRect().height;
+    var w=root.getBoundingClientRect().width;
+    if(!h)return;
+    var scale=Math.min(1,maxH/h,maxW/w);
+    if(scale<0.999){
+      root.style.transformOrigin='top left';
+      root.style.transform='scale('+scale.toFixed(4)+')';
+      root.style.width=(100/scale).toFixed(2)+'%';
+      document.body.style.height=Math.ceil(h*scale)+'px';
+      document.body.style.overflow='hidden';
+    }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',fitScoreSheetToA4);
+  }else{
+    fitScoreSheetToA4();
+  }
+})();
+`;
+
 const BASE_STYLE = `
-  @page { size: A4 portrait; margin: 5mm 6mm; }
-  body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 6mm 7mm; font-size: 8pt; line-height: 1.25; }
-  h1 { font-size: 11pt; text-align: center; margin: 0 0 2px; letter-spacing: 0.03em; line-height: 1.2; }
-  .meta { text-align: center; color: #4b5563; font-size: 7pt; margin-bottom: 4px; line-height: 1.3; }
-  .score-box { display: flex; align-items: center; justify-content: center; gap: 10px; border-top: 1.5px solid #1e40af; border-bottom: 1.5px solid #1e40af; padding: 3px 0; margin: 4px 0; }
-  .team-name { font-size: 9.5pt; font-weight: 900; min-width: 56px; text-align: center; }
-  .score-num { font-size: 16pt; font-weight: 900; color: #1e40af; min-width: 28px; text-align: center; line-height: 1; }
-  .score-sep { font-size: 11pt; font-weight: 700; color: #6b7280; }
-  h2 { font-size: 7.5pt; color: #1e40af; border-left: 3px solid #1e40af; padding-left: 5px; margin: 5px 0 2px; line-height: 1.2; }
-  table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin: 0 0 3px; }
-  th { background: #1e40af; color: white; padding: 1px 3px; text-align: center; font-weight: bold; line-height: 1.15; }
+  @page { size: A4 portrait; margin: 4mm; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; font-size: 7.5pt; line-height: 1.2; }
+  #print-root { box-sizing: border-box; padding: 2mm 3mm; }
+  h1 { font-size: 10pt; text-align: center; margin: 0 0 1px; line-height: 1.15; }
+  .meta { text-align: center; color: #4b5563; font-size: 6.5pt; margin-bottom: 2px; line-height: 1.2; }
+  .score-box { display: flex; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid #1e40af; border-bottom: 1px solid #1e40af; padding: 2px 0; margin: 2px 0; }
+  .team-name { font-size: 8.5pt; font-weight: 900; min-width: 48px; text-align: center; }
+  .score-num { font-size: 14pt; font-weight: 900; color: #1e40af; min-width: 24px; text-align: center; line-height: 1; }
+  .score-sep { font-size: 10pt; font-weight: 700; color: #6b7280; }
+  h2 { font-size: 7pt; color: #1e40af; border-left: 2px solid #1e40af; padding-left: 4px; margin: 3px 0 1px; line-height: 1.1; }
+  table { width: 100%; border-collapse: collapse; font-size: 6pt; margin: 0 0 2px; }
+  th { background: #1e40af; color: white; padding: 0 2px; text-align: center; font-weight: bold; line-height: 1.1; }
   th.left, td.left { text-align: left; }
-  td { padding: 0 2px; border-bottom: 1px solid #e5e7eb; text-align: center; line-height: 1.15; }
+  td { padding: 0 1px; border-bottom: 1px solid #e5e7eb; text-align: center; line-height: 1.1; }
   tr:nth-child(even) { background: #f9fafb; }
-  .stats-pair { display: flex; flex-direction: row; gap: 2mm; align-items: flex-start; margin-bottom: 2px; }
+  .stats-pair { display: flex; flex-direction: row; gap: 1.5mm; align-items: flex-start; margin-bottom: 1px; }
   .stats-pair .stats-block { flex: 1; min-width: 0; }
-  .stats-pair h2 { margin-top: 3px; font-size: 7pt; }
-  .stats-pair table { font-size: 5.5pt; margin-bottom: 0; }
-  .stats-pair th, .stats-pair td { padding: 0 1px; }
-  .abbr { font-size: 5.5pt; color: #6b7280; margin-top: 2px; line-height: 1.25; }
-  .footer { font-size: 5.5pt; color: #9ca3af; text-align: center; margin-top: 2px; border-top: 1px solid #e5e7eb; padding-top: 2px; }
-  .format-note { font-size: 6pt; color: #6b7280; margin: 1px 0 2px; }
-  body.sheet-body { display: flex; flex-direction: column; }
-  body.sheet-body .sheet-main { flex: 0 0 auto; }
+  .stats-pair h2 { margin-top: 2px; font-size: 6.5pt; }
+  .stats-pair table { font-size: 5pt; margin-bottom: 0; }
+  .stats-pair th, .stats-pair td { padding: 0; line-height: 1.05; }
+  .abbr { font-size: 5pt; color: #6b7280; margin-top: 1px; line-height: 1.15; }
+  .footer { font-size: 5pt; color: #9ca3af; text-align: center; margin-top: 1px; padding-top: 1px; }
+  .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 1px; }
   ${RUNNING_SCORE_PDF_STYLE}
   @media print {
-    html, body { height: auto !important; min-height: 0 !important; overflow: visible; }
-    body { padding: 0; }
-    body.sheet-body { display: block; min-height: 0; }
-    .sheet-main { page-break-inside: avoid; }
-    .running-footer, .footer { page-break-inside: avoid; }
+    html, body { height: auto !important; min-height: 0 !important; overflow: hidden !important; }
+    #print-root { page-break-inside: avoid; page-break-after: avoid; }
   }
 `;
 
@@ -170,7 +199,7 @@ export function buildGameScoreSheetDocument(
   );
 
   const bodyHtml = `
-    <div class="sheet-main">
+    <div id="print-root">
     <h1>${escapeHtml(labels.title)}</h1>
     <div class="meta">
       <div>${escapeHtml(game.game_name)}</div>
@@ -202,9 +231,9 @@ export function buildGameScoreSheetDocument(
       <strong>${escapeHtml(labels.abbrevTitle)}:</strong>
       ${escapeHtml(labels.abbrev)}
     </div>
-    </div>
     ${runningHtml}
     <div class="footer">Basketball Score App — ${formatLocaleDateTime(htmlLang)}</div>
+    </div>
   `;
 
   const title = `${game.game_name}_${game.date}`;
@@ -212,7 +241,7 @@ export function buildGameScoreSheetDocument(
     `<!DOCTYPE html><html lang="${escapeHtml(htmlLang)}"><head><meta charset="UTF-8">` +
     `<meta name="viewport" content="width=device-width, initial-scale=1">` +
     `<title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head>` +
-    `<body class="sheet-body">${bodyHtml}</body></html>`;
+    `<body>${bodyHtml}<script>${SCORE_SHEET_FIT_SCRIPT}<\/script></body></html>`;
 
   return { title, htmlLang, fullHtml };
 }
@@ -228,8 +257,12 @@ export function printGameScoreSheet(
   }
   win.document.write(doc.fullHtml);
   win.document.close();
-  win.focus();
-  win.print();
+  const triggerPrint = () => {
+    win.focus();
+    win.print();
+  };
+  // レイアウト・A4フィット後に印刷ダイアログを開く
+  setTimeout(triggerPrint, 150);
 }
 
 /** @deprecated プレビュー経由を推奨。互換用に残す */
