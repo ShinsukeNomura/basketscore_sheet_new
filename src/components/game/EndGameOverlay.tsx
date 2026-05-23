@@ -8,9 +8,11 @@ import { Home, Plus, Trophy, BarChart2, RotateCcw, ClipboardList, FileText, Spar
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
+import { ScoreSheetPreviewSheet } from '@/components/game/ScoreSheetPreviewSheet';
+import type { GameScoreSheetDocument } from '@/lib/generatePDF';
 import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
 import { buildPracticeFormatNote, filterActivePeriods } from '@/lib/gameFormat';
+import { fillTemplate } from '@/lib/localeFormat';
 
 // ================================================================
 // 型
@@ -228,21 +230,12 @@ export function EndGameOverlay({
   const ourMVP   = useMemo(() => computeMVP(logs, allPlayers, ourTeam.id),   [logs, allPlayers, ourTeam.id]);
   const theirMVP = useMemo(() => computeMVP(logs, allPlayers, theirTeam.id), [logs, allPlayers, theirTeam.id]);
 
-  // PDF出力（確認後に実行）
-  const executePDF = async () => {
-    const { generateGamePDF } = await import('@/lib/generatePDF');
-    generateGamePDF(
-      game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore,
-      dict.pdf.scoreSheet, dict.pdf.popupBlocked, locale,
-    );
-  };
-
   // AI分析
   const [aiReport,    setAiReport]    = useState<string | null>(null);
   const [aiCachedAt,  setAiCachedAt]  = useState<string>('');
   const [aiLoading,   setAiLoading]   = useState(false);
   const [showReport,  setShowReport]  = useState(false);
-  const [pdfConfirm,  setPdfConfirm]  = useState(false);
+  const [scoreSheetPreview, setScoreSheetPreview] = useState<GameScoreSheetDocument | null>(null);
 
   // キャッシュから読み込み（キャッシュがあれば自動表示）
   useEffect(() => {
@@ -253,6 +246,35 @@ export function EndGameOverlay({
       setShowReport(true);
     }
   }, [game.id]);
+
+  const buildAiForScoreSheet = () => {
+    const cached = getCachedReport(gameReportKey(game.id));
+    const reportBody = aiReport ?? cached?.report ?? null;
+    const reportAt   = aiCachedAt || cached?.cachedAt || '';
+    if (!reportBody || !reportAt) return null;
+    return {
+      title: dict.endGame.aiReport,
+      body: reportBody,
+      generatedLabel: fillTemplate(dict.endGame.generatedAt, {
+        date: formatCacheDate(reportAt),
+      }),
+    };
+  };
+
+  const openScoreSheetPreview = async () => {
+    const { buildGameScoreSheetDocument } = await import('@/lib/generatePDF');
+    const doc = buildGameScoreSheetDocument(
+      game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore,
+      dict.pdf.scoreSheet, locale, buildAiForScoreSheet(),
+    );
+    setScoreSheetPreview(doc);
+  };
+
+  const exportScoreSheetPdf = async () => {
+    if (!scoreSheetPreview) return;
+    const { printGameScoreSheet } = await import('@/lib/generatePDF');
+    printGameScoreSheet(scoreSheetPreview, dict.pdf.popupBlocked);
+  };
 
   const handleAI = async () => {
     if (aiReport) { setShowReport((v) => !v); return; }
@@ -298,11 +320,14 @@ export function EndGameOverlay({
 
   return (
     <div className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
-      {pdfConfirm && (
-        <PdfConfirmDialog
-          title={dict.pdf.confirmScore}
-          onConfirm={() => { setPdfConfirm(false); executePDF(); }}
-          onCancel={() => setPdfConfirm(false)}
+      {scoreSheetPreview && (
+        <ScoreSheetPreviewSheet
+          document={scoreSheetPreview}
+          onClose={() => setScoreSheetPreview(null)}
+          onExportPdf={exportScoreSheetPdf}
+          title={dict.pdf.scoreSheet.title}
+          backLabel={dict.common.back}
+          exportLabel={dict.pdf.exportPdf}
         />
       )}
 
@@ -458,10 +483,10 @@ export function EndGameOverlay({
           <Sparkles size={18} />
           {aiReport ? (showReport ? eg.hideReport : eg.showReport) : aiLoading ? '' : eg.aiAnalyze}
         </button>
-        {/* 5: PDF出力（エメラルド）*/}
-        <button onClick={() => setPdfConfirm(true)}
+        {/* 5: スコアシート確認（エメラルド）*/}
+        <button onClick={openScoreSheetPreview}
           className="flex items-center justify-center gap-2 w-full bg-emerald-600/80 active:bg-emerald-700 text-white font-bold rounded-2xl py-4 text-base transition-colors">
-          <FileText size={18} />{eg.pdfExport}
+          <FileText size={18} />{eg.previewScoreSheet}
         </button>
         {/* 6: 次の試合（スカイ）*/}
         <button onClick={onNewGame}

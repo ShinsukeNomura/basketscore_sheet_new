@@ -76,10 +76,36 @@ function renderColumn(
     </div>`;
 }
 
+export interface RunningScorePdfAi {
+  title: string;
+  body: string;
+  generatedLabel?: string;
+}
+
+function buildAiReportPanel(ai: RunningScorePdfAi): string {
+  const body = escapeHtml(ai.body);
+  return `
+    <div class="rs-ai-panel">
+      <div class="rs-ai-title">${escapeHtml(ai.title)}</div>
+      ${ai.generatedLabel ? `<div class="rs-ai-meta">${escapeHtml(ai.generatedLabel)}</div>` : ''}
+      <div class="rs-ai-text">${body}</div>
+    </div>`;
+}
+
 export const RUNNING_SCORE_PDF_STYLE = `
   .running-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #d1d5db; }
+  .running-footer-row { display: flex; flex-direction: row; align-items: flex-end; gap: 5mm; }
+  .rs-left { flex: 0 1 auto; min-width: 0; }
   .running-footer h2 { font-size: 9pt; margin: 0 0 6px; color: #1e40af; border: none; padding: 0; }
   .rs-columns { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-end; gap: 4mm; overflow: visible; }
+  .rs-ai-panel {
+    flex: 1 1 auto; min-width: 48mm; max-width: 82mm; align-self: stretch;
+    border: 1px solid #7dd3fc; background: #f0f9ff; border-radius: 4px;
+    padding: 5px 7px; box-sizing: border-box;
+  }
+  .rs-ai-title { font-size: 8pt; font-weight: 800; color: #1e40af; margin-bottom: 3px; line-height: 1.3; }
+  .rs-ai-meta { font-size: 6pt; color: #6b7280; margin-bottom: 4px; }
+  .rs-ai-text { font-size: 6.5pt; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: #1f2937; }
   .rs-col { flex: 0 0 auto; min-width: 0; }
   .rs-range { font-size: 6.5pt; color: #6b7280; text-align: center; margin-bottom: 2px; }
   .rs-col table { border-collapse: collapse; font-size: 6.5pt; line-height: 1.15; }
@@ -103,6 +129,7 @@ export function buildRunningScorePdfHtml(
   theirTeam: Team,
   title: string,
   rangeTemplate: string,
+  aiReport?: RunningScorePdfAi | null,
 ): string {
   const cells = buildRunningScore(logs, allPlayers, ourTeam.id, theirTeam.id);
   if (cells.length === 0) return '';
@@ -121,9 +148,16 @@ export function buildRunningScorePdfHtml(
     columns.push(renderColumn(slice, startN, ourShort, theirShort, rangeLabel));
   }
 
+  const aiHtml = aiReport?.body.trim() ? buildAiReportPanel(aiReport) : '';
+
   return `
     <div class="running-footer">
-      <h2>${escapeHtml(title)}</h2>
-      <div class="rs-columns">${columns.join('')}</div>
+      <div class="running-footer-row">
+        <div class="rs-left">
+          <h2>${escapeHtml(title)}</h2>
+          <div class="rs-columns">${columns.join('')}</div>
+        </div>
+        ${aiHtml}
+      </div>
     </div>`;
 }

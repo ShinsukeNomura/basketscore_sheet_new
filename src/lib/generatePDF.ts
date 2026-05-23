@@ -3,7 +3,7 @@ import { periodLabel } from '@/lib/period';
 import type { Dictionary } from '@/i18n/DictionaryProvider';
 import { fillTemplate, formatLocaleDateTime } from '@/lib/localeFormat';
 import { filterActivePeriods, getEffectiveRegularQuarters, isPracticeGame } from '@/lib/gameFormat';
-import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE } from '@/lib/runningScorePdf';
+import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE, type RunningScorePdfAi } from '@/lib/runningScorePdf';
 
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 
@@ -111,7 +111,13 @@ function playerStatsTable(
     <table>${header}${body}</table>`;
 }
 
-export function generateGamePDF(
+export interface GameScoreSheetDocument {
+  title:    string;
+  htmlLang: string;
+  fullHtml: string;
+}
+
+export function buildGameScoreSheetDocument(
   game: Game,
   ourTeam: Team,
   theirTeam: Team,
@@ -120,9 +126,9 @@ export function generateGamePDF(
   ourScore: number,
   theirScore: number,
   labels: ScoreSheetLabels,
-  popupBlocked: string,
   htmlLang: string,
-): void {
+  aiReport?: RunningScorePdfAi | null,
+): GameScoreSheetDocument {
   const periods = filterActivePeriods([1, 2, 3, 4, 5, 6], logs, game.game_name);
   const effectiveQ = getEffectiveRegularQuarters(logs, game.game_name);
   const formatNote =
@@ -146,9 +152,10 @@ export function generateGamePDF(
     logs, allPlayers, ourTeam, theirTeam,
     labels.runningScore,
     labels.runningRange,
+    aiReport,
   );
 
-  const html = `
+  const bodyHtml = `
     <div class="sheet-main">
     <h1>${escapeHtml(labels.title)}</h1>
     <div class="meta">
@@ -185,15 +192,47 @@ export function generateGamePDF(
   `;
 
   const title = `${game.game_name}_${game.date}`;
+  const fullHtml =
+    `<!DOCTYPE html><html lang="${escapeHtml(htmlLang)}"><head><meta charset="UTF-8">` +
+    `<meta name="viewport" content="width=device-width, initial-scale=1">` +
+    `<title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head>` +
+    `<body class="sheet-body">${bodyHtml}</body></html>`;
+
+  return { title, htmlLang, fullHtml };
+}
+
+export function printGameScoreSheet(
+  doc: GameScoreSheetDocument,
+  popupBlocked: string,
+): void {
   const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) {
     alert(popupBlocked);
     return;
   }
-  win.document.write(
-    `<!DOCTYPE html><html lang="${escapeHtml(htmlLang)}"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head><body class="sheet-body">${html}</body></html>`,
-  );
+  win.document.write(doc.fullHtml);
   win.document.close();
   win.focus();
   win.print();
+}
+
+/** @deprecated プレビュー経由を推奨。互換用に残す */
+export function generateGamePDF(
+  game: Game,
+  ourTeam: Team,
+  theirTeam: Team,
+  allPlayers: Player[],
+  logs: StatsLog[],
+  ourScore: number,
+  theirScore: number,
+  labels: ScoreSheetLabels,
+  popupBlocked: string,
+  htmlLang: string,
+  aiReport?: RunningScorePdfAi | null,
+): void {
+  const doc = buildGameScoreSheetDocument(
+    game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore,
+    labels, htmlLang, aiReport,
+  );
+  printGameScoreSheet(doc, popupBlocked);
 }
