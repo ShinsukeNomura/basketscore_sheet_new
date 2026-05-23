@@ -77,14 +77,24 @@ function renderColumn(
 }
 
 export const RUNNING_SCORE_PDF_STYLE = `
-  .sheet-running { flex: 0 0 auto; width: 100%; }
-  .sheet-running h2 { font-size: 7pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; }
-  .rs-columns { display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; justify-content: flex-start; gap: 1.5mm; width: 100%; }
+  .sheet-running {
+    flex: 0 0 auto; width: auto; max-width: 52mm;
+    border-left: 1px solid #d1d5db; padding-left: 2mm;
+    box-sizing: border-box;
+  }
+  .sheet-bottom:not(.has-ai) .sheet-running {
+    max-width: none; border-left: none; padding-left: 0; width: 100%;
+  }
+  .sheet-running h2 { font-size: 6.5pt; margin: 0 0 0.5mm; color: #1e40af; border: none; padding: 0; white-space: nowrap; }
+  .rs-columns {
+    display: flex; flex-direction: row; flex-wrap: wrap;
+    align-content: flex-start; justify-content: flex-start; gap: 1.5mm;
+  }
   .rs-col { flex: 0 0 auto; }
   .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 0.5mm; }
   .rs-col table { border-collapse: collapse; font-size: 5pt; line-height: 1; table-layout: fixed; width: auto; }
   .rs-col th { background: #e5e7eb; color: #374151; font-weight: 700; padding: 0 1px; border: 1px solid #d1d5db; font-size: 4.5pt; }
-  .rs-col td { padding: 0 1px; border: 1px solid #e5e7eb; height: 7px; vertical-align: middle; font-size: 4.5pt; }
+  .rs-col td { padding: 0 1px; border: 1px solid #e5e7eb; height: 8px; vertical-align: middle; font-size: 4.5pt; }
   .rs-col .rs-th-team { max-width: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4pt; }
   .rs-col .rs-p { text-align: right; font-weight: 700; }
   .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; text-align: center; }

@@ -42,22 +42,24 @@ const BASE_STYLE = `
   th.left, td.left { text-align: left; }
   td { padding: 0 2px; border-bottom: 1px solid #e5e7eb; text-align: center; line-height: 1.1; }
   tr:nth-child(even) { background: #f9fafb; }
-  .stats-pair { display: flex; gap: 2mm; margin-bottom: 2mm; }
+  .stats-pair { display: flex; gap: 2mm; margin-bottom: 2.5mm; }
   .stats-pair .stats-block { flex: 1; min-width: 0; overflow: hidden; }
-  .stats-pair h2 { font-size: 6.5pt; margin-top: 0; }
-  .stats-pair table { font-size: 5pt; }
-  .stats-pair th, .stats-pair td { padding: 0 1px; }
+  .stats-pair h2 { font-size: 7pt; margin-top: 0; }
+  .stats-pair table { font-size: 5.5pt; margin-bottom: 0; }
+  .stats-pair th { padding: 1px 2px; line-height: 1.2; }
+  .stats-pair td { padding: 1px 2px; line-height: 1.25; }
   .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 1mm; }
   .abbr { font-size: 5pt; color: #6b7280; margin: 0 0 1.5mm; line-height: 1.15; }
   .sheet-bottom {
-    display: flex; flex-direction: column;
-    gap: 1.5mm;
     border-top: 1px solid #d1d5db;
     padding-top: 1.5mm;
   }
   .sheet-bottom.has-ai {
-    flex: 1 1 auto; min-height: 0;
+    flex: 0 0 auto;
+    display: flex; flex-direction: row;
+    align-items: flex-start; gap: 2mm;
   }
+  .sheet-bottom:not(.has-ai) .sheet-running { width: 100%; }
   .footer { font-size: 5pt; color: #9ca3af; text-align: center; margin-top: auto; padding-top: 1mm; flex: 0 0 auto; }
   ${RUNNING_SCORE_PDF_STYLE}
   ${AI_REPORT_PDF_STYLE}
@@ -239,8 +241,8 @@ export function buildGameScoreSheetDocument(
     </div>
 
       <div class="sheet-bottom${hasAi ? ' has-ai' : ''}">
-        ${runningHtml || ''}
         ${aiHtml}
+        ${runningHtml || ''}
       </div>
 
       <div class="footer">Basketball Score App — ${formatLocaleDateTime(htmlLang)}</div>

@@ -54,7 +54,8 @@ export function formatAiReportBody(raw: string): string {
 
 export const AI_REPORT_PDF_STYLE = `
   .sheet-ai {
-    flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0;
+    flex: 1 1 auto; min-width: 0;
+    display: flex; flex-direction: column; min-height: 0;
     border: 1px solid #93c5fd; background: #f8fafc; border-radius: 3px;
     padding: 2mm 2.5mm; box-sizing: border-box;
     color: #1f2937;
@@ -62,8 +63,7 @@ export const AI_REPORT_PDF_STYLE = `
   .sheet-ai h2 { font-size: 7pt; font-weight: 800; color: #1e40af; margin: 0 0 0.5mm; border: none; padding: 0; flex: 0 0 auto; }
   .sheet-ai .ai-meta { font-size: 5.5pt; color: #6b7280; margin-bottom: 1mm; flex: 0 0 auto; }
   .sheet-ai .ai-body {
-    flex: 1 1 auto; font-size: 6pt; line-height: 1.28;
-    column-count: 2; column-gap: 3mm; column-fill: auto;
+    flex: 1 1 auto; font-size: 6pt; line-height: 1.3;
   }
   .sheet-ai .ai-h3 { font-size: 6.5pt; font-weight: 800; color: #1e40af; margin: 1mm 0 0.4mm; break-after: avoid; }
   .sheet-ai .ai-h4 { font-size: 6pt; font-weight: 700; color: #374151; margin: 0.8mm 0 0.3mm; break-after: avoid; }
