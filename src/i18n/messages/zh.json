@@ -387,7 +387,8 @@
     "courtOut": "场上（换下）",
     "benchIn": "替补（换上）",
     "noBench": "替补席无球员",
-    "selectCourtFirst": "— 请先选择场上球员"
+    "selectCourtFirst": "— 请先选择场上球员",
+    "addMember": "输入背号添加球员"
   },
 
   "myTeamsSheet": {

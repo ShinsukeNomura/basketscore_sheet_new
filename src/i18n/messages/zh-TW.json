@@ -387,7 +387,8 @@
     "courtOut": "場上（換下）",
     "benchIn": "替補（換上）",
     "noBench": "替補席無球員",
-    "selectCourtFirst": "— 請先選擇場上球員"
+    "selectCourtFirst": "— 請先選擇場上球員",
+    "addMember": "輸入背號新增球員"
   },
 
   "myTeamsSheet": {

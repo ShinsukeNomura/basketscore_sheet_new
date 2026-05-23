@@ -387,7 +387,8 @@
     "courtOut": "On court (OUT)",
     "benchIn": "Bench (IN)",
     "noBench": "No bench players",
-    "selectCourtFirst": "— Select an on-court player first"
+    "selectCourtFirst": "— Select an on-court player first",
+    "addMember": "Add member by jersey #"
   },
 
   "myTeamsSheet": {

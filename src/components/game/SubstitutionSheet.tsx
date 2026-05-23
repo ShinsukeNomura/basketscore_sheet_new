@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -10,32 +10,66 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { ArrowLeftRight, ChevronLeft } from 'lucide-react';
+import { ArrowLeftRight, ChevronLeft, Plus } from 'lucide-react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface SubstitutionSheetProps {
   open:          boolean;
   team:          Team | null;
+  allPlayers:    Player[];
   courtPlayers:  Player[];
   benchPlayers:  Player[];
   playerFouls:   Record<string, number>;
   onSubstitute:  (outId: string, inId: string) => void;
+  onAddPlayer:   (teamId: string, backNumber: string) => void;
   onClose:       () => void;
 }
 
 export function SubstitutionSheet({
   open,
   team,
+  allPlayers,
   courtPlayers,
   benchPlayers,
   playerFouls,
   onSubstitute,
+  onAddPlayer,
   onClose,
 }: SubstitutionSheetProps) {
   const dict = useDictionary();
   const sub = dict.substitution;
+  const g = dict.game;
   const c = dict.common;
   const [outPlayer, setOutPlayer] = useState<Player | null>(null);
+  const [input, setInput]       = useState('');
+  const [error, setError]       = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const keepFocus = useCallback(() => {
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    const num = input.trim();
+    if (!num) {
+      setError(g.errorEmpty);
+      return;
+    }
+    if (!/^\d{1,2}$/.test(num)) {
+      setError(g.errorInvalidNumber);
+      return;
+    }
+    if (!team) return;
+    if (allPlayers.some((p) => p.team_id === team.id && p.back_number === num)) {
+      setError(g.errorDuplicate.replace('{num}', num));
+      return;
+    }
+    onAddPlayer(team.id, num);
+    setInput('');
+    setError('');
+    if (navigator.vibrate) navigator.vibrate(30);
+    keepFocus();
+  }, [input, team, allPlayers, onAddPlayer, g, keepFocus]);
 
   function handleCourtTap(player: Player) {
     setOutPlayer((prev) => (prev?.id === player.id ? null : player));
@@ -71,11 +105,11 @@ export function SubstitutionSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) { setOutPlayer(null); onClose(); } }}>
+    <Sheet open={open} onOpenChange={(v) => { if (!v) { setOutPlayer(null); setInput(''); setError(''); onClose(); } }}>
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe max-h-[80dvh] overflow-y-auto"
+        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe max-h-[80dvh] overflow-y-auto px-4"
       >
         <SheetHeader className="mb-4 flex-row items-center gap-2">
           <button
@@ -136,6 +170,48 @@ export function SubstitutionSheet({
               ))
             )}
           </div>
+        </div>
+
+        <div className="mt-5 mb-2 rounded-2xl border-2 border-sky-500/55 bg-sky-950/35 p-3">
+          <p className="text-sky-300 text-xs font-bold mb-2">{sub.addMember}</p>
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={2}
+              value={input}
+              placeholder={g.backNumber}
+              onChange={(e) => { setInput(e.target.value.replace(/\D/g, '')); setError(''); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAdd();
+                }
+              }}
+              className={cn(
+                'flex-1 bg-sky-950/50 text-white text-lg font-black rounded-xl px-4 py-3',
+                'border-2 placeholder:text-white/25 outline-none transition-all',
+                error
+                  ? 'border-red-500 ring-2 ring-red-500/40'
+                  : 'border-sky-400/50 focus:border-sky-300 focus:ring-2 focus:ring-sky-400/35',
+              )}
+            />
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleAdd();
+              }}
+              className="flex items-center gap-1 px-4 py-3 rounded-xl bg-sky-600 border-2 border-sky-400/50 active:bg-sky-500 text-white font-bold text-sm"
+            >
+              <Plus size={16} />
+              {c.add}
+            </button>
+          </div>
+          {error && <p className="text-red-400 text-xs px-1 mt-1.5 font-medium">{error}</p>}
         </div>
       </SheetContent>
     </Sheet>

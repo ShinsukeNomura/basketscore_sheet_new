@@ -387,7 +387,8 @@
     "courtOut": "コート上（OUT）",
     "benchIn": "ベンチ（IN）",
     "noBench": "ベンチに選手がいません",
-    "selectCourtFirst": "— まずコート上の選手を選んでください"
+    "selectCourtFirst": "— まずコート上の選手を選んでください",
+    "addMember": "背番号でメンバーを追加"
   },
 
   "myTeamsSheet": {

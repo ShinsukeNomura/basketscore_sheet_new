@@ -234,10 +234,12 @@ export default function GamePage() {
       <SubstitutionSheet
         open={subOpen}
         team={subTeam}
+        allPlayers={allPlayers}
         courtPlayers={courtForSub}
         benchPlayers={benchForSub}
         playerFouls={playerFouls}
         onSubstitute={substitute}
+        onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
       />
       <RosterSheet
