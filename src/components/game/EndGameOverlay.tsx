@@ -327,6 +327,9 @@ export function EndGameOverlay({
           shareFallbackLabel={dict.pdf.shareFallback}
           popupBlocked={dict.pdf.popupBlocked}
           shownAboveLabel={dict.pdf.previewShownAbove}
+          screenshotLabel={dict.pdf.screenshot}
+          screenshotDoneLabel={dict.pdf.screenshotDone}
+          screenshotFailLabel={dict.pdf.screenshotFail}
         />
       )}
 

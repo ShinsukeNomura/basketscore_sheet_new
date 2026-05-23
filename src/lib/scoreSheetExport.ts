@@ -88,3 +88,66 @@ export async function shareScoreSheet(
 export function canShareScoreSheet(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 }
+
+export type ScreenshotScoreSheetResult =
+  | 'shared'
+  | 'downloaded'
+  | 'cancelled'
+  | 'unsupported'
+  | 'failed';
+
+/** プレビュー iframe 内のレポートを PNG 化 */
+export async function captureScoreSheetScreenshot(
+  iframe: HTMLIFrameElement,
+): Promise<Blob | null> {
+  const doc = iframe.contentDocument;
+  const body = doc?.body;
+  if (!body) return null;
+
+  const { toBlob } = await import('html-to-image');
+  const width = A4_PREVIEW_WIDTH_PX;
+  const height = Math.max(body.scrollHeight, body.offsetHeight, A4_PREVIEW_HEIGHT_PX);
+
+  return toBlob(body, {
+    width,
+    height,
+    pixelRatio: 2,
+    backgroundColor: '#ffffff',
+    cacheBust: true,
+  });
+}
+
+function downloadPngBlob(blob: Blob, title: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeFilename(title)}.png`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** スコアシート PNG をシェアまたはダウンロード */
+export async function shareScoreSheetScreenshot(
+  iframe: HTMLIFrameElement,
+  title: string,
+): Promise<ScreenshotScoreSheetResult> {
+  const blob = await captureScoreSheetScreenshot(iframe);
+  if (!blob) return 'failed';
+
+  const filename = `${safeFilename(title)}.png`;
+  const file = new File([blob], filename, { type: 'image/png' });
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+        await navigator.share({ title, files: [file] });
+        return 'shared';
+      }
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return 'cancelled';
+    }
+  }
+
+  downloadPngBlob(blob, title);
+  return 'downloaded';
+}

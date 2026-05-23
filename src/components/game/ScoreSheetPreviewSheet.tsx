@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, FileText, Share2 } from 'lucide-react';
+import { Camera, ChevronLeft, FileText, Share2 } from 'lucide-react';
 import type { GameScoreSheetDocument } from '@/lib/generatePDF';
 import {
   A4_PREVIEW_HEIGHT_PX,
   A4_PREVIEW_WIDTH_PX,
   printGameScoreSheet,
   shareScoreSheet,
+  shareScoreSheetScreenshot,
 } from '@/lib/scoreSheetExport';
 
 interface ScoreSheetPreviewSheetProps {
@@ -21,6 +22,9 @@ interface ScoreSheetPreviewSheetProps {
   shareFallbackLabel: string;
   popupBlocked: string;
   shownAboveLabel: string;
+  screenshotLabel: string;
+  screenshotDoneLabel: string;
+  screenshotFailLabel: string;
 }
 
 export function ScoreSheetPreviewSheet({
@@ -34,10 +38,15 @@ export function ScoreSheetPreviewSheet({
   shareFallbackLabel,
   popupBlocked,
   shownAboveLabel,
+  screenshotLabel,
+  screenshotDoneLabel,
+  screenshotFailLabel,
 }: ScoreSheetPreviewSheetProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [scale, setScale] = useState(1);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const [screenshotBusy, setScreenshotBusy] = useState(false);
 
   const updateScale = useCallback(() => {
     const el = viewportRef.current;
@@ -75,6 +84,23 @@ export function ScoreSheetPreviewSheet({
     window.setTimeout(() => setShareMsg(null), 2500);
   };
 
+  const handleScreenshot = async () => {
+    const iframe = iframeRef.current;
+    if (!iframe || screenshotBusy) return;
+    setShareMsg(null);
+    setScreenshotBusy(true);
+    try {
+      const result = await shareScoreSheetScreenshot(iframe, doc.title);
+      if (result === 'shared' || result === 'downloaded') setShareMsg(screenshotDoneLabel);
+      else if (result === 'failed') setShareMsg(screenshotFailLabel);
+    } catch {
+      setShareMsg(screenshotFailLabel);
+    } finally {
+      setScreenshotBusy(false);
+      window.setTimeout(() => setShareMsg(null), 2500);
+    }
+  };
+
   const scaledH = A4_PREVIEW_HEIGHT_PX * scale;
 
   return (
@@ -107,6 +133,7 @@ export function ScoreSheetPreviewSheet({
           }}
         >
           <iframe
+            ref={iframeRef}
             title={doc.title}
             srcDoc={doc.fullHtml}
             className="bg-white border-0 shadow-md origin-top-left"
@@ -130,11 +157,11 @@ export function ScoreSheetPreviewSheet({
         >
           ↑ {shownAboveLabel}
         </p>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={handleShare}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-sky-600 active:bg-sky-700 text-white font-bold text-sm transition-colors min-h-[48px]"
+            className="flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-sky-600 active:bg-sky-700 text-white font-bold text-[11px] transition-colors min-h-[52px] px-1"
           >
             <Share2 size={17} />
             {shareLabel}
@@ -142,10 +169,19 @@ export function ScoreSheetPreviewSheet({
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-600 active:bg-emerald-700 text-white font-bold text-sm transition-colors min-h-[48px]"
+            className="flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[11px] transition-colors min-h-[52px] px-1"
           >
             <FileText size={17} />
             {exportLabel}
+          </button>
+          <button
+            type="button"
+            onClick={handleScreenshot}
+            disabled={screenshotBusy}
+            className="flex flex-col items-center justify-center gap-1 py-3 rounded-xl bg-violet-600 active:bg-violet-700 disabled:opacity-60 text-white font-bold text-[11px] transition-colors min-h-[52px] px-1"
+          >
+            <Camera size={17} />
+            {screenshotLabel}
           </button>
         </div>
         <button
