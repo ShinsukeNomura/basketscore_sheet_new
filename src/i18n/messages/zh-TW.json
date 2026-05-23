@@ -557,6 +557,7 @@
     "export": "匯出",
     "cancel": "取消",
     "popupBlocked": "彈出視窗遭到封鎖。請允許彈出視窗後再試一次。",
+    "previewShownAbove": "見上方",
     "scoreSheet": {
       "title": "籃球得分表",
       "recorder": "記錄員",

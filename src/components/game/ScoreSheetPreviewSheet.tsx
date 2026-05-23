@@ -20,6 +20,7 @@ interface ScoreSheetPreviewSheetProps {
   shareDoneLabel: string;
   shareFallbackLabel: string;
   popupBlocked: string;
+  shownAboveLabel: string;
 }
 
 export function ScoreSheetPreviewSheet({
@@ -32,6 +33,7 @@ export function ScoreSheetPreviewSheet({
   shareDoneLabel,
   shareFallbackLabel,
   popupBlocked,
+  shownAboveLabel,
 }: ScoreSheetPreviewSheetProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -50,6 +52,14 @@ export function ScoreSheetPreviewSheet({
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
   }, [updateScale]);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    const t = window.setTimeout(() => { el.scrollTop = 0; }, 50);
+    return () => window.clearTimeout(t);
+  }, [doc.fullHtml]);
 
   const handlePrint = () => {
     printGameScoreSheet(doc, popupBlocked);
@@ -114,6 +124,12 @@ export function ScoreSheetPreviewSheet({
       )}
 
       <div className="shrink-0 flex flex-col gap-2 px-4 py-3 border-t border-white/10 bg-neutral-900/95 safe-area-pb">
+        <p
+          className="text-center text-amber-300 font-bold text-sm py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35"
+          role="status"
+        >
+          ↑ {shownAboveLabel}
+        </p>
         <div className="flex gap-2">
           <button
             type="button"

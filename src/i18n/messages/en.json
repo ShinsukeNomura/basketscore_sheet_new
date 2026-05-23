@@ -557,6 +557,7 @@
     "export": "Export",
     "cancel": "Cancel",
     "popupBlocked": "Pop-up was blocked. Please allow pop-ups and try again.",
+    "previewShownAbove": "Shown above",
     "scoreSheet": {
       "title": "Basketball Score Sheet",
       "recorder": "Recorder",

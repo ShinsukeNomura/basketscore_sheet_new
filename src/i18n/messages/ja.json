@@ -557,6 +557,7 @@
     "export": "出力する",
     "cancel": "キャンセル",
     "popupBlocked": "ポップアップがブロックされました。許可してから再試行してください。",
+    "previewShownAbove": "上記に表示",
     "scoreSheet": {
       "title": "バスケットボール スコアシート",
       "recorder": "記録者",

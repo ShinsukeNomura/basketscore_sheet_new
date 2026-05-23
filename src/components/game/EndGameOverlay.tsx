@@ -326,6 +326,7 @@ export function EndGameOverlay({
           shareDoneLabel={dict.pdf.shareDone}
           shareFallbackLabel={dict.pdf.shareFallback}
           popupBlocked={dict.pdf.popupBlocked}
+          shownAboveLabel={dict.pdf.previewShownAbove}
         />
       )}
 

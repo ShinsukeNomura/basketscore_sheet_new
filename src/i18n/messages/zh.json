@@ -557,6 +557,7 @@
     "export": "导出",
     "cancel": "取消",
     "popupBlocked": "弹窗被阻止。请允许弹窗后重试。",
+    "previewShownAbove": "见上方",
     "scoreSheet": {
       "title": "篮球得分表",
       "recorder": "记录员",
