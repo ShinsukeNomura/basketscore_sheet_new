@@ -370,7 +370,11 @@
     "empty": "記録がまだありません",
     "team": "チーム",
     "oppTov": "相手TOV",
-    "undo": "取り消し"
+    "undo": "取り消し",
+    "viewAll": "すべて表示",
+    "previewHint": "最新{shown}件（全{total}件）",
+    "pageTitle": "タイムライン",
+    "entryCount": "{count}件の記録"
   },
 
   "actions": {

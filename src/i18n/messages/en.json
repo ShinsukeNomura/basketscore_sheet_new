@@ -370,7 +370,11 @@
     "empty": "No entries yet",
     "team": "Team",
     "oppTov": "Opp TOV",
-    "undo": "Undo"
+    "undo": "Undo",
+    "viewAll": "View all",
+    "previewHint": "Latest {shown} of {total}",
+    "pageTitle": "Timeline",
+    "entryCount": "{count} entries"
   },
 
   "actions": {

@@ -27,7 +27,7 @@ export default function GamePage() {
   const {
     game, ourTeam, theirTeam, allPlayers, isLoaded,
     selectedStat, flashPlayerId,
-    ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries,
+    ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
@@ -187,6 +187,8 @@ export default function GamePage() {
           entries={recentEntries}
           allPlayers={allPlayers}
           onUndo={undoLog}
+          totalCount={allTimelineEntries.length}
+          onViewAll={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/timeline`); }}
         />
       </div>
 

@@ -370,7 +370,11 @@
     "empty": "暂无记录",
     "team": "球队",
     "oppTov": "对方失误",
-    "undo": "撤销"
+    "undo": "撤销",
+    "viewAll": "查看全部",
+    "previewHint": "最新{shown}条（共{total}条）",
+    "pageTitle": "时间线",
+    "entryCount": "共{count}条记录"
   },
 
   "actions": {

@@ -2,6 +2,7 @@
 
 import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
+import { buildTimelineEntries } from '@/lib/timelineEntries';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame, removeStaleGameEntry } from '@/lib/storage';
 import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
@@ -491,19 +492,15 @@ export function useGameState(gameId: string) {
     return map;
   }, [activeLogs]);
 
-  // タイムライン用エントリ（primary only、linked を付帯）
-  const recentEntries = useMemo((): TimelineEntry[] => {
-    const primaries = [...activeLogs]
-      .filter((l) => !l.is_auto)
-      .reverse()
-      .slice(0, 2);
-    return primaries.map((primary) => ({
-      primary,
-      linked: primary.link_id
-        ? activeLogs.filter((l) => l.link_id === primary.link_id && l.is_auto)
-        : [],
-    }));
-  }, [activeLogs]);
+  const allTimelineEntries = useMemo(
+    () => buildTimelineEntries(activeLogs),
+    [activeLogs],
+  );
+
+  const recentEntries = useMemo(
+    () => allTimelineEntries.slice(0, 2),
+    [allTimelineEntries],
+  );
 
   // --- アクション ---
   const selectStat   = useCallback((a: ActionType) => dispatch({ type: 'SELECT_STAT',   payload: a }),              []);
@@ -546,6 +543,7 @@ export function useGameState(gameId: string) {
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts,
     activeLogs,
     recentEntries,
+    allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,

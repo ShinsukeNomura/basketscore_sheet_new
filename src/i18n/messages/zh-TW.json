@@ -370,7 +370,11 @@
     "empty": "尚無記錄",
     "team": "球隊",
     "oppTov": "對方失誤",
-    "undo": "復原"
+    "undo": "復原",
+    "viewAll": "查看全部",
+    "previewHint": "最新{shown}筆（共{total}筆）",
+    "pageTitle": "時間軸",
+    "entryCount": "共{count}筆記錄"
   },
 
   "actions": {
