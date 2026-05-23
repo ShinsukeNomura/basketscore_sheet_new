@@ -12,7 +12,7 @@ export { printGameScoreSheet } from '@/lib/scoreSheetExport';
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 export type { ScoreSheetAiReport };
 
-/** A4用スタイル（1枚全体を flex で均等配分） */
+/** A4用スタイル */
 const PAGE_H = '287mm';
 
 const BASE_STYLE = `
@@ -26,15 +26,14 @@ const BASE_STYLE = `
   }
   .a4-sheet {
     width: 202mm; max-width: 202mm; margin: 0 auto;
-    height: ${PAGE_H}; max-height: ${PAGE_H};
     display: flex; flex-direction: column;
     gap: 1.5mm;
+    height: auto;
+    max-height: ${PAGE_H};
   }
   .sheet-top {
-    flex: 1 1 42%; min-height: 0;
-    display: flex; flex-direction: column;
-    justify-content: flex-start;
-    gap: 1.5mm;
+    flex: 0 0 auto;
+    display: block;
     padding-top: 1mm;
   }
   .sheet-head { flex: 0 0 auto; }
@@ -53,56 +52,64 @@ const BASE_STYLE = `
   .team-name { font-size: 8.5pt; font-weight: 900; text-align: center; max-width: 28mm; }
   .score-num { font-size: 14pt; font-weight: 900; color: #1e40af; line-height: 1; }
   .score-sep { font-size: 9pt; font-weight: 700; color: #6b7280; }
-  .sheet-quarter { flex: 0 0 auto; }
+  .sheet-quarter { margin-top: 1mm; }
   h2 { font-size: 7pt; color: #1e40af; border-left: 2px solid #1e40af; padding-left: 3px; margin: 0 0 0.5mm; line-height: 1.1; }
   .quarter-table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin: 0; }
   .quarter-table th { background: #1e40af; color: white; padding: 1px 3px; }
   .quarter-table td { padding: 1px 3px; border-bottom: 1px solid #e5e7eb; line-height: 1.2; }
   .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 0.5mm; }
-  .sheet-stats {
-    display: flex; flex-direction: column; justify-content: flex-start;
+  .sheet-stats { margin: 1mm 0 0; }
+  .stats-pair {
+    display: flex;
+    gap: 2mm;
+    align-items: flex-start;
   }
-  .stats-pair { display: flex; gap: 2mm; flex: 0 0 auto; align-items: flex-start; }
-  .stats-pair .stats-block { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .stats-pair h2 { font-size: 7pt; margin: 0 0 0.5mm; flex: 0 0 auto; }
+  .stats-pair .stats-block {
+    flex: 1;
+    min-width: 0;
+  }
+  .stats-pair h2 { font-size: 7pt; margin: 0 0 0.5mm; }
   .stats-pair table {
-    font-size: 6pt; margin: 0; flex: 0 0 auto; width: 100%;
-    border-collapse: collapse; table-layout: auto;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 6pt;
+    margin: 0;
   }
   .stats-pair th {
-    background: #1e40af; color: white; padding: 2px 3px; line-height: 1.2;
-    white-space: nowrap; text-align: center; font-weight: 700;
+    background: #1e40af;
+    color: white;
+    padding: 1px 3px;
+    line-height: 1.15;
+    height: auto;
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 700;
+    vertical-align: middle;
   }
   .stats-pair td {
-    padding: 2px 3px; line-height: 1.3; border-bottom: 1px solid #e5e7eb;
-    white-space: nowrap; text-align: center;
+    padding: 1px 3px;
+    line-height: 1.15;
+    height: auto;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
   }
   .stats-pair th.left, .stats-pair td.left { text-align: left; }
   .stats-pair tr:nth-child(even) { background: #f9fafb; }
-  .sheet-stats { flex: 0 0 auto; margin-top: 0; }
   .sheet-bottom {
-    flex: 1 1 54%; min-height: 0;
+    flex: 0 0 auto;
     border-top: 1px solid #d1d5db;
-    padding-top: 1mm;
+    padding-top: 1.5mm;
   }
   .sheet-bottom.has-ai {
-    display: flex; flex-direction: row;
-    align-items: stretch; gap: 2mm;
-  }
-  /* AIなし: 上段を伸ばさず、ランニングを下にコンパクト配置 */
-  .a4-sheet.no-ai {
-    justify-content: flex-start;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
     gap: 2mm;
-  }
-  .a4-sheet.no-ai .sheet-top {
-    flex: 0 0 auto;
-    justify-content: flex-start;
-  }
-  .a4-sheet.no-ai .sheet-bottom {
-    flex: 0 0 auto;
-    min-height: auto;
-    display: block;
-    padding-top: 1.5mm;
   }
   .a4-sheet.no-ai .sheet-running {
     width: 100%;
@@ -111,15 +118,22 @@ const BASE_STYLE = `
     border-left: none;
     padding-left: 0;
   }
-  .a4-sheet.no-ai .rs-columns {
-    flex: 0 0 auto;
-    align-content: flex-start;
-    justify-content: flex-start;
+  .a4-sheet.has-ai {
+    height: ${PAGE_H};
+    max-height: ${PAGE_H};
   }
-  .a4-sheet.has-ai .sheet-top { flex: 1 1 42%; }
-  .a4-sheet.has-ai .sheet-stats { flex: 1 1 auto; margin-top: auto; min-height: 0; }
-  .a4-sheet.has-ai .stats-pair { flex: 1 1 auto; align-items: stretch; }
-  .a4-sheet.has-ai .stats-pair table { flex: 1 1 auto; }
+  .a4-sheet.has-ai .sheet-top {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1.5mm;
+  }
+  .a4-sheet.has-ai .sheet-stats {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
   .sheet-foot {
     flex: 0 0 auto;
     font-size: 5pt; color: #6b7280; line-height: 1.15;
@@ -142,8 +156,10 @@ const BASE_STYLE = `
     .sheet-ai .ai-body { column-count: 1; }
   }
   @media print {
-    html, body { height: ${PAGE_H}; overflow: hidden; }
-    .a4-sheet { page-break-inside: avoid; height: ${PAGE_H}; width: 202mm; max-width: 202mm; }
+    html, body { overflow: hidden; }
+    .a4-sheet { page-break-inside: avoid; width: 202mm; max-width: 202mm; }
+    .a4-sheet.has-ai { height: ${PAGE_H}; max-height: ${PAGE_H}; }
+    .a4-sheet.no-ai { height: auto; max-height: ${PAGE_H}; }
   }
 `;
 
