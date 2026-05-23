@@ -8,26 +8,38 @@ import { buildRunningScorePdfHtml, RUNNING_SCORE_PDF_STYLE, type RunningScorePdf
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 
 const BASE_STYLE = `
-  body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 12mm 15mm; font-size: 10pt; line-height: 1.5; }
-  h1 { font-size: 14pt; text-align: center; margin: 0 0 4px; letter-spacing: 0.05em; }
-  .meta { text-align: center; color: #4b5563; font-size: 9.5pt; margin-bottom: 14px; }
-  .score-box { display: flex; align-items: center; justify-content: center; gap: 16px; border-top: 2px solid #1e40af; border-bottom: 2px solid #1e40af; padding: 10px 0; margin: 12px 0; }
-  .team-name { font-size: 13pt; font-weight: 900; min-width: 80px; text-align: center; }
-  .score-num { font-size: 22pt; font-weight: 900; color: #1e40af; min-width: 36px; text-align: center; }
-  .score-sep { font-size: 16pt; font-weight: 700; color: #6b7280; }
-  h2 { font-size: 11pt; color: #1e40af; border-left: 4px solid #1e40af; padding-left: 8px; margin: 16px 0 8px; }
-  table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin: 6px 0 12px; }
-  th { background: #1e40af; color: white; padding: 4px 6px; text-align: center; font-weight: bold; }
+  @page { size: A4 portrait; margin: 5mm 6mm; }
+  body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 6mm 7mm; font-size: 8pt; line-height: 1.25; }
+  h1 { font-size: 11pt; text-align: center; margin: 0 0 2px; letter-spacing: 0.03em; line-height: 1.2; }
+  .meta { text-align: center; color: #4b5563; font-size: 7pt; margin-bottom: 4px; line-height: 1.3; }
+  .score-box { display: flex; align-items: center; justify-content: center; gap: 10px; border-top: 1.5px solid #1e40af; border-bottom: 1.5px solid #1e40af; padding: 3px 0; margin: 4px 0; }
+  .team-name { font-size: 9.5pt; font-weight: 900; min-width: 56px; text-align: center; }
+  .score-num { font-size: 16pt; font-weight: 900; color: #1e40af; min-width: 28px; text-align: center; line-height: 1; }
+  .score-sep { font-size: 11pt; font-weight: 700; color: #6b7280; }
+  h2 { font-size: 7.5pt; color: #1e40af; border-left: 3px solid #1e40af; padding-left: 5px; margin: 5px 0 2px; line-height: 1.2; }
+  table { width: 100%; border-collapse: collapse; font-size: 6.5pt; margin: 0 0 3px; }
+  th { background: #1e40af; color: white; padding: 1px 3px; text-align: center; font-weight: bold; line-height: 1.15; }
   th.left, td.left { text-align: left; }
-  td { padding: 3px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+  td { padding: 0 2px; border-bottom: 1px solid #e5e7eb; text-align: center; line-height: 1.15; }
   tr:nth-child(even) { background: #f9fafb; }
-  .abbr { font-size: 7.5pt; color: #6b7280; margin-top: 12px; line-height: 1.6; }
-  .footer { font-size: 7.5pt; color: #9ca3af; text-align: center; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
-  .format-note { font-size: 8pt; color: #6b7280; margin: 4px 0 8px; }
-  body.sheet-body { display: flex; flex-direction: column; min-height: 100vh; }
-  body.sheet-body .sheet-main { flex: 1 0 auto; }
+  .stats-pair { display: flex; flex-direction: row; gap: 2mm; align-items: flex-start; margin-bottom: 2px; }
+  .stats-pair .stats-block { flex: 1; min-width: 0; }
+  .stats-pair h2 { margin-top: 3px; font-size: 7pt; }
+  .stats-pair table { font-size: 5.5pt; margin-bottom: 0; }
+  .stats-pair th, .stats-pair td { padding: 0 1px; }
+  .abbr { font-size: 5.5pt; color: #6b7280; margin-top: 2px; line-height: 1.25; }
+  .footer { font-size: 5.5pt; color: #9ca3af; text-align: center; margin-top: 2px; border-top: 1px solid #e5e7eb; padding-top: 2px; }
+  .format-note { font-size: 6pt; color: #6b7280; margin: 1px 0 2px; }
+  body.sheet-body { display: flex; flex-direction: column; }
+  body.sheet-body .sheet-main { flex: 0 0 auto; }
   ${RUNNING_SCORE_PDF_STYLE}
-  @media print { body { padding: 8mm 12mm; } }
+  @media print {
+    html, body { height: auto !important; min-height: 0 !important; overflow: visible; }
+    body { padding: 0; }
+    body.sheet-body { display: block; min-height: 0; }
+    .sheet-main { page-break-inside: avoid; }
+    .running-footer, .footer { page-break-inside: avoid; }
+  }
 `;
 
 function escapeHtml(s: string): string {
@@ -107,8 +119,10 @@ function playerStatsTable(
 
   const teamName = escapeHtml(team.team_name || labels.teamFallback);
   return `
-    <h2>${teamName} — ${escapeHtml(labels.playerStats)}</h2>
-    <table>${header}${body}</table>`;
+    <div class="stats-block">
+      <h2>${teamName} — ${escapeHtml(labels.playerStats)}</h2>
+      <table>${header}${body}</table>
+    </div>`;
 }
 
 export interface GameScoreSheetDocument {
@@ -179,8 +193,10 @@ export function buildGameScoreSheetDocument(
       ${quarterRows}
     </table>
 
-    ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
-    ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
+    <div class="stats-pair">
+      ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
+      ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
+    </div>
 
     <div class="abbr">
       <strong>${escapeHtml(labels.abbrevTitle)}:</strong>
