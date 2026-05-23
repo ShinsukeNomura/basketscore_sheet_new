@@ -34,12 +34,14 @@ export function ScoreSheetPreviewSheet({
         <span className="text-white text-sm font-bold flex-1 truncate">{title}</span>
       </div>
 
-      <iframe
-        title={doc.title}
-        srcDoc={doc.fullHtml}
-        className="flex-1 min-h-0 w-full bg-white border-0"
-        sandbox="allow-same-origin allow-scripts"
-      />
+      <div className="flex-1 min-h-0 overflow-auto bg-neutral-600 flex justify-center items-start p-3">
+        <iframe
+          title={doc.title}
+          srcDoc={doc.fullHtml}
+          className="bg-white border-0 shadow-lg shrink-0"
+          style={{ width: '210mm', height: '297mm', maxWidth: '100%' }}
+        />
+      </div>
 
       <div className="shrink-0 flex gap-3 px-4 py-4 border-t border-white/10 bg-neutral-900/95 safe-area-pb">
         <button

@@ -2,8 +2,8 @@ import { buildRunningScore, RunningCell, ShotType } from '@/lib/runningScore';
 import { StatsLog, Player, Team } from '@/types';
 import { fillTemplate } from '@/lib/localeFormat';
 
-/** 下余白1列に収める行数（超えたら横に次列） */
-export const RUNNING_SCORE_ROWS_PER_COLUMN = 20;
+/** 1列あたりの行数（超えたら横に次列、折り返し可） */
+export const RUNNING_SCORE_ROWS_PER_COLUMN = 18;
 
 function escapeHtml(s: string): string {
   return s
@@ -38,7 +38,6 @@ function renderColumn(
   theirShort: string,
   rangeLabel: string,
 ): string {
-  const endN = startN + rowCount - 1;
   const cellMap = new Map(cells.map((c) => [c.n, c]));
 
   const rows = Array.from({ length: rowCount }, (_, i) => {
@@ -77,45 +76,19 @@ function renderColumn(
     </div>`;
 }
 
-export interface RunningScorePdfAi {
-  title: string;
-  body: string;
-  generatedLabel?: string;
-}
-
-function buildAiReportPanel(ai: RunningScorePdfAi): string {
-  const body = escapeHtml(ai.body);
-  return `
-    <div class="rs-ai-panel">
-      <div class="rs-ai-title">${escapeHtml(ai.title)}</div>
-      ${ai.generatedLabel ? `<div class="rs-ai-meta">${escapeHtml(ai.generatedLabel)}</div>` : ''}
-      <div class="rs-ai-text">${body}</div>
-    </div>`;
-}
-
 export const RUNNING_SCORE_PDF_STYLE = `
-  .running-footer { margin-top: 1mm; padding-top: 1px; border-top: 1px solid #d1d5db; }
-  .running-footer-row { display: flex; flex-direction: row; align-items: flex-start; gap: 2mm; }
-  .rs-left { flex: 0 1 auto; min-width: 0; }
-  .running-footer h2 { font-size: 6.5pt; margin: 0 0 1px; color: #1e40af; border: none; padding: 0; line-height: 1.1; }
-  .rs-columns { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; gap: 1.5mm; }
-  .rs-ai-panel {
-    flex: 1 1 auto; min-width: 38mm; max-width: 72mm;
-    border: 1px solid #7dd3fc; background: #f0f9ff; border-radius: 2px;
-    padding: 2px 3px; box-sizing: border-box;
-  }
-  .rs-ai-title { font-size: 5.5pt; font-weight: 800; color: #1e40af; margin-bottom: 1px; line-height: 1.1; }
-  .rs-ai-meta { font-size: 4pt; color: #6b7280; margin-bottom: 1px; }
-  .rs-ai-text { font-size: 4pt; line-height: 1.22; white-space: pre-wrap; word-break: break-word; color: #1f2937; }
-  .rs-col { flex: 0 0 auto; min-width: 0; }
-  .rs-range { font-size: 4.5pt; color: #6b7280; text-align: center; margin-bottom: 1px; line-height: 1; }
-  .rs-col table { border-collapse: collapse; font-size: 5pt; line-height: 1; }
-  .rs-col th { background: #e5e7eb; color: #374151; font-weight: 700; padding: 0 1px; text-align: center; border: 1px solid #d1d5db; font-size: 4.5pt; line-height: 1; }
-  .rs-col td { padding: 0 1px; text-align: center; border: 1px solid #e5e7eb; height: 7px; vertical-align: middle; line-height: 1; }
-  .rs-col .rs-th-team { max-width: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4pt; }
-  .rs-col .rs-p { text-align: right; font-weight: 700; font-size: 4.5pt; min-width: 10px; }
-  .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; min-width: 10px; font-size: 4.5pt; }
-  .rs-col tr.rs-qend td { border-bottom-width: 1.5px; border-bottom-color: #1e40af; }
+  .sheet-running { min-width: 0; }
+  .sheet-running h2 { font-size: 7pt; margin: 0 0 1mm; color: #1e40af; border: none; padding: 0; }
+  .rs-columns { display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 1.5mm; max-width: 100%; }
+  .rs-col { flex: 0 0 auto; }
+  .rs-range { font-size: 5pt; color: #6b7280; text-align: center; margin-bottom: 0.5mm; }
+  .rs-col table { border-collapse: collapse; font-size: 5pt; line-height: 1; table-layout: fixed; width: auto; }
+  .rs-col th { background: #e5e7eb; color: #374151; font-weight: 700; padding: 0 1px; border: 1px solid #d1d5db; font-size: 4.5pt; }
+  .rs-col td { padding: 0 1px; border: 1px solid #e5e7eb; height: 7px; vertical-align: middle; font-size: 4.5pt; }
+  .rs-col .rs-th-team { max-width: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4pt; }
+  .rs-col .rs-p { text-align: right; font-weight: 700; }
+  .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; text-align: center; }
+  .rs-col tr.rs-qend td { border-bottom: 1.5px solid #1e40af; }
   .rs-3pt { border: 1px solid #374151; border-radius: 50%; padding: 0 1px; font-size: 4pt; }
   .rs-ft { font-size: 4pt; }
 `;
@@ -127,14 +100,12 @@ export function buildRunningScorePdfHtml(
   theirTeam: Team,
   title: string,
   rangeTemplate: string,
-  aiReport?: RunningScorePdfAi | null,
 ): string {
   const cells = buildRunningScore(logs, allPlayers, ourTeam.id, theirTeam.id);
   if (cells.length === 0) return '';
 
   const ourShort = (ourTeam.team_name || 'A').slice(0, 4);
   const theirShort = (theirTeam.team_name || 'B').slice(0, 4);
-
   const maxN = cells[cells.length - 1].n;
   const colCount = Math.ceil(maxN / RUNNING_SCORE_ROWS_PER_COLUMN);
   const columns: string[] = [];
@@ -148,16 +119,9 @@ export function buildRunningScorePdfHtml(
     columns.push(renderColumn(slice, startN, rowCount, ourShort, theirShort, rangeLabel));
   }
 
-  const aiHtml = aiReport?.body.trim() ? buildAiReportPanel(aiReport) : '';
-
   return `
-    <div class="running-footer">
-      <div class="running-footer-row">
-        <div class="rs-left">
-          <h2>${escapeHtml(title)}</h2>
-          <div class="rs-columns">${columns.join('')}</div>
-        </div>
-        ${aiHtml}
-      </div>
-    </div>`;
+    <section class="sheet-running">
+      <h2>${escapeHtml(title)}</h2>
+      <div class="rs-columns">${columns.join('')}</div>
+    </section>`;
 }
