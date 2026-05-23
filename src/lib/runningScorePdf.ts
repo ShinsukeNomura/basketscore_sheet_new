@@ -24,12 +24,6 @@ function playerBadge(num: string, shotType: ShotType | null): string {
   return n;
 }
 
-function rowClass(cell: RunningCell): string {
-  const parts: string[] = [];
-  if (cell.ourQEnd != null || cell.theirQEnd != null) parts.push('rs-qend');
-  return parts.join(' ');
-}
-
 function renderColumn(
   cells: RunningCell[],
   startN: number,
@@ -52,10 +46,12 @@ function renderColumn(
     const theirNum = cell.theirHasMarking && cell.theirPlayer
       ? playerBadge(cell.theirPlayer, cell.theirShotType)
       : '';
-    return `<tr class="${rowClass(cell)}">
+    const ourQEnd   = cell.ourQEnd   != null ? ' rs-qend' : '';
+    const theirQEnd = cell.theirQEnd != null ? ' rs-qend' : '';
+    return `<tr>
       <td class="rs-p">${ourNum}</td>
-      <td class="rs-n">${n}</td>
-      <td class="rs-n">${n}</td>
+      <td class="rs-n${ourQEnd}">${n}</td>
+      <td class="rs-n${theirQEnd}">${n}</td>
       <td class="rs-p">${theirNum}</td>
     </tr>`;
   }).join('');
@@ -96,7 +92,7 @@ export const RUNNING_SCORE_PDF_STYLE = `
   .rs-col .rs-th-team { max-width: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 4pt; }
   .rs-col .rs-p { text-align: right; font-weight: 700; }
   .rs-col .rs-n { font-family: ui-monospace, monospace; font-weight: 600; text-align: center; }
-  .rs-col tr.rs-qend td { border-bottom: 1.5px solid #1e40af; }
+  .rs-col td.rs-qend { border-bottom: 1.5px solid #1e40af; }
   .rs-3pt { border: 1px solid #374151; border-radius: 50%; padding: 0 1px; font-size: 4pt; }
   .rs-ft { font-size: 4pt; }
 `;
