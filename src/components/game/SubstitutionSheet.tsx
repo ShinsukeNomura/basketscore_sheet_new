@@ -80,7 +80,6 @@ export function SubstitutionSheet({
     onSubstitute(outPlayer.id, benchPlayer.id);
     setOutPlayer(null);
     if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-    handleDone();
   }
 
   function handleDone() {
