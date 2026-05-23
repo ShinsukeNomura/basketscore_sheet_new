@@ -53,6 +53,11 @@ export default function GamePage() {
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
 
+  const handleSubstitute = useCallback((outId: string, inId: string) => {
+    substitute(outId, inId);
+    setSubOpen(true);
+  }, [substitute]);
+
   function handlePlayerClick(player: Player) {
     if (!selectedStat) return;
     if (isCourtMapAction(selectedStat)) {
@@ -233,7 +238,7 @@ export default function GamePage() {
         courtPlayers={courtForSub}
         benchPlayers={benchForSub}
         playerFouls={playerFouls}
-        onSubstitute={substitute}
+        onSubstitute={handleSubstitute}
         onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
       />

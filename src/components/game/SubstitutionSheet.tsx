@@ -44,8 +44,6 @@ export function SubstitutionSheet({
   const [input, setInput]       = useState('');
   const [error, setError]       = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  /** 交代でリストが差し替わった直後の outside-press / focus-out を無視 */
-  const suppressCloseRef = useRef(false);
 
   const keepFocus = useCallback(() => {
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -78,25 +76,17 @@ export function SubstitutionSheet({
   }
 
   function applySubstitute(outId: string, inId: string) {
-    suppressCloseRef.current = true;
     onSubstitute(outId, inId);
     setOutPlayer(null);
     if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-    window.setTimeout(() => { suppressCloseRef.current = false; }, 400);
   }
 
+  // 自動クローズは cancel() で抑止（閉じるのは handleDone のみ）
   function handleOpenChange(
     nextOpen: boolean,
-    details?: { reason?: string },
+    details?: { cancel?: () => void },
   ) {
-    if (nextOpen) return;
-    if (suppressCloseRef.current) return;
-    const reason = details?.reason;
-    if (reason === 'outside-press' || reason === 'focus-out') return;
-    setOutPlayer(null);
-    setInput('');
-    setError('');
-    onClose();
+    if (!nextOpen) details?.cancel?.();
   }
 
   function handleDone() {
