@@ -190,7 +190,7 @@ export default function GamePage() {
           mode={tovMode as Exclude<TovMode, 'simple'>}
           teamName={tovPending.isOurs ? (ourTeam.team_name || g.ourTeam) : (theirTeam.team_name || g.theirTeam)}
           isOurs={tovPending.isOurs}
-          players={allPlayers.filter((p) => p.team_id === tovPending.teamId)}
+          players={allPlayers.filter((p) => p.team_id === tovPending.teamId && p.is_on_court)}
           onConfirm={handleTovConfirm}
           onCancel={() => setTovPending(null)}
         />

@@ -8,6 +8,7 @@ import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
 import { shouldPreferCloud } from '@/lib/cloudGameMerge';
 import { canSyncGameState, isReadyForCloudSync } from '@/lib/gameSyncGuard';
 import { useAuth } from '@/hooks/useAuth';
+import { sortPlayersByBackNumber } from '@/lib/playerSort';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 // ============================================================
@@ -449,8 +450,14 @@ export function useGameState(gameId: string) {
   const activeLogs = useMemo(() => state.logs.filter((l) => !l.is_deleted), [state.logs]);
   const ourPlayers         = useMemo(() => state.allPlayers.filter((p) => p.team_id === state.ourTeam.id),   [state.allPlayers, state.ourTeam.id]);
   const theirPlayers       = useMemo(() => state.allPlayers.filter((p) => p.team_id === state.theirTeam.id), [state.allPlayers, state.theirTeam.id]);
-  const ourCourtPlayers    = useMemo(() => ourPlayers.filter((p) => p.is_on_court),   [ourPlayers]);
-  const theirCourtPlayers  = useMemo(() => theirPlayers.filter((p) => p.is_on_court), [theirPlayers]);
+  const ourCourtPlayers    = useMemo(
+    () => sortPlayersByBackNumber(ourPlayers.filter((p) => p.is_on_court)),
+    [ourPlayers],
+  );
+  const theirCourtPlayers  = useMemo(
+    () => sortPlayersByBackNumber(theirPlayers.filter((p) => p.is_on_court)),
+    [theirPlayers],
+  );
   const ourBenchPlayers    = useMemo(() => ourPlayers.filter((p) => !p.is_on_court),  [ourPlayers]);
   const theirBenchPlayers  = useMemo(() => theirPlayers.filter((p) => !p.is_on_court),[theirPlayers]);
   const ourScore           = useMemo(() => activeLogs.filter((l) => l.team_id === state.ourTeam.id).reduce((s, l) => s + l.points, 0),   [activeLogs, state.ourTeam.id]);

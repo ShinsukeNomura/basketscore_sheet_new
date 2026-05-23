@@ -196,7 +196,7 @@
     "title": "记录失误",
     "stepReason": "选择原因",
     "stepPlayer": "选择球员",
-    "selectPlayer": "选择造成失误的球员（可选）",
+    "selectPlayer": "选择场上球员（可选）",
     "skipPlayer": "不指定球员",
     "steal": "被抢断",
     "stealSub": "Stolen",

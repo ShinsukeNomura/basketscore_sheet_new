@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sheet';
 import { Plus, Trash2, Users, ChevronLeft, Download } from 'lucide-react';
 import { pullUserTeamsFromCloud, UserTeam } from '@/lib/myTeams';
+import { sortPlayersByBackNumber } from '@/lib/playerSort';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface RosterSheetProps {
@@ -73,7 +74,7 @@ export function RosterSheet({
   const cfg = getColorConfig(team?.color);
 
   const teamPlayers   = team ? allPlayers.filter((p) => p.team_id === team.id) : [];
-  const courtPlayers  = teamPlayers.filter((p) => p.is_on_court);
+  const courtPlayers  = sortPlayersByBackNumber(teamPlayers.filter((p) => p.is_on_court));
   const benchPlayers  = teamPlayers.filter((p) => !p.is_on_court);
   const courtCount    = courtPlayers.length;
   const canAddToCourt = courtCount < 5;

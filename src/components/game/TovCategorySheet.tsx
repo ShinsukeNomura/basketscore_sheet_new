@@ -5,6 +5,7 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import { ArrowLeft, X, Hand, Route, AlertTriangle, Clock, HelpCircle, Footprints } from 'lucide-react';
 import { TovReason, TovMode, Player } from '@/types';
 import { cn } from '@/lib/utils';
+import { sortPlayersByBackNumber } from '@/lib/playerSort';
 
 interface TovCategorySheetProps {
   mode:     Exclude<TovMode, 'simple'>;
@@ -48,6 +49,8 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
   const [step,           setStep]           = useState<'reason' | 'player'>('reason');
   const [selectedReason, setSelectedReason] = useState<TovReason | null>(null);
   const [flash,          setFlash]          = useState<string | null>(null);
+
+  const courtPlayers = useMemo(() => sortPlayersByBackNumber(players), [players]);
 
   const teamColor = isOurs
     ? 'bg-sky-900/50 text-sky-200 border-sky-700/50'
@@ -169,9 +172,9 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
               <div className="text-center text-xs text-neutral-400 mb-3">
                 {t.selectPlayer}
               </div>
-              {players.length > 0 ? (
+              {courtPlayers.length > 0 ? (
                 <div className="grid grid-cols-5 gap-2">
-                  {players.map((p) => (
+                  {courtPlayers.map((p) => (
                     <button
                       key={p.id}
                       onClick={() => handlePlayerSelect(p.id)}

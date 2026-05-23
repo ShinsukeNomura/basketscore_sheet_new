@@ -196,7 +196,7 @@
     "title": "Log Turnover",
     "stepReason": "Select Reason",
     "stepPlayer": "Select Player",
-    "selectPlayer": "Select the player who turned it over (optional)",
+    "selectPlayer": "Select on-court player (optional)",
     "skipPlayer": "Skip player",
     "steal": "Stolen",
     "stealSub": "Stolen",

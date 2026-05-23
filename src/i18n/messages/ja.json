@@ -196,7 +196,7 @@
     "title": "ターンオーバー記録",
     "stepReason": "理由選択",
     "stepPlayer": "選手選択",
-    "selectPlayer": "TOVを記録する選手を選択（任意）",
+    "selectPlayer": "コート上の選手を選択（任意）",
     "skipPlayer": "選手を指定しない",
     "steal": "スチールされた",
     "stealSub": "Stolen",
