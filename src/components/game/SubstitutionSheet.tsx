@@ -80,6 +80,17 @@ export function SubstitutionSheet({
     onSubstitute(outPlayer.id, benchPlayer.id);
     setOutPlayer(null);
     if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+    handleDone();
+  }
+
+  function handleDone() {
+    inputRef.current?.blur();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setOutPlayer(null);
+    setInput('');
+    setError('');
     onClose();
   }
 
@@ -113,15 +124,23 @@ export function SubstitutionSheet({
       >
         <SheetHeader className="mb-4 flex-row items-center gap-2">
           <button
-            onClick={() => { setOutPlayer(null); onClose(); }}
+            type="button"
+            onClick={handleDone}
             className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 transition-colors shrink-0 -ml-1"
           >
             <ChevronLeft size={20} />
             <span className="text-xs font-medium">{c.back}</span>
           </button>
-          <SheetTitle className="text-white text-sm flex-1">
+          <SheetTitle className="text-white text-sm flex-1 min-w-0 truncate">
             {team?.team_name} — {sub.title}
           </SheetTitle>
+          <button
+            type="button"
+            onClick={handleDone}
+            className="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 active:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-900/40"
+          >
+            {c.done}
+          </button>
         </SheetHeader>
 
         {/* 手順インジケーター */}
@@ -172,7 +191,15 @@ export function SubstitutionSheet({
           </div>
         </div>
 
-        <div className="mt-5 mb-2 rounded-2xl border-2 border-sky-500/55 bg-sky-950/35 p-3">
+        <button
+          type="button"
+          onClick={handleDone}
+          className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600/90 border-2 border-emerald-400/40 text-white font-bold text-sm active:bg-emerald-500 shadow-md shadow-emerald-900/30"
+        >
+          {sub.backToStats}
+        </button>
+
+        <div className="mt-3 mb-2 rounded-2xl border-2 border-sky-500/55 bg-sky-950/35 p-3">
           <p className="text-sky-300 text-xs font-bold mb-2">{sub.addMember}</p>
           <div className="flex gap-2">
             <input
@@ -212,6 +239,13 @@ export function SubstitutionSheet({
             </button>
           </div>
           {error && <p className="text-red-400 text-xs px-1 mt-1.5 font-medium">{error}</p>}
+          <button
+            type="button"
+            onClick={handleDone}
+            className="mt-3 w-full py-2.5 rounded-xl bg-white/8 border border-white/15 text-white/70 text-xs font-semibold active:bg-white/12 active:text-white"
+          >
+            {sub.doneAddingHint}
+          </button>
         </div>
       </SheetContent>
     </Sheet>

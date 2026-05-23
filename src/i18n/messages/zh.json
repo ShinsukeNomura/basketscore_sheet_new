@@ -388,7 +388,9 @@
     "benchIn": "替补（换上）",
     "noBench": "替补席无球员",
     "selectCourtFirst": "— 请先选择场上球员",
-    "addMember": "输入背号添加球员"
+    "addMember": "输入背号添加球员",
+    "backToStats": "返回数据统计",
+    "doneAddingHint": "添加完成后点此返回"
   },
 
   "myTeamsSheet": {
