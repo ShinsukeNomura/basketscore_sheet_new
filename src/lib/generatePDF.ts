@@ -1,22 +1,31 @@
-import jsPDF from 'jspdf';
 import { Game, Team, Player, StatsLog } from '@/types';
 import { periodLabel } from '@/lib/period';
 
-// ── 日本語→英語マッピング（jsPDFはCJK非対応のため変換）
-const JP_GAME_TYPE: Record<string, string> = {
-  '練習試合': 'Practice Game',
-  '公式戦':   'Official Game',
-  'カップ戦': 'Cup Game',
-  'その他':   'Other',
-};
+const BASE_STYLE = `
+  body { font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif; color: #1a1a1a; padding: 12mm 15mm; font-size: 10pt; line-height: 1.5; }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 4px; letter-spacing: 0.05em; }
+  .meta { text-align: center; color: #4b5563; font-size: 9.5pt; margin-bottom: 14px; }
+  .score-box { display: flex; align-items: center; justify-content: center; gap: 16px; border-top: 2px solid #1e40af; border-bottom: 2px solid #1e40af; padding: 10px 0; margin: 12px 0; }
+  .team-name { font-size: 13pt; font-weight: 900; min-width: 80px; text-align: center; }
+  .score-num { font-size: 22pt; font-weight: 900; color: #1e40af; min-width: 36px; text-align: center; }
+  .score-sep { font-size: 16pt; font-weight: 700; color: #6b7280; }
+  h2 { font-size: 11pt; color: #1e40af; border-left: 4px solid #1e40af; padding-left: 8px; margin: 16px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin: 6px 0 12px; }
+  th { background: #1e40af; color: white; padding: 4px 6px; text-align: center; font-weight: bold; }
+  th.left, td.left { text-align: left; }
+  td { padding: 3px 6px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+  tr:nth-child(even) { background: #f9fafb; }
+  .abbr { font-size: 7.5pt; color: #6b7280; margin-top: 12px; line-height: 1.6; }
+  .footer { font-size: 7.5pt; color: #9ca3af; text-align: center; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 8px; }
+  @media print { body { padding: 8mm 12mm; } }
+`;
 
-function safePDF(text: string): string {
-  let s = text;
-  for (const [jp, en] of Object.entries(JP_GAME_TYPE)) {
-    s = s.split(jp).join(en);
-  }
-  // 残った非ASCII文字を除去
-  return Array.from(s).filter((c) => c.charCodeAt(0) < 128).join('').trim() || '-';
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function isoNow(): string {
@@ -69,6 +78,29 @@ function periodScore(logs: StatsLog[], teamId: string, period: number): number {
     .reduce((s, l) => s + l.points, 0);
 }
 
+function playerStatsTable(team: Team, allPlayers: Player[], logs: StatsLog[]): string {
+  const rows = buildPlayerRows(allPlayers, logs, team.id);
+  if (rows.length === 0) return '';
+
+  const header = `
+    <tr>
+      <th class="left">#</th><th>PTS</th><th>2PM</th><th>2PA</th><th>3PM</th><th>3PA</th>
+      <th>FTM</th><th>FTA</th><th>OR</th><th>DR</th><th>AST</th><th>STL</th><th>BLK</th><th>TOV</th><th>FOUL</th>
+    </tr>`;
+
+  const body = rows.map((r) => `
+    <tr>
+      <td class="left">${escapeHtml(r.num)}</td>
+      <td>${r.pts}</td><td>${r.fg2}</td><td>${r.fg2a}</td><td>${r.fg3}</td><td>${r.fg3a}</td>
+      <td>${r.ft}</td><td>${r.fta}</td><td>${r.orbd}</td><td>${r.drbd}</td>
+      <td>${r.ast}</td><td>${r.stl}</td><td>${r.blk}</td><td>${r.tov}</td><td>${r.foul}</td>
+    </tr>`).join('');
+
+  return `
+    <h2>${escapeHtml(team.team_name || 'Team')} — 選手スタッツ</h2>
+    <table>${header}${body}</table>`;
+}
+
 export function generateGamePDF(
   game: Game,
   ourTeam: Team,
@@ -78,124 +110,67 @@ export function generateGamePDF(
   ourScore: number,
   theirScore: number,
 ): void {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W = 210;
-  let y = 15;
-
-  const line  = (x1: number, y1: number, x2: number, y2: number) =>
-    doc.line(x1, y1, x2, y2);
-  const text  = (t: string, x: number, ty: number, size = 10, style: 'normal' | 'bold' = 'normal') => {
-    doc.setFontSize(size);
-    doc.setFont('helvetica', style);
-    doc.text(safePDF(t), x, ty);
-  };
-  const ctext = (t: string, ty: number, size = 10, style: 'normal' | 'bold' = 'normal') => {
-    doc.setFontSize(size);
-    doc.setFont('helvetica', style);
-    doc.text(safePDF(t), W / 2, ty, { align: 'center' });
-  };
-
-  // ── タイトル ──
-  ctext('BASKETBALL GAME STATS REPORT', y, 14, 'bold');
-  ctext(game.game_name, y + 7, 10);
-  ctext(game.date, y + 13, 10);
-  if (game.scorekeeper) {
-    ctext(`Recorder: ${game.scorekeeper}`, y + 19, 9);
-    y += 6;
-  }
-  y += 22;
-
-  // ── スコア ──
-  line(10, y, W - 10, y); y += 8;
-  text(ourTeam.team_name || 'A',  22, y, 11, 'bold');
-  doc.setFontSize(20); doc.setFont('helvetica', 'bold');
-  doc.text(safePDF(`${ourScore}`), 78, y, { align: 'right' });
-  ctext('-', y, 14, 'bold');
-  doc.text(safePDF(`${theirScore}`), 132, y, { align: 'left' });
-  text(theirTeam.team_name || 'B', W - 22, y, 11, 'bold');
-  y += 12;
-  line(10, y, W - 10, y); y += 6;
-
-  // ── クォーター別（OTは得点があるときのみ含める） ──
   const otWithScore = new Set(
-    logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period as number)
+    logs.filter((l) => !l.is_deleted && l.points > 0 && l.period >= 5).map((l) => l.period as number),
   );
   const periods = ([1, 2, 3, 4, 5, 6] as const).filter((p) => p <= 4 || otWithScore.has(p));
-  text('Quarter', 12, y, 9, 'bold');
-  periods.forEach((p, i) => text(periodLabel(p), 50 + i * 17, y, 9, 'bold'));
-  text('Total', 50 + periods.length * 17, y, 9, 'bold');
-  y += 5;
 
-  [ourTeam, theirTeam].forEach((team, ti) => {
+  const periodHeaders = periods.map((p) => `<th>${periodLabel(p)}</th>`).join('');
+  const quarterRows = [ourTeam, theirTeam].map((team, ti) => {
     const scores = periods.map((p) => periodScore(logs, team.id, p));
     const total  = ti === 0 ? ourScore : theirScore;
-    text(team.team_name || (ti === 0 ? 'A' : 'B'), 12, y, 9);
-    scores.forEach((s, i) => text(`${s}`, 50 + i * 17, y, 9));
-    text(`${total}`, 50 + periods.length * 17, y, 9, 'bold');
-    y += 6;
-  });
-  y += 4;
+    return `
+    <tr>
+      <td class="left">${escapeHtml(team.team_name || (ti === 0 ? 'A' : 'B'))}</td>
+      ${scores.map((s) => `<td>${s}</td>`).join('')}
+      <td><strong>${total}</strong></td>
+    </tr>`;
+  }).join('');
 
-  // ── プレイヤースタッツ ──
-  const cols = ['#', 'PTS', '2PM', '2PA', '3PM', '3PA', 'FTM', 'FTA', 'OR', 'DR', 'AST', 'STL', 'BLK', 'TOV', 'FOUL'];
-  const xs   = [12,  25,   38,   48,   58,   68,   78,   88,   98,   106,  114,  122,  130,  138,  148];
+  const html = `
+    <h1>バスケットボール スコアシート</h1>
+    <div class="meta">
+      <div>${escapeHtml(game.game_name)}</div>
+      <div>${escapeHtml(game.date)}</div>
+      ${game.scorekeeper ? `<div>記録者: ${escapeHtml(game.scorekeeper)}</div>` : ''}
+    </div>
 
-  const drawTeamStats = (team: Team) => {
-    const rows = buildPlayerRows(allPlayers, logs, team.id);
-    if (rows.length === 0) return;
+    <div class="score-box">
+      <span class="team-name">${escapeHtml(ourTeam.team_name || 'A')}</span>
+      <span class="score-num">${ourScore}</span>
+      <span class="score-sep">-</span>
+      <span class="score-num">${theirScore}</span>
+      <span class="team-name">${escapeHtml(theirTeam.team_name || 'B')}</span>
+    </div>
 
-    line(10, y, W - 10, y); y += 6;
-    text(`${team.team_name || 'Team'} — Player Stats`, 12, y, 10, 'bold');
-    y += 6;
+    <h2>クォーター別スコア</h2>
+    <table>
+      <tr><th class="left">チーム</th>${periodHeaders}<th>合計</th></tr>
+      ${quarterRows}
+    </table>
 
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-    cols.forEach((c, i) => doc.text(c, xs[i], y));
-    y += 1; line(10, y, W - 10, y); y += 4;
+    ${playerStatsTable(ourTeam, allPlayers, logs)}
+    ${playerStatsTable(theirTeam, allPlayers, logs)}
 
-    rows.forEach((r) => {
-      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-      const vals = [r.num, r.pts, r.fg2, r.fg2a, r.fg3, r.fg3a, r.ft, r.fta, r.orbd, r.drbd, r.ast, r.stl, r.blk, r.tov, r.foul];
-      vals.forEach((v, i) => doc.text(String(v), xs[i], y));
-      y += 5;
-    });
-    y += 4;
-  };
+    <div class="abbr">
+      <strong>略語:</strong>
+      PTS=得点 / 2PM・2PA=2P成功・試投 / 3PM・3PA=3P成功・試投 / FTM・FTA=FT成功・試投 /
+      OR=オフェンスリバウンド / DR=ディフェンスリバウンド / AST=アシスト / STL=スティール /
+      BLK=ブロック / TOV=ターンオーバー / FOUL=ファウル
+    </div>
+    <div class="footer">Basketball Score App — ${isoNow()}</div>
+  `;
 
-  drawTeamStats(ourTeam);
-  drawTeamStats(theirTeam);
-
-  // ── 略語注釈 ──
-  line(10, y, W - 10, y); y += 5;
-  doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-  doc.text('Abbreviations:', 12, y);
-  y += 4;
-  doc.setFont('helvetica', 'normal');
-  const abbrs = [
-    'PTS: Points',
-    '2PM/2PA: 2PT Made / Attempted',
-    '3PM/3PA: 3PT Made / Attempted',
-    'FTM/FTA: Free Throw Made / Attempted',
-    'OR: Off. Rebound',
-    'DR: Def. Rebound',
-    'AST: Assist',
-    'STL: Steal',
-    'BLK: Block',
-    'TOV: Turnover',
-    'FOUL: Foul',
-  ];
-  // 3列で並べる
-  const colW = 60;
-  abbrs.forEach((a, i) => {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    doc.text(a, 12 + col * colW, y + row * 4);
-  });
-  y += Math.ceil(abbrs.length / 3) * 4 + 4;
-
-  // ── フッター ──
-  line(10, y, W - 10, y); y += 5;
-  doc.setFontSize(7); doc.setFont('helvetica', 'normal');
-  doc.text(`Generated by Basketball Score App — ${isoNow()}`, W / 2, y, { align: 'center' });
-
-  doc.save(`${safePDF(game.game_name)}_${game.date}.pdf`);
+  const title = `${game.game_name}_${game.date}`;
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) {
+    alert('ポップアップがブロックされました。許可してから再試行してください。');
+    return;
+  }
+  win.document.write(
+    `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>${BASE_STYLE}</style></head><body>${html}</body></html>`,
+  );
+  win.document.close();
+  win.focus();
+  win.print();
 }
