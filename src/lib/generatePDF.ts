@@ -16,7 +16,7 @@ export type { ScoreSheetAiReport };
 const PAGE_H = '287mm';
 
 const BASE_STYLE = `
-  @page { size: A4 portrait; margin: 4mm; }
+  @page { size: A4 portrait; margin: 2mm 4mm 4mm 4mm; }
   * { box-sizing: border-box; }
   html, body {
     width: 210mm; max-width: 210mm; margin: 0; padding: 0;
@@ -33,11 +33,12 @@ const BASE_STYLE = `
   .sheet-top {
     flex: 1 1 42%; min-height: 0;
     display: flex; flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 1.5mm;
+    padding-top: 1mm;
   }
   .sheet-head { flex: 0 0 auto; }
-  h1 { font-size: 10pt; text-align: center; margin: 0; line-height: 1.15; }
+  h1 { font-size: 10pt; text-align: center; margin: 0; padding: 0; line-height: 1.15; }
   .meta-row {
     display: flex; align-items: center; justify-content: space-between;
     gap: 2mm; margin-top: 0.5mm;
@@ -60,7 +61,8 @@ const BASE_STYLE = `
   .format-note { font-size: 5.5pt; color: #6b7280; margin: 0 0 0.5mm; }
   .sheet-stats {
     flex: 1 1 auto; min-height: 0;
-    display: flex; flex-direction: column; justify-content: center;
+    display: flex; flex-direction: column; justify-content: flex-start;
+    margin-top: auto;
   }
   .stats-pair { display: flex; gap: 2mm; flex: 1 1 auto; align-items: stretch; }
   .stats-pair .stats-block { flex: 1; min-width: 0; display: flex; flex-direction: column; }
