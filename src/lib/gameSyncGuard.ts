@@ -16,3 +16,9 @@ export function canSyncGameState(state: PersistedGameState): boolean {
   if (state.game.status === 'finished' && hasLogs) return state.game.id !== 'demo';
   return isReadyForCloudSync(state);
 }
+
+/** localStorage に書き込む価値がある状態か（空シェルで上書きしない） */
+export function shouldPersistToDisk(state: PersistedGameState): boolean {
+  if (!isReadyForCloudSync(state)) return false;
+  return state.allPlayers.length > 0 || state.logs.some((l) => !l.is_deleted);
+}

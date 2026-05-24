@@ -173,6 +173,44 @@ export async function fetchGamesFromCloud(userId: string): Promise<GameSummary[]
 // クラウドから特定ゲームをロード
 // ================================================================
 
+function hasRecordedContent(state: PersistedGameState): boolean {
+  return state.logs.some((l) => !l.is_deleted) || state.allPlayers.length > 0;
+}
+
+/** ブラウザの RLS 制限を避けるサーバー経由ロード（別端末・PC 用） */
+export async function loadGameFromCloudViaApi(gameId: string): Promise<PersistedGameState | null> {
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    const refreshed = await supabase.auth.refreshSession();
+    session = refreshed.data.session;
+  }
+  if (!session?.access_token) return null;
+
+  try {
+    const res = await fetch(`/api/games/${encodeURIComponent(gameId)}`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    const data = await res.json().catch(() => ({})) as { ok?: boolean; state?: PersistedGameState };
+    if (res.ok && data.ok && data.state) return data.state;
+    console.error('[loadGame API]', data);
+    return null;
+  } catch (e) {
+    console.error('[loadGame API] network', e);
+    return null;
+  }
+}
+
+/** クライアント直読み → 不十分なら API 経由 */
+export async function loadGameForUser(gameId: string, userId: string): Promise<PersistedGameState | null> {
+  const direct = await loadGameFromCloud(gameId, userId);
+  if (direct && hasRecordedContent(direct)) return direct;
+
+  const viaApi = await loadGameFromCloudViaApi(gameId);
+  if (viaApi) return viaApi;
+
+  return direct;
+}
+
 export async function loadGameFromCloud(gameId: string, userId?: string): Promise<PersistedGameState | null> {
   const gameRes = await supabase.from('games').select('*').eq('id', gameId).single();
   if (!gameRes.data) return null;

@@ -5,7 +5,8 @@ import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameSt
 import { buildTimelineEntries } from '@/lib/timelineEntries';
 import { ACTION_POINTS } from '@/lib/stats';
 import { loadPersistedGame, savePersistedGame, removeStaleGameEntry } from '@/lib/storage';
-import { syncToCloud, loadGameFromCloud } from '@/lib/supabaseStorage';
+import { syncToCloud, loadGameForUser } from '@/lib/supabaseStorage';
+import { shouldPersistToDisk } from '@/lib/gameSyncGuard';
 import { shouldPreferCloud } from '@/lib/cloudGameMerge';
 import { canSyncGameState, isReadyForCloudSync } from '@/lib/gameSyncGuard';
 import { useAuth } from '@/hooks/useAuth';
@@ -305,7 +306,7 @@ function getLiveGameCache(routeGameId: string): PersistedGameState | undefined {
 
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const syncT = useDictionary().sync;
 
   const userId = user?.id;
@@ -316,15 +317,19 @@ export function useGameState(gameId: string) {
   stateRef.current = state;
 
   const persistState = useCallback((s: InternalState, uid?: string) => {
-    const activeLogs = s.logs.filter((l) => !l.is_deleted);
-    const ourScore   = activeLogs.filter((l) => l.team_id === s.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
-    const theirScore = activeLogs.filter((l) => l.team_id === s.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
     const gameState: PersistedGameState = {
       game: s.game, ourTeam: s.ourTeam, theirTeam: s.theirTeam,
       allPlayers: s.allPlayers, logs: s.logs,
     };
-    savePersistedGame(gameState, ourScore, theirScore, uid);
-    setLiveGameCache(gameState, gameId);
+    const activeLogs = s.logs.filter((l) => !l.is_deleted);
+    const ourScore   = activeLogs.filter((l) => l.team_id === s.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
+    const theirScore = activeLogs.filter((l) => l.team_id === s.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
+
+    if (s.isLoaded && shouldPersistToDisk(gameState)) {
+      savePersistedGame(gameState, ourScore, theirScore, uid);
+      setLiveGameCache(gameState, gameId);
+    }
+
     return { gameState, ourScore, theirScore };
   }, [gameId]);
 
@@ -402,11 +407,13 @@ export function useGameState(gameId: string) {
 
   // --- ロード: クラウドとローカルを比較し、記録が多い方を採用 ---
   useEffect(() => {
+    if (authLoading) return;
+
     let cancelled = false;
 
     async function load() {
       const cached = getLiveGameCache(gameId);
-      if (cached) {
+      if (cached && (cached.logs.some((l) => !l.is_deleted) || cached.allPlayers.length > 0)) {
         dispatch({ type: 'LOAD_PERSISTED', payload: cached });
         return;
       }
@@ -415,7 +422,7 @@ export function useGameState(gameId: string) {
 
       if (userId) {
         try {
-          const cloud = await loadGameFromCloud(gameId, userId);
+          const cloud = await loadGameForUser(gameId, userId);
           if (cancelled) return;
           if (cloud) {
             const useCloud = shouldPreferCloud(local, cloud);
@@ -451,7 +458,7 @@ export function useGameState(gameId: string) {
 
     load();
     return () => { cancelled = true; };
-  }, [gameId, userId, persistState]);
+  }, [gameId, userId, authLoading, persistState]);
 
   // --- ローカル保存（記録のたび） ---
   useEffect(() => {

@@ -113,6 +113,7 @@ async function upsertPlayers(db: SupabaseClient, state: PersistedGameState): Pro
     team_id: p.team_id,
     back_number: p.back_number,
     is_on_court: p.is_on_court,
+    game_id: state.game.id,
   }));
   ({ error } = await db.from('players').upsert(minimal, { onConflict: 'id' }));
   return error?.message ?? null;
