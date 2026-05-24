@@ -289,6 +289,20 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
 export type CloudSyncStatus = 'idle' | 'syncing' | 'saved' | 'error' | 'offline';
 
+/** 同一セッション内の画面遷移（記録↔タイムライン等）で状態を共有 */
+const liveGameCache = new Map<string, PersistedGameState>();
+
+function setLiveGameCache(state: PersistedGameState, routeGameId: string): void {
+  liveGameCache.set(state.game.id, state);
+  if (routeGameId !== state.game.id) {
+    liveGameCache.set(routeGameId, state);
+  }
+}
+
+function getLiveGameCache(routeGameId: string): PersistedGameState | undefined {
+  return liveGameCache.get(routeGameId);
+}
+
 export function useGameState(gameId: string) {
   const [state, dispatch] = useReducer(reducer, gameId, createPlaceholderState);
   const { user } = useAuth();
@@ -310,8 +324,9 @@ export function useGameState(gameId: string) {
       allPlayers: s.allPlayers, logs: s.logs,
     };
     savePersistedGame(gameState, ourScore, theirScore, uid);
+    setLiveGameCache(gameState, gameId);
     return { gameState, ourScore, theirScore };
-  }, []);
+  }, [gameId]);
 
   const runCloudSync = useCallback(async (s: InternalState): Promise<{ ok: boolean; error?: string }> => {
     if (!s.isLoaded) return { ok: false, error: syncT.loading };
@@ -343,6 +358,7 @@ export function useGameState(gameId: string) {
       const ourScore   = active.filter((l) => l.team_id === gameState.ourTeam.id).reduce((sum, l) => sum + l.points, 0);
       const theirScore = active.filter((l) => l.team_id === gameState.theirTeam.id).reduce((sum, l) => sum + l.points, 0);
       savePersistedGame(gameState, ourScore, theirScore, userId);
+      setLiveGameCache(gameState, gameId);
       dispatch({ type: 'LOAD_PERSISTED', payload: gameState });
     }
     if (cloud.ok) {
@@ -389,6 +405,12 @@ export function useGameState(gameId: string) {
     let cancelled = false;
 
     async function load() {
+      const cached = getLiveGameCache(gameId);
+      if (cached) {
+        dispatch({ type: 'LOAD_PERSISTED', payload: cached });
+        return;
+      }
+
       const local = loadPersistedGame(gameId);
 
       if (userId) {
@@ -405,6 +427,7 @@ export function useGameState(gameId: string) {
               savePersistedGame(payload, ourScore, theirScore, userId);
             }
             dispatch({ type: 'LOAD_PERSISTED', payload });
+            setLiveGameCache(payload, gameId);
             return;
           }
         } catch {
@@ -415,6 +438,7 @@ export function useGameState(gameId: string) {
       if (cancelled) return;
       if (local) {
         dispatch({ type: 'LOAD_PERSISTED', payload: local });
+        setLiveGameCache(local, gameId);
         return;
       }
 
@@ -533,7 +557,10 @@ export function useGameState(gameId: string) {
 
   const reloadFromStorage = useCallback(() => {
     const local = loadPersistedGame(gameId);
-    if (local) dispatch({ type: 'LOAD_PERSISTED', payload: local });
+    if (local) {
+      setLiveGameCache(local, gameId);
+      dispatch({ type: 'LOAD_PERSISTED', payload: local });
+    }
   }, [gameId]);
 
   return {

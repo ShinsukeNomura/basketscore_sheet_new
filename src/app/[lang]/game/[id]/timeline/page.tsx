@@ -39,7 +39,10 @@ export default function TimelinePage() {
       <header className="shrink-0 flex items-center gap-2 px-3 py-3 border-b border-white/8 bg-neutral-950 pt-safe">
         <button
           type="button"
-          onClick={() => { void saveToCloud(); router.push(`/${lang}/game/${gameId}`); }}
+          onClick={async () => {
+            await saveToCloud();
+            router.push(`/${lang}/game/${gameId}`);
+          }}
           className="flex items-center gap-0.5 text-sky-400 active:text-sky-200 -ml-1 min-h-[44px] min-w-[44px]"
         >
           <ChevronLeft size={22} />
