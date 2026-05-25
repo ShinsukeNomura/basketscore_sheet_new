@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { ArrowLeft, X, Hand, Route, AlertTriangle, Clock, HelpCircle, Footprints } from 'lucide-react';
 import { TovReason, TovMode, Player } from '@/types';
@@ -52,6 +52,15 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
   const [selectedReason, setSelectedReason] = useState<TovReason | null>(null);
   const [flash,          setFlash]          = useState<string | null>(null);
 
+  /** 背番号選択済みなら種類だけで確定（選手ステップを出さない） */
+  const lockedPlayerId = presetPlayer?.id ?? null;
+
+  useEffect(() => {
+    setStep('reason');
+    setSelectedReason(null);
+    setFlash(null);
+  }, [lockedPlayerId, mode]);
+
   const courtPlayers = useMemo(() => sortPlayersByBackNumber(players), [players]);
 
   const teamColor = isOurs
@@ -59,9 +68,9 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
     : 'bg-rose-900/50 text-rose-200 border-rose-700/50';
 
   const handleReasonSelect = useCallback((reason: TovReason) => {
-    if (presetPlayer) {
+    if (lockedPlayerId) {
       setFlash(reason);
-      setTimeout(() => onConfirm(reason, presetPlayer.id), 160);
+      setTimeout(() => onConfirm(reason, lockedPlayerId), 160);
       return;
     }
     setSelectedReason(reason);
@@ -70,7 +79,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
       setFlash(null);
       setStep('player');
     }, 160);
-  }, [presetPlayer, onConfirm]);
+  }, [lockedPlayerId, onConfirm]);
 
   const handlePlayerSelect = useCallback((playerId: string) => {
     if (!selectedReason) return;
@@ -83,13 +92,15 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
   }, [selectedReason, onConfirm]);
 
   const handleBack = useCallback(() => {
-    if (step === 'player') {
+    if (!lockedPlayerId && step === 'player') {
       setStep('reason');
       setFlash(null);
     } else {
       onCancel();
     }
-  }, [step, onCancel]);
+  }, [lockedPlayerId, step, onCancel]);
+
+  const showPlayerStep = step === 'player' && !lockedPlayerId;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-black/65">
@@ -120,7 +131,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
 
         {/* ステップインジケーター */}
         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800/40 border-b border-neutral-800 text-[11px]">
-          {presetPlayer ? (
+          {lockedPlayerId && presetPlayer ? (
             <span className="text-amber-200 font-semibold">
               #{presetPlayer.back_number} — {t.stepReason}
             </span>
@@ -139,7 +150,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
 
         {/* コンテンツ */}
         <div className="p-4 overflow-y-auto max-h-[65vh]">
-          {step === 'reason' ? (
+          {!showPlayerStep ? (
             mode === '6-grid' ? (
               /* 厳選6カテゴリー (2×3) */
               <div className="grid grid-cols-2 gap-3">
