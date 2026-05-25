@@ -6,6 +6,7 @@ import type { ActionType } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { formatFoulPenalty } from '@/lib/playerGesture';
 import { formatLogActionLabel } from '@/lib/timelineLabel';
+import { getTimelineLogTextClass } from '@/lib/logLineColor';
 import { cn } from '@/lib/utils';
 import { ChevronRight, X } from 'lucide-react';
 
@@ -64,7 +65,7 @@ function LogLine({
   const team = isOurs ? ourTeam : theirTeam;
   const cfg = getColorConfig(team.color);
   const player = log.player_id ? playerMap[log.player_id] : null;
-  const isPoint = log.points > 0;
+  const labelClass = getTimelineLogTextClass(log);
   const teamLabel = teamShortLabel(log.team_id, ourTeam, theirTeam, ourFallback, theirFallback);
   const foulSuffix = log.action_type === 'FOUL' && log.foul_penalty
     ? ` (${formatFoulPenalty(log.foul_penalty)})`
@@ -104,11 +105,11 @@ function LogLine({
       <span
         className={cn(
           'text-[11px] font-bold truncate flex-1 min-w-0',
-          isPoint ? 'text-emerald-400' : 'text-white/55',
+          labelClass,
         )}
       >
         {formatLogActionLabel(log, actions[log.action_type], tovDict, teamDefenseLabel)}{foulSuffix}
-        {isPoint && ` +${log.points}`}
+        {log.points > 0 && ` +${log.points}`}
       </span>
     </div>
   );

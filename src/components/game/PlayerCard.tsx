@@ -102,7 +102,8 @@ export function PlayerCard({
         !isFouledOut && cn(colorConfig.cardHover, colorConfig.cardActive, 'active:scale-95'),
         'transition-all duration-75',
         isSelected && 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-transparent',
-        isPending && 'ring-2 ring-sky-400/80',
+        isPending && shotPhase && 'ring-2 ring-emerald-400/70',
+        isPending && !shotPhase && 'ring-2 ring-sky-400/80',
         isFouledOut && 'opacity-35 cursor-not-allowed',
       )}
     >

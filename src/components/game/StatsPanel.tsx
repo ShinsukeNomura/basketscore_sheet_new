@@ -5,9 +5,10 @@ import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { classifyPointerGesture, foulPenaltyFromGesture, TEAM_DEF_LONG_PRESS_MS } from '@/lib/playerGesture';
+import { getStatButtonClasses, getNegativeStatButtonClasses } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
-const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
+const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral' && s.action !== 'STL');
 const NEG = STAT_DEFS.filter(
   (s) => s.variant === 'negative' && s.action !== 'TOV' && s.action !== 'FOUL' && s.action !== 'STL',
 );
@@ -29,31 +30,25 @@ interface StatsPanelProps {
 }
 
 function Btn({
-  def, isSelected, size, onClick, disabled,
+  def, isSelected, size, onClick, disabled, useViolet = false,
 }: {
   def: StatDef;
   isSelected: boolean;
   size: 'md' | 'sm';
   onClick: () => void;
   disabled?: boolean;
+  useViolet?: boolean;
 }) {
-  const isNeutral = def.variant === 'neutral';
-  const isNegative = def.variant === 'negative';
-
   const sizeClass = {
     md: 'py-2 text-base font-bold min-h-[52px]',
     sm: 'py-1 text-xs font-semibold',
   }[size];
 
-  const variantClass = isNeutral
+  const variantClass = useViolet
     ? isSelected
-      ? 'bg-blue-700/80 text-white border-2 border-blue-400'
-      : 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/40 active:bg-neutral-700/80'
-    : isNegative
-    ? isSelected
-      ? 'bg-amber-700/80 text-white border-2 border-amber-400'
-      : 'bg-neutral-800/60 text-amber-200/90 border border-amber-900/40 active:bg-neutral-700/70'
-    : 'bg-neutral-800 text-neutral-200';
+      ? 'bg-violet-700/80 text-white border-2 border-violet-400'
+      : 'bg-neutral-800/80 text-violet-100/90 border border-violet-800/40 active:bg-neutral-700/80'
+    : getStatButtonClasses('standard', isSelected);
 
   return (
     <button
@@ -71,6 +66,30 @@ function Btn({
     >
       <span className="leading-none">{def.label}</span>
     </button>
+  );
+}
+
+function StatsColorLegend() {
+  const sp = useDictionary().statsPanel;
+  const items: { dot: string; label: string }[] = [
+    { dot: 'bg-blue-500', label: sp.colorStandard },
+    { dot: 'bg-violet-500', label: sp.colorLinked },
+    { dot: 'bg-cyan-400/90 ring-1 ring-cyan-300/60 ring-dashed', label: sp.colorSignature },
+    { dot: 'bg-amber-500', label: sp.colorGesture },
+    { dot: 'bg-emerald-500', label: sp.colorShot },
+  ];
+  return (
+    <div className="shrink-0 rounded-lg bg-neutral-900/80 border border-neutral-800/60 px-2 py-1.5">
+      <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wide mb-1">{sp.colorLegendTitle}</p>
+      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+        {items.map(({ dot, label }) => (
+          <span key={label} className="flex items-center gap-1 min-w-0">
+            <span className={cn('w-2 h-2 rounded-full shrink-0', dot)} />
+            <span className="text-[9px] text-neutral-400 leading-tight truncate">{label}</span>
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -112,8 +131,6 @@ function FoulSwipeBtn({
     onPenalty(penalty);
   }, [active, disabled, onActivate, onPenalty]);
 
-  const handlePointerCancel = useCallback(() => { startRef.current = null; }, []);
-
   return (
     <button
       type="button"
@@ -125,9 +142,7 @@ function FoulSwipeBtn({
         'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
         'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
-        active
-          ? 'bg-amber-700/80 text-white border-2 border-amber-400 ring-2 ring-amber-300/50'
-          : 'bg-neutral-800/60 text-amber-200/90 border border-amber-900/40 active:bg-neutral-700/70',
+        getStatButtonClasses('gesture', active),
         disabled && 'opacity-35 pointer-events-none',
       )}
     >
@@ -157,8 +172,6 @@ function StatSwipeBtn({
   active,
   teamDefActive,
   tapDisabled,
-  selectedClass,
-  idleClass,
   onTap,
   onTeamDefSwipe,
 }: {
@@ -166,8 +179,6 @@ function StatSwipeBtn({
   active: boolean;
   teamDefActive: boolean;
   tapDisabled: boolean;
-  selectedClass: string;
-  idleClass: string;
   onTap: () => void;
   onTeamDefSwipe: () => void;
 }) {
@@ -200,6 +211,8 @@ function StatSwipeBtn({
   }, [tapDisabled, onTap, onTeamDefSwipe]);
 
   const armed = active || teamDefActive;
+  const tier = teamDefActive ? 'signature' : 'linked';
+  const btnClass = getStatButtonClasses(tier, armed);
 
   return (
     <button
@@ -211,13 +224,18 @@ function StatSwipeBtn({
         'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
         'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
-        armed ? selectedClass : idleClass,
+        btnClass,
         tapDisabled && !teamDefActive && 'opacity-35',
       )}
     >
       {armed && (
         <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
-          {g.teamDefSwipeBadge}
+          {teamDefActive ? g.teamDefSwipeBadge : '→'}
+        </span>
+      )}
+      {!armed && (
+        <span className="absolute top-0.5 inset-x-0 text-center text-[7px] font-semibold text-cyan-500/50 pointer-events-none leading-none">
+          {g.teamDefHoldHint}
         </span>
       )}
       <span className="leading-none">{label}</span>
@@ -267,6 +285,8 @@ export function StatsPanel({
   return (
     <div className="h-full flex flex-col gap-1 px-2 py-1 bg-neutral-950 overflow-hidden">
 
+      <StatsColorLegend />
+
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
           {([['simple', st.tovSimple, false], ['6-grid', st.tovDetail6, true], ['12-grid', st.tovDetail12, true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
@@ -303,20 +323,22 @@ export function StatsPanel({
         <div className={cn(
           'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
           teamDefAwaitingVictim
-            ? 'bg-white/10 border border-white/30'
+            ? 'bg-cyan-950/50 border border-cyan-500/40'
             : pendingPlayer
-            ? 'bg-sky-950/60 border border-sky-600/40'
+            ? shotPhase
+              ? 'bg-emerald-950/50 border border-emerald-600/40'
+              : 'bg-sky-950/60 border border-sky-600/40'
             : 'bg-neutral-900/40 border border-neutral-800/50',
         )}>
           {(pendingPlayer || teamDefAwaitingVictim) && (
             <span className={cn(
               'w-2 h-2 rounded-full animate-pulse shrink-0',
-              teamDefAwaitingVictim ? 'bg-white' : 'bg-sky-400',
+              teamDefAwaitingVictim ? 'bg-cyan-400' : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
             )} />
           )}
           <span className={cn(
             'text-xs font-semibold truncate',
-            teamDefAwaitingVictim ? 'text-white' : pendingPlayer ? 'text-sky-100' : 'text-neutral-500',
+            teamDefAwaitingVictim ? 'text-cyan-100' : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
           )}>
             {hint}
           </span>
@@ -331,6 +353,7 @@ export function StatsPanel({
             isSelected={isSelected(def.action)}
             size="md"
             disabled={!pendingPlayer}
+            useViolet={def.action === 'AST'}
             onClick={() => tap(def.action)}
           />
         ))}
@@ -338,22 +361,27 @@ export function StatsPanel({
 
       <div className="flex gap-2 flex-1 min-h-[56px]">
         {NEG.map((def) => (
-          <Btn
+          <button
             key={def.action}
-            def={def}
-            isSelected={isSelected(def.action)}
-            size="md"
+            type="button"
             disabled={!pendingPlayer}
-            onClick={() => tap(def.action)}
-          />
+            onPointerDown={() => { if (pendingPlayer) tap(def.action); }}
+            className={cn(
+              'flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
+              'py-2 text-base font-bold min-h-[52px] transition-all duration-75 active:scale-[0.97] select-none touch-none',
+              'shadow-sm shadow-black/20',
+              getNegativeStatButtonClasses(isSelected(def.action)),
+              !pendingPlayer && 'opacity-35 pointer-events-none',
+            )}
+          >
+            <span className="leading-none">{def.label}</span>
+          </button>
         ))}
         <StatSwipeBtn
           label={STL_DEF.label}
           active={isSelected('STL')}
           teamDefActive={teamDefAwaitingVictim}
           tapDisabled={!pendingPlayer}
-          selectedClass="bg-violet-700/80 text-white border-2 border-violet-400 ring-2 ring-violet-300/40"
-          idleClass="bg-neutral-800/60 text-violet-200/90 border border-violet-900/40 active:bg-neutral-700/70"
           onTap={() => tap('STL')}
           onTeamDefSwipe={onTeamDefSwipe}
         />
@@ -368,17 +396,15 @@ export function StatsPanel({
           active={isSelected('TOV')}
           teamDefActive={teamDefAwaitingVictim}
           tapDisabled={!pendingPlayer}
-          selectedClass="bg-orange-700/80 text-white border-2 border-orange-400 ring-2 ring-orange-300/40"
-          idleClass="bg-neutral-800/60 text-orange-200/90 border border-orange-900/40 active:bg-neutral-700/70"
           onTap={() => tap('TOV')}
           onTeamDefSwipe={onTeamDefSwipe}
         />
       </div>
 
-      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+      <p className="shrink-0 text-center text-[9px] text-emerald-500/70 leading-tight px-1">
         {g.shotSwipeLegend}
       </p>
-      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+      <p className="shrink-0 text-center text-[9px] text-cyan-500/60 leading-tight px-1">
         {g.teamDefSwipeLegend}
       </p>
 

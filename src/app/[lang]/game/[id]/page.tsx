@@ -16,7 +16,7 @@ import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalt
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { StlCauseSheet } from '@/components/game/StlCauseSheet';
-import { tovReasonFromStlCause, type StlTovCause } from '@/lib/stlTovCause';
+import { tovReasonFromCausePick, type StlCausePick } from '@/lib/stlTovCause';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
 import type { GameSummary } from '@/types';
@@ -122,9 +122,13 @@ export default function GamePage() {
     setHighlightStat(null);
   }, []);
 
-  const handleStlCausePick = useCallback((cause: StlTovCause) => {
+  const handleStlCausePick = useCallback((cause: StlCausePick) => {
     if (!stlCausePending) return;
-    const reason = tovReasonFromStlCause(cause, tovMode);
+    const reason = tovReasonFromCausePick(
+      cause,
+      tovMode,
+      stlCausePending.mode === 'teamDef' ? 'teamDef' : 'stl',
+    );
     if (stlCausePending.mode === 'stl') {
       logStlWithVictim(stlCausePending.stealer, stlCausePending.victim, reason);
     } else {
@@ -434,6 +438,7 @@ export default function GamePage() {
 
       {stlCausePending && (
         <StlCauseSheet
+          mode={stlCausePending.mode === 'teamDef' ? 'teamDef' : 'stl'}
           victimBackNumber={stlCausePending.victim.back_number}
           teamLabel={
             stlCausePending.victim.team_id === theirTeam.id

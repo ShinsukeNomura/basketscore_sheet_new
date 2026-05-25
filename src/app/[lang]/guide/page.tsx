@@ -110,10 +110,10 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
     ['ORbd / DRbd',    g.statBtnRbd,  'text-blue-400'],
     ['AST / BLK',      g.statBtnAst,  'text-violet-400'],
     ['STL',            g.statBtnStl,  'text-violet-300'],
-    ['STL →',          g.statBtnStlTeam, 'text-white/70'],
+    ['STL →',          g.statBtnStlTeam, 'text-cyan-400'],
     ['FOUL',           g.statBtnFoul, 'text-amber-400'],
     ['TOV',            g.statBtnTov,   'text-orange-400'],
-    ['TOV →',          g.statBtnTovTeam, 'text-white/70'],
+    ['TOV →',          g.statBtnTovTeam, 'text-cyan-400'],
   ];
 
   return (
@@ -207,6 +207,24 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                   </div>
                 ))}
               </div>
+              <div className="rounded-2xl bg-cyan-950/25 border border-cyan-500/25 p-4">
+                <p className="text-cyan-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3ColorLegend}</p>
+                <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3ColorLegendDesc}</p>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  {[
+                    ['bg-blue-500', g.statBtnRbd],
+                    ['bg-violet-500', g.statBtnStl],
+                    ['bg-cyan-400', g.statBtnStlTeam],
+                    ['bg-amber-500', g.statBtnFoul],
+                    ['bg-emerald-500', g.statBtn2pt],
+                  ].map(([dot, label]) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', dot)} />
+                      <span className="text-white/35 text-[10px] leading-snug">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-3">{g.step3Buttons}</p>
                 <div className="flex flex-col gap-2 text-xs">
@@ -234,9 +252,9 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3StlLink}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3StlLinkDesc}</p>
               </div>
-              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
-                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamDef}</p>
-                <p className="text-white/40 text-xs leading-relaxed">{g.step3TeamDefDesc}</p>
+              <div className="rounded-2xl bg-cyan-950/25 border border-cyan-500/25 p-4">
+                <p className="text-cyan-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamDef}</p>
+                <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3TeamDefDesc}</p>
               </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TovFlow}</p>
