@@ -18,8 +18,10 @@ interface TeamSectionProps {
   pendingPlayerId:     string | null;
   shotPhase:           'type' | 'result' | null;
   flashPlayerId:       string | null;
-  /** チーム守備で失策選手を選ぶ対象チーム（null=通常） */
-  teamDefPickTeamId?: string | null;
+  /** チーム守備で背番号選択中 */
+  teamDefPickActive?: boolean;
+  /** マイチーム（自チーム） */
+  isMyTeam?:           boolean;
   onPlayerTap:      (player: Player) => void;
   onPlayerGesture:  (player: Player, gesture: PlayerGesture) => void;
   onSubstitute:     (team: Team) => void;
@@ -28,11 +30,12 @@ interface TeamSectionProps {
 
 export function TeamSection({
   team, courtPlayers, totalPlayerCount, playerFouls, teamFoulCount,
-  pendingPlayerId, shotPhase, flashPlayerId, teamDefPickTeamId = null,
+  pendingPlayerId, shotPhase, flashPlayerId, teamDefPickActive = false, isMyTeam = false,
   onPlayerTap, onPlayerGesture, onSubstitute, onRenameTeam,
 }: TeamSectionProps) {
-  const teamDefPick = teamDefPickTeamId === team.id;
+  const teamDefPick = teamDefPickActive;
   const ts = useDictionary().teamSection;
+  const g = useDictionary().game;
   const cfg = getColorConfig(team.color);
 
   const [editing, setEditing] = useState(false);
@@ -53,14 +56,28 @@ export function TeamSection({
 
   return (
     <div className={cn(
-      'flex flex-col shrink-0 px-2 pt-1 pb-1.5 rounded-xl mx-1',
+      'flex flex-col shrink-0 px-2 pt-1 pb-1.5 rounded-xl mx-1 border-2 transition-colors',
+      isMyTeam
+        ? 'border-sky-500/60 bg-sky-950/35 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
+        : 'border-transparent bg-black/20',
       cfg.sectionBg,
       teamDefPick && 'ring-2 ring-white/35',
     )}>
 
       <div className="flex items-center justify-between mb-0.5 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
-          <div className={cn('w-1 h-3.5 rounded-full shrink-0', cfg.accentDot)} />
+          <div className={cn(
+            'w-1 h-3.5 rounded-full shrink-0',
+            isMyTeam ? 'bg-sky-400' : cfg.accentDot,
+          )} />
+          <span className={cn(
+            'shrink-0 text-[8px] font-black px-1 py-0.5 rounded leading-none',
+            isMyTeam
+              ? 'bg-sky-500 text-white'
+              : 'bg-neutral-700/80 text-neutral-400 border border-neutral-600/50',
+          )}>
+            {isMyTeam ? g.myTeamBadge : g.opponentBadge}
+          </span>
 
           {editing ? (
             <div className="flex items-center gap-1 flex-1 min-w-0">

@@ -149,7 +149,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 {[
                   [g.step1FieldGameType, g.step1FieldGameTypeVal],
                   [g.step1FieldDate,     g.step1FieldDateVal],
-                  [g.step1FieldMainTeam, g.step1FieldMainTeamVal],
+                  [g.step1FieldMyTeam, g.step1FieldMyTeamVal],
                   [g.step1FieldOurTeam,  g.step1FieldOurTeamVal],
                   [g.step1FieldTheirTeam,g.step1FieldTheirTeamVal],
                   [g.step1FieldColor,    g.step1FieldColorVal],

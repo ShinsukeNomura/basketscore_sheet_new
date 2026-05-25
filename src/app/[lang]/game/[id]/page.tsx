@@ -369,7 +369,8 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            teamDefPickTeamId={teamDefAwaitingVictim ? theirTeam.id : null}
+            teamDefPickActive={teamDefAwaitingVictim}
+            isMyTeam={false}
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
             onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
@@ -407,7 +408,8 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            teamDefPickTeamId={teamDefAwaitingVictim ? ourTeam.id : null}
+            teamDefPickActive={teamDefAwaitingVictim}
+            isMyTeam
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
             onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}

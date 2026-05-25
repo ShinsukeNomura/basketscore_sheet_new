@@ -9,7 +9,7 @@ import {
 } from '@/lib/storage';
 import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
-import type { MainTeamSide } from '@/types';
+import type { MyTeamSide } from '@/types';
 import { cn } from '@/lib/utils';
 import { ColorPicker } from '@/components/ColorPicker';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
@@ -275,7 +275,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
   const [darkColor,     setDarkColor]     = useState<JerseyColorId>(DEFAULT_DARK_COLOR);
   const [darkPlayers,   setDarkPlayers]   = useState<string[]>([]);
   const [errors,        setErrors]        = useState<{ white?: string; dark?: string }>({});
-  const [mainTeamSide,  setMainTeamSide]  = useState<MainTeamSide>('white');
+  const [myTeamSide,    setMyTeamSide]    = useState<MyTeamSide>('white');
   const [setupHasLogs,  setSetupHasLogs]  = useState(false);
   const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
   const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
@@ -299,13 +299,15 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     setGameType(type);
     setDate(p.game.date);
     setScorekeeper(p.game.scorekeeper ?? '');
-    const main = p.game.main_team_side ?? 'white';
-    setMainTeamSide(main);
+    const my = p.game.my_team_side
+      ?? (p.game as { main_team_side?: MyTeamSide }).main_team_side
+      ?? 'white';
+    setMyTeamSide(my);
     setSetupHasLogs(p.logs.some((l) => !l.is_deleted));
-    const whiteId = main === 'white' ? p.ourTeam.id : p.theirTeam.id;
-    const darkId  = main === 'white' ? p.theirTeam.id : p.ourTeam.id;
-    const whiteTeam = main === 'white' ? p.ourTeam : p.theirTeam;
-    const darkTeam  = main === 'white' ? p.theirTeam : p.ourTeam;
+    const whiteId = my === 'white' ? p.ourTeam.id : p.theirTeam.id;
+    const darkId  = my === 'white' ? p.theirTeam.id : p.ourTeam.id;
+    const whiteTeam = my === 'white' ? p.ourTeam : p.theirTeam;
+    const darkTeam  = my === 'white' ? p.theirTeam : p.ourTeam;
     setWhiteName(whiteTeam.team_name);
     setWhiteColor((whiteTeam.color || DEFAULT_WHITE_COLOR) as JerseyColorId);
     setDarkName(darkTeam.team_name);
@@ -364,7 +366,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     setGameType(g.typePractice);
     setDate(todayString());
     setScorekeeper('');
-    setMainTeamSide('white');
+    setMyTeamSide('white');
     setSetupHasLogs(false);
     setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
     setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
@@ -377,7 +379,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
       gameType,
       date:           date || todayString(),
       scorekeeper:    scorekeeper.trim() || undefined,
-      mainTeamSide,
+      myTeamSide,
       whiteTeamName:  whiteName.trim(),
       whiteTeamColor: whiteColor,
       blueTeamName:   darkName.trim(),
@@ -399,7 +401,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     onClose();
     router.push(`/${locale}/game/${id}`);
   }, [
-    gameType, date, scorekeeper, mainTeamSide, whiteName, whiteColor, whitePlayers,
+    gameType, date, scorekeeper, myTeamSide, whiteName, whiteColor, whitePlayers,
     darkName, darkColor, darkPlayers, validate, onClose, router, locale,
     isEdit, gameId, onSaved, user?.id, resetForm,
   ]);
@@ -499,49 +501,51 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
                   maxLength={30}
                 />
 
-                {/* メインチーム（記録視点） */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
-                    {g.mainTeamLabel}
-                  </label>
-                  <p className="text-white/35 text-xs leading-relaxed px-0.5">{g.mainTeamHint}</p>
-                  <div className="flex gap-2">
-                    {(['white', 'dark'] as MainTeamSide[]).map((side) => (
+                <p className="text-white/35 text-xs leading-relaxed px-0.5">{g.myTeamHint}</p>
+                {isEdit && setupHasLogs && (
+                  <p className="text-amber-400/80 text-[10px] px-0.5">{g.myTeamLocked}</p>
+                )}
+
+                {/* チーム（白） */}
+                <div className={cn(
+                  'flex flex-col gap-3 rounded-2xl p-4 border-2 transition-all',
+                  myTeamSide === 'white'
+                    ? 'bg-sky-950/40 border-sky-500/70 ring-1 ring-sky-400/30'
+                    : 'bg-white/4 border-white/8',
+                )}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
+                      <span className="text-white/60 text-xs font-bold tracking-wide">{g.whiteTeamLabel}</span>
+                      {myTeamSide === 'white' && (
+                        <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded-md bg-sky-500 text-white">
+                          {g.myTeamBadge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
-                        key={side}
+                        type="button"
+                        onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
+                        className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
+                      >
+                        <Users size={12} />{g.fromMyTeam}
+                      </button>
+                      <button
                         type="button"
                         disabled={isEdit && setupHasLogs}
-                        onClick={() => setMainTeamSide(side)}
+                        onClick={() => setMyTeamSide('white')}
                         className={cn(
-                          'flex-1 py-3 rounded-xl text-sm font-bold transition-all border-2',
-                          mainTeamSide === side
-                            ? 'border-sky-500 bg-sky-600/30 text-sky-100'
-                            : 'border-white/10 bg-white/6 text-white/45 active:bg-white/10',
+                          'text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all',
+                          myTeamSide === 'white'
+                            ? 'bg-sky-600 border-sky-400 text-white'
+                            : 'bg-white/8 border-white/15 text-white/45 active:bg-white/12',
                           isEdit && setupHasLogs && 'opacity-45 pointer-events-none',
                         )}
                       >
-                        {side === 'white' ? g.mainTeamWhite : g.mainTeamDark}
+                        {g.setAsMyTeam}
                       </button>
-                    ))}
-                  </div>
-                  {isEdit && setupHasLogs && (
-                    <p className="text-amber-400/80 text-[10px] px-0.5">{g.mainTeamLocked}</p>
-                  )}
-                </div>
-
-                {/* チーム（白） */}
-                <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-white/70 shrink-0" />
-                      <span className="text-white/60 text-xs font-bold tracking-wide">{g.whiteTeamLabel}</span>
                     </div>
-                    <button
-                      onClick={() => { setMyTeamsTarget('white'); setMyTeamsOpen(true); }}
-                      className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
-                    >
-                      <Users size={12} />{g.fromMyTeam}
-                    </button>
                   </div>
                   {whitePlayers.length > 0 && (
                     <p className="text-white/35 text-xs">
@@ -567,18 +571,45 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
                 </div>
 
                 {/* チーム（濃） */}
-                <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className={cn(
+                  'flex flex-col gap-3 rounded-2xl p-4 border-2 transition-all',
+                  myTeamSide === 'dark'
+                    ? 'bg-sky-950/40 border-sky-500/70 ring-1 ring-sky-400/30'
+                    : 'bg-white/4 border-white/8',
+                )}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className="w-3 h-3 rounded-full bg-blue-600 shrink-0" />
                       <span className="text-white/60 text-xs font-bold tracking-wide">{g.darkTeamLabel}</span>
+                      {myTeamSide === 'dark' && (
+                        <span className="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded-md bg-sky-500 text-white">
+                          {g.myTeamBadge}
+                        </span>
+                      )}
                     </div>
-                    <button
-                      onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
-                      className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
-                    >
-                      <Users size={12} />{g.fromMyTeam}
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => { setMyTeamsTarget('dark'); setMyTeamsOpen(true); }}
+                        className="flex items-center gap-1 text-blue-400 text-xs font-bold active:opacity-70"
+                      >
+                        <Users size={12} />{g.fromMyTeam}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isEdit && setupHasLogs}
+                        onClick={() => setMyTeamSide('dark')}
+                        className={cn(
+                          'text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all',
+                          myTeamSide === 'dark'
+                            ? 'bg-sky-600 border-sky-400 text-white'
+                            : 'bg-white/8 border-white/15 text-white/45 active:bg-white/12',
+                          isEdit && setupHasLogs && 'opacity-45 pointer-events-none',
+                        )}
+                      >
+                        {g.setAsMyTeam}
+                      </button>
+                    </div>
                   </div>
                   {darkPlayers.length > 0 && (
                     <p className="text-white/35 text-xs">
