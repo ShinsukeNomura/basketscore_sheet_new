@@ -95,7 +95,7 @@ export function PlayerCard({
       disabled={isFouledOut}
       className={cn(
         'relative flex flex-col items-center justify-center rounded-xl',
-        'min-w-0 flex-1 touch-none min-h-[58px]',
+        'min-w-0 flex-1 touch-none min-h-[62px] py-1',
         hasTopHint && 'pt-3',
         shotPhase === 'result' && isPending && 'pb-2.5',
         colorConfig.cardBg,

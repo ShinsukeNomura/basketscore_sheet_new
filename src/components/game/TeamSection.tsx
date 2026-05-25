@@ -49,7 +49,10 @@ export function TeamSection({
   }, [editVal, onRenameTeam, team.id]);
 
   return (
-    <div className={cn('flex flex-col h-full min-h-0 overflow-hidden px-2 py-0.5', cfg.sectionBg)}>
+    <div className={cn(
+      'flex flex-col shrink-0 px-2 pt-1 pb-1.5 rounded-xl mx-1',
+      cfg.sectionBg,
+    )}>
 
       <div className="flex items-center justify-between mb-0.5 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
@@ -140,7 +143,7 @@ export function TeamSection({
           </span>
         </button>
       ) : (
-        <div className="flex gap-1.5 min-h-[58px] shrink-0 mt-0.5">
+        <div className="flex gap-1.5 min-h-[62px] shrink-0 mt-1 pb-0.5">
           {courtPlayers.slice(0, 5).map((player) => (
             <PlayerCard
               key={player.id}
@@ -160,7 +163,7 @@ export function TeamSection({
               type="button"
               onClick={() => onSubstitute(team)}
               className={cn(
-                'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[58px]',
+                'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[62px]',
                 'active:opacity-60 transition-opacity',
                 cfg.emptyBorder,
               )}

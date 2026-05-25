@@ -264,58 +264,60 @@ export default function GamePage() {
         onShowRunning={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/running`); }}
       />
 
-      <div className="flex-[1.2] min-h-0 overflow-hidden">
-        <TeamSection
-          team={ourTeam}
-          courtPlayers={ourCourtPlayers}
-          totalPlayerCount={[...ourCourtPlayers, ...ourBenchPlayers].length}
-          playerFouls={playerFouls}
-          teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
-          pendingPlayerId={pendingPlayerId}
-          shotPhase={shotPhase}
-          flashPlayerId={flashPlayerId}
-          onPlayerTap={handlePlayerTap}
-          onPlayerGesture={handlePlayerGesture}
-          onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
-          onRenameTeam={renameTeam}
-        />
+      <div className="flex-1 min-h-0 flex flex-col gap-1.5">
+        <div className="shrink-0 isolate z-10">
+          <TeamSection
+            team={ourTeam}
+            courtPlayers={ourCourtPlayers}
+            totalPlayerCount={[...ourCourtPlayers, ...ourBenchPlayers].length}
+            playerFouls={playerFouls}
+            teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
+            pendingPlayerId={pendingPlayerId}
+            shotPhase={shotPhase}
+            flashPlayerId={flashPlayerId}
+            onPlayerTap={handlePlayerTap}
+            onPlayerGesture={handlePlayerGesture}
+            onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
+            onRenameTeam={renameTeam}
+          />
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <StatsPanel
+            pendingPlayer={pendingPlayer}
+            foulAwaitingSwipe={foulAwaitingSwipe}
+            shotPhase={shotPhase}
+            highlightStat={highlightStat}
+            onSelectStat={handleStatSelect}
+            onFoulPenalty={handleFoulPenalty}
+            isPremium={isPremium}
+            tovMode={tovMode}
+            onTovModeChange={(newMode) => {
+              setTovMode(newMode);
+              if (newMode !== 'simple') remapTovReasons(newMode);
+            }}
+          />
+        </div>
+
+        <div className="shrink-0 isolate z-10">
+          <TeamSection
+            team={theirTeam}
+            courtPlayers={theirCourtPlayers}
+            totalPlayerCount={[...theirCourtPlayers, ...theirBenchPlayers].length}
+            playerFouls={playerFouls}
+            teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
+            pendingPlayerId={pendingPlayerId}
+            shotPhase={shotPhase}
+            flashPlayerId={flashPlayerId}
+            onPlayerTap={handlePlayerTap}
+            onPlayerGesture={handlePlayerGesture}
+            onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
+            onRenameTeam={renameTeam}
+          />
+        </div>
       </div>
 
-      <div className="flex-[4] min-h-0">
-        <StatsPanel
-          pendingPlayer={pendingPlayer}
-          foulAwaitingSwipe={foulAwaitingSwipe}
-          shotPhase={shotPhase}
-          highlightStat={highlightStat}
-          onSelectStat={handleStatSelect}
-          onFoulPenalty={handleFoulPenalty}
-          isPremium={isPremium}
-          tovMode={tovMode}
-          onTovModeChange={(newMode) => {
-            setTovMode(newMode);
-            if (newMode !== 'simple') remapTovReasons(newMode);
-          }}
-        />
-      </div>
-
-      <div className="flex-[1.2] min-h-0 overflow-hidden relative z-0">
-        <TeamSection
-          team={theirTeam}
-          courtPlayers={theirCourtPlayers}
-          totalPlayerCount={[...theirCourtPlayers, ...theirBenchPlayers].length}
-          playerFouls={playerFouls}
-          teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
-          pendingPlayerId={pendingPlayerId}
-          shotPhase={shotPhase}
-          flashPlayerId={flashPlayerId}
-          onPlayerTap={handlePlayerTap}
-          onPlayerGesture={handlePlayerGesture}
-          onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
-          onRenameTeam={renameTeam}
-        />
-      </div>
-
-      <div className="shrink-0 relative z-20 bg-neutral-950 border-t border-white/10 shadow-[0_-6px_16px_rgba(0,0,0,0.45)] pb-safe">
+      <div className="shrink-0 bg-neutral-950 border-t border-white/10 pb-safe">
         <div className="max-h-[38dvh] overflow-y-auto overscroll-contain">
           <Timeline
             entries={recentEntries}

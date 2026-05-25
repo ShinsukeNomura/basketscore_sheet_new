@@ -165,7 +165,7 @@ export function StatsPanel({
   }
 
   return (
-    <div className="h-full flex flex-col gap-1.5 px-2 py-1.5 bg-neutral-950 overflow-hidden">
+    <div className="h-full flex flex-col gap-1 px-2 py-1 bg-neutral-950 overflow-hidden">
 
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
