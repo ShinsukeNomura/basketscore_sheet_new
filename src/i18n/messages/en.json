@@ -150,7 +150,7 @@
     "selectPlayerFirst": "Tap jersey # first",
     "pendingPlayerHint": "#{num} → tap a stat",
     "shotTypeHint": "#{num} right 2PT left 3PT up FT",
-    "shotResultHint": "#{num} right made left miss",
+    "shotResultHint": "#{num} right made left miss · double-tap to change 2PT/3PT/FT",
     "foulGestureHint": "#{num} tap P left P1 right P2",
     "shotSwipeLegend": "Score: # → swipe (2PT/3PT/FT → made/miss) → court",
     "quarter": "{q}Q",

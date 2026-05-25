@@ -63,7 +63,11 @@ export function PlayerCard({
     }
 
     if (shotPhase === 'type' || shotPhase === 'result') {
-      if (gesture !== 'tap') finishGesture(dx, dy);
+      if (gesture === 'tap') {
+        onTap(player);
+        return;
+      }
+      finishGesture(dx, dy);
       return;
     }
 
@@ -112,10 +116,15 @@ export function PlayerCard({
         </span>
       )}
       {isPending && shotPhase === 'result' && (
-        <span className="absolute inset-x-0 top-0 flex justify-between px-1 pt-0.5 pointer-events-none">
-          <span className="text-[7px] font-bold text-rose-400/90">×</span>
-          <span className="text-[7px] font-bold text-emerald-400/90">○</span>
-        </span>
+        <>
+          <span className="absolute inset-x-0 top-0 flex justify-between px-1 pt-0.5 pointer-events-none">
+            <span className="text-[7px] font-bold text-rose-400/90">×</span>
+            <span className="text-[7px] font-bold text-emerald-400/90">○</span>
+          </span>
+          <span className="absolute bottom-0 inset-x-0 text-center text-[6px] font-semibold text-sky-300/70 pointer-events-none leading-none pb-0.5">
+            2×
+          </span>
+        </>
       )}
       {isPending && foulMode && (
         <span className="absolute inset-x-0 top-0 flex justify-between px-1 pt-0.5 pointer-events-none text-[7px] font-bold">

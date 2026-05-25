@@ -150,7 +150,7 @@
     "selectPlayerFirst": "先に背番号をタップ",
     "pendingPlayerHint": "#{num} → スタッツをタップ",
     "shotTypeHint": "#{num} 右2PT 左3PT 上FT",
-    "shotResultHint": "#{num} 右○ 左×",
+    "shotResultHint": "#{num} 右○ 左× · 2回タップで2PT/3PT/FTに戻る",
     "foulGestureHint": "#{num} タップP 左P1 右P2",
     "shotSwipeLegend": "得点: 背番号→スワイプ(2PT/3PT/FT→○×)→コート",
     "quarter": "{q}Q",

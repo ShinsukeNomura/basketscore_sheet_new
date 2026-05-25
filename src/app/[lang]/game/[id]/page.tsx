@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useGameState }          from '@/hooks/useGameState';
 import { GameHeader }            from '@/components/game/GameHeader';
@@ -90,6 +90,9 @@ export default function GamePage() {
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
 
+  const shotTapRef = useRef<{ playerId: string; at: number } | null>(null);
+  const DOUBLE_TAP_MS = 400;
+
   const clearInputState = useCallback(() => {
     setPendingPlayer(null);
     setShotPhase(null);
@@ -123,7 +126,22 @@ export default function GamePage() {
       clearInputState();
       return;
     }
-    if (shotPhase === 'result') return;
+
+    if (pendingPlayer?.id === player.id && shotPhase === 'result') {
+      const now = Date.now();
+      const last = shotTapRef.current;
+      if (last?.playerId === player.id && now - last.at <= DOUBLE_TAP_MS) {
+        shotTapRef.current = null;
+        setShotPhase('type');
+        setPendingShotType(null);
+        if (navigator.vibrate) navigator.vibrate([20, 20]);
+        return;
+      }
+      shotTapRef.current = { playerId: player.id, at: now };
+      return;
+    }
+
+    shotTapRef.current = null;
 
     if (pendingPlayer?.id === player.id) {
       clearInputState();
