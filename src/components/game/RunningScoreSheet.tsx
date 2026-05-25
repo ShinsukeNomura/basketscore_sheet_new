@@ -10,6 +10,15 @@ import { ChevronLeft } from 'lucide-react';
 
 const SECTION_SIZE = 50;
 
+/** ランニングスコアの3列（横並び） */
+const SCORE_COLUMNS = [
+  { startN: 1,   endN: 50 },
+  { startN: 51,  endN: 100 },
+  { startN: 101, endN: 150 },
+] as const;
+
+const COL_GRID = '22px 18px 18px 22px';
+
 function getQuarterColor(quarter: number | null): { text: string; line: string } {
   if (quarter === 1 || quarter === 3) return { text: 'text-red-500',    line: 'border-red-500' };
   if (quarter === 5 || quarter === 6) return { text: 'text-amber-400',  line: 'border-amber-400' }; // OT
@@ -74,7 +83,7 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
   const theirQColor = getQuarterColor(cell.theirQuarter);
 
   return (
-    <div className="grid items-center" style={{ gridTemplateColumns: '28px 22px 22px 28px' }}>
+    <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
       {/* 自チーム背番号列 — 到達点のみ表示 */}
       <div className="flex items-center justify-end pr-1 h-[20px] border-b border-white/10">
         {cell.ourHasMarking && cell.ourPlayer && (
@@ -112,7 +121,7 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
 
 function EmptyRow({ n }: { n: number }) {
   return (
-    <div className="grid items-center" style={{ gridTemplateColumns: '28px 22px 22px 28px' }}>
+    <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
       <div className="h-[20px] border-b border-white/10" />
       <div className="flex items-center justify-center h-[20px] border-b border-white/10">
         <span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span>
@@ -155,7 +164,7 @@ function ColHeader({ ourName, theirName, ourCfg, theirCfg, range }: {
       <div className="text-center py-0.5 bg-white/[0.02]">
         <span className="text-[9px] text-white/35 font-mono">{range}</span>
       </div>
-      <div className="grid items-center" style={{ gridTemplateColumns: '28px 22px 22px 28px' }}>
+      <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
         <div className={cn('text-[9px] font-bold text-center truncate py-1', ourCfg.nameText)}>{ourName.slice(0, 4)}</div>
         <div className="text-center py-1 border-x border-white/10"><span className="text-[9px] text-white/50 font-bold">A</span></div>
         <div className="text-center py-1 border-r border-white/10"><span className="text-[9px] text-white/50 font-bold">B</span></div>
@@ -186,18 +195,15 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
   const ourCfg   = getColorConfig(ourTeam.color);
   const theirCfg = getColorConfig(theirTeam.color);
 
-  const maxScore     = cells.length > 0 ? Math.max(...cells.map((c) => c.n)) : SECTION_SIZE;
-  const sectionCount = Math.ceil(Math.max(maxScore, SECTION_SIZE) / SECTION_SIZE);
-
-  const sections = useMemo(() => {
-    const result: { startN: number; cells: RunningCell[] }[] = [];
-    for (let i = 0; i < sectionCount; i++) {
-      const startN = i * SECTION_SIZE + 1;
-      const endN   = (i + 1) * SECTION_SIZE;
-      result.push({ startN, cells: cells.filter((c) => c.n >= startN && c.n <= endN) });
-    }
-    return result;
-  }, [cells, sectionCount]);
+  const columns = useMemo(
+    () => SCORE_COLUMNS.map(({ startN, endN }) => ({
+      startN,
+      endN,
+      range: `${startN} – ${endN}`,
+      cells: cells.filter((c) => c.n >= startN && c.n <= endN),
+    })),
+    [cells],
+  );
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-neutral-950">
@@ -230,21 +236,26 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
         </span>
       </div>
 
-      {/* スクロールエリア */}
-      <div
-        className="flex-1 min-h-0 overflow-y-scroll overscroll-contain"
-        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-      >
-        {sections.map((section) => (
-          <div key={section.startN}>
+      {/* 3列（1–50 / 51–100 / 101–150） */}
+      <div className="flex-1 min-h-0 flex divide-x divide-white/10">
+        {columns.map((col) => (
+          <div
+            key={col.startN}
+            className="flex-1 min-w-0 flex flex-col"
+          >
             <ColHeader
               ourName={ourTeam.team_name || 'A'}
               theirName={theirTeam.team_name || 'B'}
               ourCfg={ourCfg}
               theirCfg={theirCfg}
-              range={`${section.startN} – ${section.startN + SECTION_SIZE - 1}`}
+              range={col.range}
             />
-            <ScoreSection cells={section.cells} startN={section.startN} />
+            <div
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+              style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+            >
+              <ScoreSection cells={col.cells} startN={col.startN} />
+            </div>
           </div>
         ))}
       </div>
