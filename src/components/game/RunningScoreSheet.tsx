@@ -17,7 +17,14 @@ const SCORE_COLUMNS = [
   { startN: 101, endN: 150 },
 ] as const;
 
-const COL_GRID = '22px 18px 18px 22px';
+/** 背番号 | A得点 | B得点 | 背番号 — 3桁得点が重ならない幅 */
+const COL_GRID = '24px 30px 30px 24px';
+
+function scoreNumClass(n: number): string {
+  if (n >= 100) return 'text-[9px] tracking-tight';
+  if (n >= 10) return 'text-[10px]';
+  return 'text-[11px]';
+}
 
 function getQuarterColor(quarter: number | null): { text: string; line: string } {
   if (quarter === 1 || quarter === 3) return { text: 'text-red-500',    line: 'border-red-500' };
@@ -57,10 +64,10 @@ function ScoreCell({ n, hasMarking, shotType, quarter, qEnd }: {
 
   return (
     <div className={cn(
-      'relative flex items-center justify-center h-[20px]',
+      'relative flex items-center justify-center h-[20px] min-w-0 overflow-hidden px-0.5',
       hasQEnd ? `border-b-2 ${line}` : 'border-b border-white/10',
     )}>
-      <span className="text-[11px] font-mono tabular-nums leading-none relative z-10 text-white/90">{n}</span>
+      <span className={cn('font-mono tabular-nums leading-none relative z-10 text-white/90 shrink-0', scoreNumClass(n))}>{n}</span>
 
       {showSlash && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
@@ -83,9 +90,9 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
   const theirQColor = getQuarterColor(cell.theirQuarter);
 
   return (
-    <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
+    <div className="grid items-center min-w-[108px]" style={{ gridTemplateColumns: COL_GRID }}>
       {/* 自チーム背番号列 — 到達点のみ表示 */}
-      <div className="flex items-center justify-end pr-1 h-[20px] border-b border-white/10">
+      <div className="flex items-center justify-end pr-0.5 h-[20px] border-b border-white/10 min-w-0 overflow-hidden">
         {cell.ourHasMarking && cell.ourPlayer && (
           <PlayerBadge num={cell.ourPlayer} shotType={cell.ourShotType} quarterColor={ourQColor.text} />
         )}
@@ -110,7 +117,7 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
       />
 
       {/* 相手チーム背番号列 — 到達点のみ表示 */}
-      <div className="flex items-center justify-start pl-1 h-[20px] border-b border-white/10">
+      <div className="flex items-center justify-start pl-0.5 h-[20px] border-b border-white/10 min-w-0 overflow-hidden">
         {cell.theirHasMarking && cell.theirPlayer && (
           <PlayerBadge num={cell.theirPlayer} shotType={cell.theirShotType} quarterColor={theirQColor.text} />
         )}
@@ -120,14 +127,15 @@ function ScoreRow({ cell }: { cell: RunningCell }) {
 }
 
 function EmptyRow({ n }: { n: number }) {
+  const numCls = cn('font-mono tabular-nums leading-none text-white/90 shrink-0', scoreNumClass(n));
   return (
-    <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
+    <div className="grid items-center min-w-[108px]" style={{ gridTemplateColumns: COL_GRID }}>
       <div className="h-[20px] border-b border-white/10" />
-      <div className="flex items-center justify-center h-[20px] border-b border-white/10">
-        <span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span>
+      <div className="flex items-center justify-center h-[20px] border-b border-white/10 min-w-0 overflow-hidden px-0.5">
+        <span className={numCls}>{n}</span>
       </div>
-      <div className="flex items-center justify-center h-[20px] border-b border-white/10">
-        <span className="text-[11px] font-mono tabular-nums leading-none text-white/90">{n}</span>
+      <div className="flex items-center justify-center h-[20px] border-b border-white/10 min-w-0 overflow-hidden px-0.5">
+        <span className={numCls}>{n}</span>
       </div>
       <div className="h-[20px] border-b border-white/10" />
     </div>
@@ -164,10 +172,10 @@ function ColHeader({ ourName, theirName, ourCfg, theirCfg, range }: {
       <div className="text-center py-0.5 bg-white/[0.02]">
         <span className="text-[9px] text-white/35 font-mono">{range}</span>
       </div>
-      <div className="grid items-center" style={{ gridTemplateColumns: COL_GRID }}>
+      <div className="grid items-center min-w-[108px]" style={{ gridTemplateColumns: COL_GRID }}>
         <div className={cn('text-[9px] font-bold text-center truncate py-1', ourCfg.nameText)}>{ourName.slice(0, 4)}</div>
-        <div className="text-center py-1 border-x border-white/10"><span className="text-[9px] text-white/50 font-bold">A</span></div>
-        <div className="text-center py-1 border-r border-white/10"><span className="text-[9px] text-white/50 font-bold">B</span></div>
+        <div className="text-center py-1 border-x border-white/10 min-w-0"><span className="text-[9px] text-white/50 font-bold">A</span></div>
+        <div className="text-center py-1 border-r border-white/10 min-w-0"><span className="text-[9px] text-white/50 font-bold">B</span></div>
         <div className={cn('text-[9px] font-bold text-center truncate py-1', theirCfg.nameText)}>{theirName.slice(0, 4)}</div>
       </div>
     </div>
@@ -237,11 +245,11 @@ export function RunningScoreSheet({ ourTeam, theirTeam, allPlayers, logs, onClos
       </div>
 
       {/* 3列（1–50 / 51–100 / 101–150） */}
-      <div className="flex-1 min-h-0 flex divide-x divide-white/10">
+      <div className="flex-1 min-h-0 flex divide-x divide-white/10 overflow-x-auto">
         {columns.map((col) => (
           <div
             key={col.startN}
-            className="flex-1 min-w-0 flex flex-col"
+            className="flex-1 min-w-[112px] flex flex-col shrink-0"
           >
             <ColHeader
               ourName={ourTeam.team_name || 'A'}
