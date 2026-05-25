@@ -67,6 +67,15 @@ export default function GamePage() {
   const [courtMapAction, setCourtMapAction] = useState<ActionType | null>(null);
 
   const [tovMode,    setTovMode]    = useState<TovMode>('simple');
+  const premiumTovDefaulted = useRef(false);
+
+  useEffect(() => {
+    if (isPremium && !premiumTovDefaulted.current) {
+      premiumTovDefaulted.current = true;
+      setTovMode('12-grid');
+    }
+  }, [isPremium]);
+
   const [tovPending, setTovPending] = useState<{
     teamId: string;
     isOurs: boolean;
@@ -318,7 +327,7 @@ export default function GamePage() {
       </div>
 
       <div className="shrink-0 bg-neutral-950 border-t border-white/10 pb-safe">
-        <div className="max-h-[min(20dvh,148px)] overflow-y-auto overscroll-contain">
+        <div className="max-h-[min(26dvh,200px)] overflow-y-auto overscroll-contain">
           <Timeline
             entries={recentEntries}
             allPlayers={allPlayers}

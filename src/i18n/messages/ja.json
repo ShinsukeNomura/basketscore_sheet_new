@@ -151,7 +151,7 @@
     "pendingPlayerHint": "#{num} → スタッツをタップ",
     "shotTypeHint": "#{num} 右2PT 左3PT 上FT",
     "shotResultHint": "#{num} 右○ 左× · 2回タップで2PT/3PT/FTに戻る",
-    "foulGestureHint": "#{num} → Foulボタンをスワイプ（タップP 左P1 右P2）",
+    "foulGestureHint": "#{num} → Foulスワイプ（上P 下U/T 左P1 右P2）",
     "shotSwipeLegend": "得点: 背番号→スワイプ(2PT/3PT/FT→○×)→コート",
     "quarter": "{q}Q",
     "ot1": "OT1",

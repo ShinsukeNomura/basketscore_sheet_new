@@ -585,7 +585,7 @@ export function useGameState(gameId: string) {
   );
 
   const recentEntries = useMemo(
-    () => allTimelineEntries.slice(0, 1),
+    () => allTimelineEntries.slice(0, 2),
     [allTimelineEntries],
   );
 

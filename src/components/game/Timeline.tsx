@@ -4,6 +4,7 @@ import { TimelineEntry, Player, Team, StatsLog } from '@/types';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import type { ActionType } from '@/types';
 import { getColorConfig } from '@/lib/colors';
+import { formatFoulPenalty } from '@/lib/playerGesture';
 import { cn } from '@/lib/utils';
 import { ChevronRight, X } from 'lucide-react';
 
@@ -61,7 +62,7 @@ function LogLine({
   const isPoint = log.points > 0;
   const teamLabel = teamShortLabel(log.team_id, ourTeam, theirTeam, ourFallback, theirFallback);
   const foulSuffix = log.action_type === 'FOUL' && log.foul_penalty
-    ? ` (${log.foul_penalty})`
+    ? ` (${formatFoulPenalty(log.foul_penalty)})`
     : '';
 
   return (

@@ -1,3 +1,5 @@
+import type { FoulPenalty } from '@/types';
+
 /** タップとスワイプの判定（選手カード用） */
 export type PlayerGesture = 'tap' | 'left' | 'right' | 'up' | 'down';
 
@@ -14,6 +16,19 @@ export function classifyPointerGesture(dx: number, dy: number): PlayerGesture {
 }
 
 export type ShotType = '2PT' | '3PT' | 'FT';
+
+/** Foulボタンのスワイプ → ペナルティ種別（上P 下U/T 左P1 右P2） */
+export function foulPenaltyFromGesture(gesture: PlayerGesture): FoulPenalty | null {
+  if (gesture === 'up') return 'P';
+  if (gesture === 'down') return 'UT';
+  if (gesture === 'left') return 'P1';
+  if (gesture === 'right') return 'P2';
+  return null;
+}
+
+export function formatFoulPenalty(p: FoulPenalty): string {
+  return p === 'UT' ? 'U/T' : p;
+}
 
 export function shotAction(type: ShotType, made: boolean): '2PT_MADE' | '2PT_MISS' | '3PT_MADE' | '3PT_MISS' | 'FT_MADE' | 'FT_MISS' {
   if (type === '2PT') return made ? '2PT_MADE' : '2PT_MISS';

@@ -32,7 +32,7 @@ export type TovReason =
   | 'other';          // その他
 
 /** ファウルペナルティ（P / P1 / P2） */
-export type FoulPenalty = 'P' | 'P1' | 'P2';
+export type FoulPenalty = 'P' | 'P1' | 'P2' | 'UT';
 
 export type CourtLocation =
   | 'restricted'

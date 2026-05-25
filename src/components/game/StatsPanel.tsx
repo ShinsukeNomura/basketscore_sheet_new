@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react';
 import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { classifyPointerGesture } from '@/lib/playerGesture';
+import { classifyPointerGesture, foulPenaltyFromGesture } from '@/lib/playerGesture';
 import { cn } from '@/lib/utils';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
@@ -100,10 +100,7 @@ function FoulSwipeBtn({
       return;
     }
 
-    let penalty: FoulPenalty | null = null;
-    if (gesture === 'tap') penalty = 'P';
-    else if (gesture === 'left') penalty = 'P1';
-    else if (gesture === 'right') penalty = 'P2';
+    const penalty = foulPenaltyFromGesture(gesture);
     if (!penalty) return;
     if (navigator.vibrate) navigator.vibrate(28);
     onPenalty(penalty);
@@ -127,13 +124,22 @@ function FoulSwipeBtn({
       )}
     >
       {active && (
-        <span className="absolute inset-x-0 top-0.5 flex justify-between px-1.5 pointer-events-none text-[8px] font-bold leading-none">
-          <span className="text-amber-300/90">P1</span>
-          <span className="text-white/70">P</span>
-          <span className="text-red-300/90">P2</span>
-        </span>
+        <>
+          <span className="absolute top-0.5 inset-x-0 text-center text-[8px] font-bold text-white/80 pointer-events-none leading-none">
+            P
+          </span>
+          <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] font-bold text-amber-300/90 pointer-events-none leading-none">
+            P1
+          </span>
+          <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[8px] font-bold text-red-300/90 pointer-events-none leading-none">
+            P2
+          </span>
+          <span className="absolute bottom-0.5 inset-x-0 text-center text-[8px] font-bold text-violet-300/90 pointer-events-none leading-none">
+            U/T
+          </span>
+        </>
       )}
-      <span className={cn('leading-none', active && 'mt-2')}>Foul</span>
+      <span className="leading-none">Foul</span>
     </button>
   );
 }
