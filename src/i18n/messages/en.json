@@ -88,6 +88,10 @@
     "allGames": "All Games",
     "editLabel": "Label",
     "contact": "Contact",
+    "unsavedCloudTitle": "Unsaved game on cloud",
+    "unsavedCloudBody": "\"{games}\" has not been sent to the cloud. Start a new game anyway?",
+    "unsavedCloudCancel": "Cancel",
+    "unsavedCloudProceed": "Create anyway",
     "deleteConfirm": "Delete this game?",
     "errorTitle": "Something went wrong",
     "errorHint": "Please try reloading the app.\nContact support if the issue persists."
@@ -378,6 +382,8 @@
   "timeline": {
     "empty": "No entries yet",
     "team": "Team",
+    "ourShort": "Us",
+    "theirShort": "Opp",
     "oppTov": "Opp TOV",
     "undo": "Undo",
     "viewAll": "View all",
@@ -417,12 +423,14 @@
 
   "substitution": {
     "title": "Substitution",
-    "step1": "① Tap a player on court",
-    "step2": "② Tap a bench player to sub in",
+    "step1": "① Tap bench players (multi-select)",
+    "step2": "② Tap the same number on court to sub",
     "courtOut": "On court (OUT)",
     "benchIn": "Bench (IN)",
     "noBench": "No bench players",
-    "selectCourtFirst": "— Select an on-court player first",
+    "selectBenchFirst": "— Select bench players first",
+    "selectionCount": "Bench {bench} / Court {court}",
+    "applySubstitutions": "Sub {count} players",
     "addMember": "Add member by jersey #",
     "backToStats": "Back to stats",
     "doneAddingHint": "Tap here when finished adding"

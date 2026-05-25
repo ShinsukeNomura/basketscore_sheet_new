@@ -263,6 +263,7 @@ export function savePersistedGame(
 export function deleteGame(id: string): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(GAME_KEY(id));
+  clearGamePendingCloudSave(id);
   const index = getGamesIndex().filter((g) => g.id !== id);
   setGamesIndex(index);
 }
@@ -272,6 +273,48 @@ export function removeStaleGameEntry(staleId: string, keepId: string): void {
   if (typeof window === 'undefined' || !staleId || staleId === keepId) return;
   localStorage.removeItem(GAME_KEY(staleId));
   setGamesIndex(getGamesIndex().filter((g) => g.id !== staleId));
+}
+
+// ============================================================
+// 終了試合のクラウド未保存（明示保存前）
+// ============================================================
+
+const PENDING_CLOUD_KEY = () => {
+  if (_guest && !_uid) return 'bball_guest_pending_cloud';
+  if (_uid) return `bball_pending_cloud_${_uid}`;
+  return 'bball_pending_cloud';
+};
+
+function readPendingCloudIds(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(PENDING_CLOUD_KEY());
+    const arr = JSON.parse(raw ?? '[]') as unknown;
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePendingCloudIds(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  if (ids.length === 0) localStorage.removeItem(PENDING_CLOUD_KEY());
+  else localStorage.setItem(PENDING_CLOUD_KEY(), JSON.stringify(ids));
+}
+
+export function markGamePendingCloudSave(gameId: string): void {
+  const ids = readPendingCloudIds();
+  if (!ids.includes(gameId)) writePendingCloudIds([...ids, gameId]);
+}
+
+export function clearGamePendingCloudSave(gameId: string): void {
+  writePendingCloudIds(readPendingCloudIds().filter((id) => id !== gameId));
+}
+
+export function getFinishedGamesPendingCloudSave(): GameSummary[] {
+  const pending = new Set(readPendingCloudIds());
+  if (pending.size === 0) return [];
+  return getGamesIndex().filter((g) => g.status === 'finished' && pending.has(g.id));
 }
 
 // ============================================================

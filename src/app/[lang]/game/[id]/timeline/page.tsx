@@ -17,6 +17,8 @@ export default function TimelinePage() {
 
   const {
     game,
+    ourTeam,
+    theirTeam,
     allPlayers,
     allTimelineEntries,
     undoLog,
@@ -60,6 +62,8 @@ export default function TimelinePage() {
         <Timeline
           entries={allTimelineEntries}
           allPlayers={allPlayers}
+          ourTeam={ourTeam}
+          theirTeam={theirTeam}
           onUndo={undoLog}
         />
       </div>

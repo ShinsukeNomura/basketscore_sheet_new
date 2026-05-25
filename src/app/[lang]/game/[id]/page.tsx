@@ -16,6 +16,9 @@ import { Team, Player, CourtLocation, TovMode, TovReason } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { useDictionary } from '@/i18n/DictionaryProvider';
+import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
+import type { GameSummary } from '@/types';
+import { UnsavedCloudSaveDialog } from '@/components/UnsavedCloudSaveDialog';
 
 export default function GamePage() {
   const g = useDictionary().game;
@@ -45,6 +48,8 @@ export default function GamePage() {
   const [subTeam,        setSubTeam]        = useState<Team | null>(null);
   const [subOpen,        setSubOpen]        = useState(false);
   const [createOpen,     setCreateOpen]     = useState(false);
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+  const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [statsOpen,      setStatsOpen]      = useState(false);
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
   const [tovMode,        setTovMode]        = useState<TovMode>('simple');
@@ -53,10 +58,24 @@ export default function GamePage() {
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
 
-  const handleSubstitute = useCallback((outId: string, inId: string) => {
-    substitute(outId, inId);
+  const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
+    for (const { outId, inId } of pairs) substitute(outId, inId);
     setSubOpen(true);
   }, [substitute]);
+
+  const openCreateWithGuard = useCallback(() => {
+    if (!user?.id) {
+      setCreateOpen(true);
+      return;
+    }
+    const pending = getFinishedGamesPendingCloudSave();
+    if (pending.length > 0) {
+      setPendingUnsavedGames(pending);
+      setUnsavedDialogOpen(true);
+      return;
+    }
+    setCreateOpen(true);
+  }, [user?.id]);
 
   function handlePlayerClick(player: Player) {
     if (!selectedStat) return;
@@ -187,6 +206,8 @@ export default function GamePage() {
           <Timeline
             entries={recentEntries}
             allPlayers={allPlayers}
+            ourTeam={ourTeam}
+            theirTeam={theirTeam}
             onUndo={undoLog}
             totalCount={allTimelineEntries.length}
             onViewAll={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/timeline`); }}
@@ -227,7 +248,7 @@ export default function GamePage() {
           theirScore={theirScore}
           logs={activeLogs}
           onGoHome={() => router.push(`/${lang}`)}
-          onNewGame={() => setCreateOpen(true)}
+          onNewGame={openCreateWithGuard}
           onShowStats={() => setStatsOpen(true)}
           onShowRunning={() => router.push(`/${lang}/game/${gameId}/running`)}
           onResume={resumeGame}
@@ -245,6 +266,15 @@ export default function GamePage() {
         onSubstitute={handleSubstitute}
         onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
+      />
+      <UnsavedCloudSaveDialog
+        open={unsavedDialogOpen}
+        games={pendingUnsavedGames}
+        onCancel={() => setUnsavedDialogOpen(false)}
+        onProceed={() => {
+          setUnsavedDialogOpen(false);
+          setCreateOpen(true);
+        }}
       />
       <CreateGameSheet
         open={createOpen}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, type PointerEvent } from 'react';
+import { useState, useRef, useCallback, useEffect, type PointerEvent } from 'react';
 import { Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -20,9 +20,13 @@ interface SubstitutionSheetProps {
   courtPlayers:  Player[];
   benchPlayers:  Player[];
   playerFouls:   Record<string, number>;
-  onSubstitute:  (outId: string, inId: string) => void;
+  onSubstitute:  (pairs: { outId: string; inId: string }[]) => void;
   onAddPlayer:   (teamId: string, backNumber: string) => void;
   onClose:       () => void;
+}
+
+function toggleId(ids: string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
 }
 
 export function SubstitutionSheet({
@@ -40,10 +44,20 @@ export function SubstitutionSheet({
   const sub = dict.substitution;
   const g = dict.game;
   const c = dict.common;
-  const [outPlayer, setOutPlayer] = useState<Player | null>(null);
+  const [benchSelected, setBenchSelected] = useState<string[]>([]);
+  const [courtSelected, setCourtSelected] = useState<string[]>([]);
   const [input, setInput]       = useState('');
   const [error, setError]       = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setBenchSelected([]);
+      setCourtSelected([]);
+      setInput('');
+      setError('');
+    }
+  }, [open]);
 
   const keepFocus = useCallback(() => {
     requestAnimationFrame(() => inputRef.current?.focus());
@@ -71,17 +85,22 @@ export function SubstitutionSheet({
     keepFocus();
   }, [input, team, allPlayers, onAddPlayer, g, keepFocus]);
 
-  function handleCourtTap(player: Player) {
-    setOutPlayer((prev) => (prev?.id === player.id ? null : player));
-  }
+  const benchCount = benchSelected.length;
+  const courtCount = courtSelected.length;
+  const canApply = benchCount > 0 && benchCount === courtCount;
 
-  function applySubstitute(outId: string, inId: string) {
-    onSubstitute(outId, inId);
-    setOutPlayer(null);
+  function applyBatch() {
+    if (!canApply) return;
+    const pairs = courtSelected.map((outId, i) => ({
+      outId,
+      inId: benchSelected[i]!,
+    }));
+    onSubstitute(pairs);
+    setBenchSelected([]);
+    setCourtSelected([]);
     if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
   }
 
-  // 自動クローズは cancel() で抑止（閉じるのは handleDone のみ）
   function handleOpenChange(
     nextOpen: boolean,
     details?: { cancel?: () => void },
@@ -94,7 +113,8 @@ export function SubstitutionSheet({
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    setOutPlayer(null);
+    setBenchSelected([]);
+    setCourtSelected([]);
     setInput('');
     setError('');
     onClose();
@@ -107,22 +127,26 @@ export function SubstitutionSheet({
     isSelected,
     onClick,
     onPointerDown,
+    disabled,
   }: {
     player: Player;
     isSelected?: boolean;
     onClick?: () => void;
     onPointerDown?: (e: PointerEvent<HTMLButtonElement>) => void;
+    disabled?: boolean;
   }) {
     const fouls = playerFouls[player.id] ?? 0;
     return (
       <button
         type="button"
+        disabled={disabled}
         onClick={onClick}
         onPointerDown={onPointerDown}
         className={cn(
           'flex flex-col items-center justify-center rounded-xl py-3.5 px-2 transition-all duration-75 active:scale-95 min-h-[60px]',
           cfg.cardBg, cfg.cardHover,
-          isSelected ? 'ring-2 ring-white/60' : '',
+          isSelected ? 'ring-2 ring-emerald-400/80' : '',
+          disabled ? 'opacity-35 pointer-events-none' : '',
         )}
       >
         <span className="text-white font-black text-lg leading-none">#{player.back_number}</span>
@@ -165,40 +189,31 @@ export function SubstitutionSheet({
           </button>
         </SheetHeader>
 
-        {/* 手順インジケーター */}
         <div className="flex items-center gap-2 mb-4 text-xs text-white/40">
-          <span className={outPlayer ? 'text-white/80 font-semibold' : ''}>{sub.step1}</span>
+          <span className={benchCount > 0 ? 'text-emerald-400 font-semibold' : 'text-white/80 font-semibold'}>
+            {sub.step1}
+          </span>
           <ArrowLeftRight size={12} />
-          <span className={outPlayer ? 'text-white/40' : 'text-white/20'}>{sub.step2}</span>
+          <span className={benchCount > 0 ? (canApply ? 'text-emerald-400 font-semibold' : 'text-white/80') : 'text-white/20'}>
+            {sub.step2}
+          </span>
         </div>
 
-        {/* コート上の選手 */}
+        {benchCount > 0 && (
+          <p className="text-white/50 text-[11px] mb-3 tabular-nums">
+            {sub.selectionCount
+              .replace('{bench}', String(benchCount))
+              .replace('{court}', String(courtCount))}
+          </p>
+        )}
+
+        {/* ベンチ（先に複数選択） */}
         <div className="mb-4">
           <div className="flex items-center gap-1.5 mb-2">
-            <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
-            <span className="text-white/50 text-xs font-semibold">{sub.courtOut}</span>
+            <div className="w-1.5 h-3 rounded-full bg-emerald-500/60" />
+            <span className="text-white/50 text-xs font-semibold">{sub.benchIn}</span>
           </div>
           <div className="grid grid-cols-5 gap-2">
-            {courtPlayers.map((p) => (
-              <PlayerChip
-                key={p.id}
-                player={p}
-                isSelected={outPlayer?.id === p.id}
-                onClick={() => handleCourtTap(p)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* ベンチ */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="w-1.5 h-3 rounded-full bg-white/20" />
-            <span className="text-white/50 text-xs font-semibold">
-              {sub.benchIn}{!outPlayer && <span className="text-white/25 font-normal ml-1">{sub.selectCourtFirst}</span>}
-            </span>
-          </div>
-          <div className={cn('grid grid-cols-5 gap-2 transition-opacity', outPlayer ? 'opacity-100' : 'opacity-30 pointer-events-none')}>
             {benchPlayers.length === 0 ? (
               <span className="col-span-5 text-center text-white/25 text-xs py-4">{sub.noBench}</span>
             ) : (
@@ -206,17 +221,66 @@ export function SubstitutionSheet({
                 <PlayerChip
                   key={p.id}
                   player={p}
-                  onPointerDown={(e) => {
-                    if (!outPlayer) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    applySubstitute(outPlayer.id, p.id);
+                  isSelected={benchSelected.includes(p.id)}
+                  onClick={() => {
+                    setBenchSelected((prev) => {
+                      const next = toggleId(prev, p.id);
+                      setCourtSelected((c) => c.slice(0, next.length));
+                      return next;
+                    });
                   }}
                 />
               ))
             )}
           </div>
         </div>
+
+        {/* コート（同数選択） */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-2">
+            <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
+            <span className="text-white/50 text-xs font-semibold">
+              {sub.courtOut}
+              {benchCount === 0 && (
+                <span className="text-white/25 font-normal ml-1">{sub.selectBenchFirst}</span>
+              )}
+            </span>
+          </div>
+          <div
+            className={cn(
+              'grid grid-cols-5 gap-2 transition-opacity',
+              benchCount > 0 ? 'opacity-100' : 'opacity-30 pointer-events-none',
+            )}
+          >
+            {courtPlayers.map((p) => (
+              <PlayerChip
+                key={p.id}
+                player={p}
+                isSelected={courtSelected.includes(p.id)}
+                disabled={benchCount > 0 && courtCount >= benchCount && !courtSelected.includes(p.id)}
+                onClick={() => {
+                  if (benchCount === 0) return;
+                  setCourtSelected((prev) => {
+                    if (prev.includes(p.id)) return toggleId(prev, p.id);
+                    if (prev.length >= benchCount) return prev;
+                    return [...prev, p.id];
+                  });
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {canApply && (
+          <button
+            type="button"
+            onClick={applyBatch}
+            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600 text-white font-bold text-sm active:bg-emerald-500"
+          >
+            <ArrowLeftRight size={16} />
+            {sub.applySubstitutions.replace('{count}', String(benchCount))}
+          </button>
+        )}
 
         <button
           type="button"

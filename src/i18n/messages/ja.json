@@ -88,6 +88,10 @@
     "allGames": "すべての試合",
     "editLabel": "ラベル",
     "contact": "お問い合わせ",
+    "unsavedCloudTitle": "クラウドに未保存の試合があります",
+    "unsavedCloudBody": "「{games}」はクラウドへ送信されていません。このまま新しい試合を作成しますか？",
+    "unsavedCloudCancel": "キャンセル",
+    "unsavedCloudProceed": "このまま作成する",
     "deleteConfirm": "この試合を削除しますか？",
     "errorTitle": "エラーが発生しました",
     "errorHint": "アプリの再読み込みをお試しください。\n問題が続く場合はサポートにお問い合わせください。"
@@ -378,6 +382,8 @@
   "timeline": {
     "empty": "記録がまだありません",
     "team": "チーム",
+    "ourShort": "自チーム",
+    "theirShort": "相手",
     "oppTov": "相手TOV",
     "undo": "取り消し",
     "viewAll": "すべて表示",
@@ -417,12 +423,14 @@
 
   "substitution": {
     "title": "メンバー交代",
-    "step1": "① コート上の選手をタップ",
-    "step2": "② ベンチの選手をタップして交代",
+    "step1": "① ベンチの選手をタップ（複数可）",
+    "step2": "② コートの選手を同数タップして交代",
     "courtOut": "コート上（OUT）",
     "benchIn": "ベンチ（IN）",
     "noBench": "ベンチに選手がいません",
-    "selectCourtFirst": "— まずコート上の選手を選んでください",
+    "selectBenchFirst": "— まずベンチの選手を選んでください",
+    "selectionCount": "ベンチ {bench}人 / コート {court}人",
+    "applySubstitutions": "{count}人を一括交代",
     "addMember": "背番号でメンバーを追加",
     "backToStats": "スタッツ画面に戻る",
     "doneAddingHint": "追加が終わったらここをタップ"

@@ -4,7 +4,13 @@ import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'r
 import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
 import { buildTimelineEntries } from '@/lib/timelineEntries';
 import { ACTION_POINTS } from '@/lib/stats';
-import { loadPersistedGame, savePersistedGame, removeStaleGameEntry } from '@/lib/storage';
+import {
+  loadPersistedGame,
+  savePersistedGame,
+  removeStaleGameEntry,
+  markGamePendingCloudSave,
+  clearGamePendingCloudSave,
+} from '@/lib/storage';
 import { syncToCloud, loadGameForUser } from '@/lib/supabaseStorage';
 import { shouldPersistToDisk } from '@/lib/gameSyncGuard';
 import { shouldPreferCloud } from '@/lib/cloudGameMerge';
@@ -368,6 +374,7 @@ export function useGameState(gameId: string) {
     }
     if (cloud.ok) {
       setCloudSyncStatus('saved');
+      clearGamePendingCloudSave(gameState.game.id);
       return { ok: true };
     }
     if (cloud.partial) {
@@ -467,15 +474,15 @@ export function useGameState(gameId: string) {
     if (!userId) setCloudSyncStatus('offline');
   }, [state, persistState, userId, state.isLoaded]);
 
-  // 試合終了時にクラウドへ送信
+  // 試合終了時: 端末保存のみ。クラウドは明示保存まで未送信扱い
   const prevStatus = useRef<GameStatus | null>(null);
   useEffect(() => {
     if (!state.isLoaded) return;
-    if (prevStatus.current !== 'finished' && state.game.status === 'finished') {
-      void flushSave(state);
+    if (prevStatus.current !== 'finished' && state.game.status === 'finished' && userId) {
+      markGamePendingCloudSave(state.game.id);
     }
     prevStatus.current = state.game.status;
-  }, [state.game.status, state.isLoaded, state, flushSave]);
+  }, [state.game.status, state.isLoaded, state.game.id, userId]);
 
   /** スタッツ画面を離れるときなどに呼ぶ（クラウド送信） */
   const saveToCloud = useCallback(
@@ -559,7 +566,9 @@ export function useGameState(gameId: string) {
     while (syncInFlight.current) {
       await new Promise((r) => setTimeout(r, 50));
     }
-    return flushSave(stateRef.current);
+    const result = await flushSave(stateRef.current);
+    if (result.ok) clearGamePendingCloudSave(stateRef.current.game.id);
+    return result;
   }, [flushSave]);
 
   const reloadFromStorage = useCallback(() => {

@@ -88,6 +88,10 @@
     "allGames": "所有比赛",
     "editLabel": "标签",
     "contact": "联系我们",
+    "unsavedCloudTitle": "有未上传到云端的比赛",
+    "unsavedCloudBody": "「{games}」尚未上传到云端。仍要创建新比赛吗？",
+    "unsavedCloudCancel": "取消",
+    "unsavedCloudProceed": "仍要创建",
     "deleteConfirm": "确定删除这场比赛吗？",
     "errorTitle": "发生错误",
     "errorHint": "请尝试重新加载应用。\n如问题持续，请联系客服。"
@@ -378,6 +382,8 @@
   "timeline": {
     "empty": "暂无记录",
     "team": "球队",
+    "ourShort": "己方",
+    "theirShort": "对方",
     "oppTov": "对方失误",
     "undo": "撤销",
     "viewAll": "查看全部",
@@ -417,12 +423,14 @@
 
   "substitution": {
     "title": "换人",
-    "step1": "① 点击场上球员",
-    "step2": "② 点击替补完成换人",
+    "step1": "① 点击替补（可多选）",
+    "step2": "② 点击场上相同人数完成换人",
     "courtOut": "场上（换下）",
     "benchIn": "替补（换上）",
     "noBench": "替补席无球员",
-    "selectCourtFirst": "— 请先选择场上球员",
+    "selectBenchFirst": "— 请先选择替补",
+    "selectionCount": "替补 {bench}人 / 场上 {court}人",
+    "applySubstitutions": "批量换人 {count}人",
     "addMember": "输入背号添加球员",
     "backToStats": "返回数据统计",
     "doneAddingHint": "添加完成后点此返回"

@@ -88,6 +88,10 @@
     "allGames": "全部比賽",
     "editLabel": "標籤",
     "contact": "聯絡我們",
+    "unsavedCloudTitle": "有未上傳至雲端的比賽",
+    "unsavedCloudBody": "「{games}」尚未上傳至雲端。仍要建立新比賽嗎？",
+    "unsavedCloudCancel": "取消",
+    "unsavedCloudProceed": "仍要建立",
     "deleteConfirm": "確定要刪除這場比賽嗎？",
     "errorTitle": "發生錯誤",
     "errorHint": "請嘗試重新載入應用程式。\n若問題持續發生，請聯絡客服。"
@@ -378,6 +382,8 @@
   "timeline": {
     "empty": "尚無記錄",
     "team": "球隊",
+    "ourShort": "己方",
+    "theirShort": "對方",
     "oppTov": "對方失誤",
     "undo": "復原",
     "viewAll": "查看全部",
@@ -417,12 +423,14 @@
 
   "substitution": {
     "title": "換人",
-    "step1": "① 點擊場上球員",
-    "step2": "② 點擊替補完成換人",
+    "step1": "① 點擊替補（可多選）",
+    "step2": "② 點擊場上相同人數完成換人",
     "courtOut": "場上（換下）",
     "benchIn": "替補（換上）",
     "noBench": "替補席無球員",
-    "selectCourtFirst": "— 請先選擇場上球員",
+    "selectBenchFirst": "— 請先選擇替補",
+    "selectionCount": "替補 {bench}人 / 場上 {court}人",
+    "applySubstitutions": "批次換人 {count}人",
     "addMember": "輸入背號新增球員",
     "backToStats": "返回數據統計",
     "doneAddingHint": "新增完成後點此返回"

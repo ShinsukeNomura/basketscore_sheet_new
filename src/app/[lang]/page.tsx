@@ -5,8 +5,10 @@ import Link from 'next/link';
 import {
   getGamesIndex, deleteGame, mergeCloudGamesIntoIndex,
   getLastCloudFetchAt, setLastCloudFetchAt as persistLastCloudFetchAt,
+  getFinishedGamesPendingCloudSave,
   GameSummary, FREE_GAME_LIMIT, GUEST_GAME_LIMIT,
 } from '@/lib/storage';
+import { UnsavedCloudSaveDialog } from '@/components/UnsavedCloudSaveDialog';
 import { fetchGamesFromCloud, deleteGameFromCloud } from '@/lib/supabaseStorage';
 import { pullUserTeamsFromCloud } from '@/lib/myTeams';
 import { CreateGameSheet } from '@/components/CreateGameSheet';
@@ -165,6 +167,8 @@ export default function HomePage() {
 
   const [games,       setGames]       = useState<GameSummary[]>([]);
   const [createOpen,  setCreateOpen]  = useState(false);
+  const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
+  const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [syncing,     setSyncing]     = useState(false);
   const [syncMsg,     setSyncMsg]     = useState<string | null>(null);
   const [myTeamsOpen, setMyTeamsOpen] = useState(false);
@@ -184,15 +188,27 @@ export default function HomePage() {
     if (user?.id) setLastCloudFetchAt(getLastCloudFetchAt(user.id));
   }, [user?.id]);
 
+  const requestCreateGame = useCallback(() => {
+    if (user?.id) {
+      const pending = getFinishedGamesPendingCloudSave();
+      if (pending.length > 0) {
+        setPendingUnsavedGames(pending);
+        setUnsavedDialogOpen(true);
+        return;
+      }
+    }
+    setCreateOpen(true);
+  }, [user?.id]);
+
   useEffect(() => {
     if (!loading && user && typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('create') === 'true') {
-        setCreateOpen(true);
+        requestCreateGame();
         window.history.replaceState({}, '', `/${locale}`);
       }
     }
-  }, [loading, user, locale]);
+  }, [loading, user, locale, requestCreateGame]);
 
   useEffect(() => {
     if (!loading && !user && !isGuest) window.location.href = `/${locale}/login`;
@@ -611,7 +627,7 @@ export default function HomePage() {
             </Link>
           ) : (
             <button
-              onClick={() => setCreateOpen(true)}
+              onClick={requestCreateGame}
               className="flex items-center justify-center gap-2 w-full bg-amber-500 active:bg-amber-600 text-neutral-900 font-black rounded-2xl py-4 text-base transition-colors"
             >
               <Crown size={18} />{h.upgradeToPremium}
@@ -619,7 +635,7 @@ export default function HomePage() {
           )
         ) : (
           <button
-            onClick={() => setCreateOpen(true)}
+            onClick={requestCreateGame}
             className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-bold rounded-2xl py-4 text-base transition-colors"
           >
             <Plus size={18} />
@@ -635,6 +651,15 @@ export default function HomePage() {
         )}
       </div>
 
+      <UnsavedCloudSaveDialog
+        open={unsavedDialogOpen}
+        games={pendingUnsavedGames}
+        onCancel={() => setUnsavedDialogOpen(false)}
+        onProceed={() => {
+          setUnsavedDialogOpen(false);
+          setCreateOpen(true);
+        }}
+      />
       <CreateGameSheet
         open={createOpen}
         onClose={() => { setCreateOpen(false); loadGames(); }}
