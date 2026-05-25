@@ -88,7 +88,8 @@ type GameAction =
   | { type: 'SELECT_STAT';     payload: ActionType }
   | { type: 'LOG_STAT';        payload: { player: Player; courtLocation?: CourtLocation } }
   | { type: 'LOG_PLAYER_STAT'; payload: { player: Player; actionType: ActionType; courtLocation?: CourtLocation; foulPenalty?: FoulPenalty } }
-  | { type: 'LOG_STL_WITH_VICTIM'; payload: { stealer: Player; victim: Player } }
+  | { type: 'LOG_STL_WITH_VICTIM'; payload: { stealer: Player; victim: Player; tovReason?: TovReason } }
+  | { type: 'LOG_TEAM_DEFENSE'; payload: { defenseTeamId: string; victim: Player; tovReason?: TovReason } }
   | { type: 'LOG_TEAM_TOV';   payload: { teamId: string; tovReason?: TovReason; playerId?: string } }  // チーム単位 TOV
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
@@ -159,7 +160,7 @@ function reducer(state: InternalState, action: GameAction): InternalState {
     }
 
     case 'LOG_STL_WITH_VICTIM': {
-      const { stealer, victim } = action.payload;
+      const { stealer, victim, tovReason } = action.payload;
       if (stealer.team_id === victim.team_id) return state;
       const ts = new Date().toISOString();
       const linkId = makeId();
@@ -181,12 +182,46 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         timestamp: ts, action_type: 'TOV',
         points: 0, is_deleted: false,
         created_at: ts,
-        tov_reason: 'steal',
+        ...(tovReason ? { tov_reason: tovReason } : {}),
       };
 
       return {
         ...state,
         logs: [...state.logs, stlLog, tovLog],
+        flashPlayerId: victim.id,
+        selectedStat: null,
+      };
+    }
+
+    case 'LOG_TEAM_DEFENSE': {
+      const { defenseTeamId, victim, tovReason } = action.payload;
+      if (defenseTeamId === victim.team_id) return state;
+      const ts = new Date().toISOString();
+      const linkId = makeId();
+
+      const defLog: StatsLog = {
+        id: makeId(), link_id: linkId, is_auto: false, team_defense: true,
+        game_id: state.game.id, team_id: defenseTeamId,
+        player_id: null, period: state.game.current_period,
+        timestamp: ts, action_type: 'STL',
+        points: 0, is_deleted: false,
+        created_at: ts,
+      };
+
+      const tovLog: StatsLog = {
+        id: makeId(), link_id: linkId, is_auto: true,
+        game_id: state.game.id, team_id: victim.team_id,
+        player_id: victim.id,
+        period: state.game.current_period,
+        timestamp: ts, action_type: 'TOV',
+        points: 0, is_deleted: false,
+        created_at: ts,
+        ...(tovReason ? { tov_reason: tovReason } : {}),
+      };
+
+      return {
+        ...state,
+        logs: [...state.logs, defLog, tovLog],
         flashPlayerId: victim.id,
         selectedStat: null,
       };
@@ -622,8 +657,20 @@ export function useGameState(gameId: string) {
     });
     setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
   }, []);
-  const logStlWithVictim = useCallback((stealer: Player, victim: Player) => {
-    dispatch({ type: 'LOG_STL_WITH_VICTIM', payload: { stealer, victim } });
+  const logStlWithVictim = useCallback((
+    stealer: Player,
+    victim: Player,
+    tovReason?: TovReason,
+  ) => {
+    dispatch({ type: 'LOG_STL_WITH_VICTIM', payload: { stealer, victim, tovReason } });
+    setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
+  }, []);
+  const logTeamDefense = useCallback((
+    defenseTeamId: string,
+    victim: Player,
+    tovReason?: TovReason,
+  ) => {
+    dispatch({ type: 'LOG_TEAM_DEFENSE', payload: { defenseTeamId, victim, tovReason } });
     setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
   }, []);
   const undoLog      = useCallback((id: string)    => dispatch({ type: 'UNDO_LOG',      payload: id }),             []);
@@ -671,7 +718,7 @@ export function useGameState(gameId: string) {
     recentEntries,
     allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    selectStat, logStat, logPlayerStat, logStlWithVictim, undoLog, changePeriod, endGame, resumeGame, substitute,
+    selectStat, logStat, logPlayerStat, logStlWithVictim, logTeamDefense, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
     cloudSyncStatus, saveToCloud,

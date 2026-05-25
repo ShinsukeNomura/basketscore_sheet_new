@@ -94,6 +94,8 @@ export interface StatsLog {
   tov_reason?: TovReason;
   /** ファウル種別（P / P1 / P2） */
   foul_penalty?: FoulPenalty;
+  /** 個人STLなしのチーム守備成功（右スワイプ） */
+  team_defense?: boolean;
 }
 
 /** タイムライン表示用エントリ（primary + 連動ログを1セットに束ねる） */

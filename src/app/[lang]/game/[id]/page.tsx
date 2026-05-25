@@ -15,6 +15,8 @@ import { CourtMap }              from '@/components/game/CourtMap';
 import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalty } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
+import { StlCauseSheet } from '@/components/game/StlCauseSheet';
+import { tovReasonFromStlCause, type StlTovCause } from '@/lib/stlTovCause';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
 import type { GameSummary } from '@/types';
@@ -37,7 +39,7 @@ export default function GamePage() {
     flashPlayerId,
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    logPlayerStat, logStlWithVictim, undoLog,
+    logPlayerStat, logStlWithVictim, logTeamDefense, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
     renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
@@ -62,6 +64,12 @@ export default function GamePage() {
   const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);
   const [foulAwaitingSwipe, setFoulAwaitingSwipe] = useState(false);
   const [stlAwaitingVictim, setStlAwaitingVictim] = useState(false);
+  const [teamDefAwaitingVictim, setTeamDefAwaitingVictim] = useState(false);
+  const [stlCausePending, setStlCausePending] = useState<
+    | { mode: 'stl'; stealer: Player; victim: Player }
+    | { mode: 'teamDef'; victim: Player }
+    | null
+  >(null);
   const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
 
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
@@ -109,7 +117,34 @@ export default function GamePage() {
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
+    setTeamDefAwaitingVictim(false);
+    setStlCausePending(null);
     setHighlightStat(null);
+  }, []);
+
+  const handleStlCausePick = useCallback((cause: StlTovCause) => {
+    if (!stlCausePending) return;
+    const reason = tovReasonFromStlCause(cause, tovMode);
+    if (stlCausePending.mode === 'stl') {
+      logStlWithVictim(stlCausePending.stealer, stlCausePending.victim, reason);
+    } else {
+      const defenseTeamId = stlCausePending.victim.team_id === theirTeam.id
+        ? ourTeam.id
+        : theirTeam.id;
+      logTeamDefense(defenseTeamId, stlCausePending.victim, reason);
+    }
+    setStlCausePending(null);
+    clearInputState();
+  }, [stlCausePending, tovMode, logStlWithVictim, logTeamDefense, ourTeam.id, theirTeam.id, clearInputState]);
+
+  const handleTeamDefSwipe = useCallback(() => {
+    setTeamDefAwaitingVictim(true);
+    setPendingPlayer(null);
+    setStlAwaitingVictim(false);
+    setFoulAwaitingSwipe(false);
+    setHighlightStat(null);
+    setShotPhase(null);
+    setPendingShotType(null);
   }, []);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
@@ -132,6 +167,21 @@ export default function GamePage() {
   }, [user?.id]);
 
   const handlePlayerTap = useCallback((player: Player) => {
+    if (teamDefAwaitingVictim) {
+      if (player.team_id === ourTeam.id) {
+        clearInputState();
+        return;
+      }
+      if (tovMode === 'simple') {
+        logTeamDefense(ourTeam.id, player);
+        clearInputState();
+        return;
+      }
+      setStlCausePending({ mode: 'teamDef', victim: player });
+      setTeamDefAwaitingVictim(false);
+      return;
+    }
+
     if (stlAwaitingVictim && pendingPlayer) {
       if (player.team_id === pendingPlayer.team_id) {
         if (player.id === pendingPlayer.id) clearInputState();
@@ -142,8 +192,14 @@ export default function GamePage() {
         }
         return;
       }
-      logStlWithVictim(pendingPlayer, player);
-      clearInputState();
+      if (tovMode === 'simple') {
+        logStlWithVictim(pendingPlayer, player);
+        clearInputState();
+        return;
+      }
+      setStlCausePending({ mode: 'stl', stealer: pendingPlayer, victim: player });
+      setStlAwaitingVictim(false);
+      setHighlightStat(null);
       return;
     }
 
@@ -173,8 +229,12 @@ export default function GamePage() {
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
+    setTeamDefAwaitingVictim(false);
     setHighlightStat(null);
-  }, [pendingPlayer, shotPhase, stlAwaitingVictim, logStlWithVictim, clearInputState]);
+  }, [
+    pendingPlayer, shotPhase, stlAwaitingVictim, teamDefAwaitingVictim,
+    tovMode, logStlWithVictim, logTeamDefense, ourTeam.id, clearInputState,
+  ]);
 
   const handleFoulPenalty = useCallback((penalty: FoulPenalty) => {
     if (!pendingPlayer) return;
@@ -324,10 +384,12 @@ export default function GamePage() {
             pendingPlayer={pendingPlayer}
             foulAwaitingSwipe={foulAwaitingSwipe}
             stlAwaitingVictim={stlAwaitingVictim}
+            teamDefAwaitingVictim={teamDefAwaitingVictim}
             shotPhase={shotPhase}
             highlightStat={highlightStat}
             onSelectStat={handleStatSelect}
             onFoulPenalty={handleFoulPenalty}
+            onTeamDefSwipe={handleTeamDefSwipe}
             isPremium={isPremium}
             tovMode={tovMode}
             onTovModeChange={(newMode) => {
@@ -368,6 +430,22 @@ export default function GamePage() {
           />
         </div>
       </div>
+
+      {stlCausePending && (
+        <StlCauseSheet
+          victimBackNumber={stlCausePending.victim.back_number}
+          teamLabel={
+            stlCausePending.victim.team_id === theirTeam.id
+              ? (theirTeam.team_name || g.theirTeam)
+              : (ourTeam.team_name || g.ourTeam)
+          }
+          onPick={handleStlCausePick}
+          onCancel={() => {
+            setStlCausePending(null);
+            clearInputState();
+          }}
+        />
+      )}
 
       {tovPending && tovMode !== 'simple' && (
         <TovCategorySheet

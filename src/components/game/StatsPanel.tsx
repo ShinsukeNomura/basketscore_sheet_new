@@ -8,19 +8,24 @@ import { classifyPointerGesture, foulPenaltyFromGesture } from '@/lib/playerGest
 import { cn } from '@/lib/utils';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
-const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV' && s.action !== 'FOUL');
+const NEG = STAT_DEFS.filter(
+  (s) => s.variant === 'negative' && s.action !== 'TOV' && s.action !== 'FOUL' && s.action !== 'STL',
+);
+const STL_DEF = STAT_DEFS.find((s) => s.action === 'STL')!;
 
 interface StatsPanelProps {
-  pendingPlayer:      Player | null;
-  foulAwaitingSwipe:  boolean;
-  stlAwaitingVictim:  boolean;
-  shotPhase:          'type' | 'result' | null;
-  highlightStat:      ActionType | null;
-  onSelectStat:       (action: ActionType) => void;
-  onFoulPenalty:      (penalty: FoulPenalty) => void;
-  isPremium?:         boolean;
-  tovMode?:           TovMode;
-  onTovModeChange?:   (mode: TovMode) => void;
+  pendingPlayer:       Player | null;
+  foulAwaitingSwipe:   boolean;
+  stlAwaitingVictim:   boolean;
+  teamDefAwaitingVictim: boolean;
+  shotPhase:           'type' | 'result' | null;
+  highlightStat:       ActionType | null;
+  onSelectStat:        (action: ActionType) => void;
+  onFoulPenalty:       (penalty: FoulPenalty) => void;
+  onTeamDefSwipe:      () => void;
+  isPremium?:          boolean;
+  tovMode?:            TovMode;
+  onTovModeChange?:    (mode: TovMode) => void;
 }
 
 function Btn({
@@ -145,9 +150,91 @@ function FoulSwipeBtn({
   );
 }
 
+function StatSwipeBtn({
+  label,
+  active,
+  teamDefActive,
+  tapDisabled,
+  selectedClass,
+  idleClass,
+  onTap,
+  onTeamDefSwipe,
+}: {
+  label: string;
+  active: boolean;
+  teamDefActive: boolean;
+  tapDisabled: boolean;
+  selectedClass: string;
+  idleClass: string;
+  onTap: () => void;
+  onTeamDefSwipe: () => void;
+}) {
+  const g = useDictionary().game;
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    startRef.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const start = startRef.current;
+    startRef.current = null;
+    if (!start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const gesture = classifyPointerGesture(dx, dy);
+
+    if (gesture === 'right') {
+      if (navigator.vibrate) navigator.vibrate(28);
+      onTeamDefSwipe();
+      return;
+    }
+    if (gesture === 'tap' && !tapDisabled) {
+      if (navigator.vibrate) navigator.vibrate(18);
+      onTap();
+    }
+  }, [tapDisabled, onTap, onTeamDefSwipe]);
+
+  const armed = active || teamDefActive;
+
+  return (
+    <button
+      type="button"
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={() => { startRef.current = null; }}
+      className={cn(
+        'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
+        'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'shadow-sm shadow-black/20',
+        armed ? selectedClass : idleClass,
+        tapDisabled && !teamDefActive && 'opacity-35',
+      )}
+    >
+      {armed && (
+        <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
+          {g.teamDefSwipeBadge}
+        </span>
+      )}
+      <span className="leading-none">{label}</span>
+    </button>
+  );
+}
+
 export function StatsPanel({
-  pendingPlayer, foulAwaitingSwipe, stlAwaitingVictim, shotPhase, highlightStat, onSelectStat, onFoulPenalty,
-  isPremium = false, tovMode = 'simple', onTovModeChange,
+  pendingPlayer,
+  foulAwaitingSwipe,
+  stlAwaitingVictim,
+  teamDefAwaitingVictim,
+  shotPhase,
+  highlightStat,
+  onSelectStat,
+  onFoulPenalty,
+  onTeamDefSwipe,
+  isPremium = false,
+  tovMode = 'simple',
+  onTovModeChange,
 }: StatsPanelProps) {
   const dict = useDictionary();
   const g = dict.game;
@@ -163,7 +250,9 @@ export function StatsPanel({
   const isSelected = (a: ActionType) => highlightStat === a;
 
   let hint = g.selectPlayerFirst;
-  if (pendingPlayer) {
+  if (teamDefAwaitingVictim) {
+    hint = g.teamDefVictimHint;
+  } else if (pendingPlayer) {
     const num = pendingPlayer.back_number;
     if (foulAwaitingSwipe) hint = g.foulGestureHint.replace('{num}', num);
     else if (stlAwaitingVictim) hint = g.stlVictimHint.replace('{num}', num);
@@ -210,12 +299,21 @@ export function StatsPanel({
       <div className="flex items-center justify-center min-h-[22px] shrink-0 px-1">
         <div className={cn(
           'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
-          pendingPlayer ? 'bg-sky-950/60 border border-sky-600/40' : 'bg-neutral-900/40 border border-neutral-800/50',
+          teamDefAwaitingVictim
+            ? 'bg-white/10 border border-white/30'
+            : pendingPlayer
+            ? 'bg-sky-950/60 border border-sky-600/40'
+            : 'bg-neutral-900/40 border border-neutral-800/50',
         )}>
-          {pendingPlayer && <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />}
+          {(pendingPlayer || teamDefAwaitingVictim) && (
+            <span className={cn(
+              'w-2 h-2 rounded-full animate-pulse shrink-0',
+              teamDefAwaitingVictim ? 'bg-white' : 'bg-sky-400',
+            )} />
+          )}
           <span className={cn(
             'text-xs font-semibold truncate',
-            pendingPlayer ? 'text-sky-100' : 'text-neutral-500',
+            teamDefAwaitingVictim ? 'text-white' : pendingPlayer ? 'text-sky-100' : 'text-neutral-500',
           )}>
             {hint}
           </span>
@@ -246,32 +344,39 @@ export function StatsPanel({
             onClick={() => tap(def.action)}
           />
         ))}
+        <StatSwipeBtn
+          label={STL_DEF.label}
+          active={isSelected('STL')}
+          teamDefActive={teamDefAwaitingVictim}
+          tapDisabled={!pendingPlayer}
+          selectedClass="bg-violet-700/80 text-white border-2 border-violet-400 ring-2 ring-violet-300/40"
+          idleClass="bg-neutral-800/60 text-violet-200/90 border border-violet-900/40 active:bg-neutral-700/70"
+          onTap={() => tap('STL')}
+          onTeamDefSwipe={onTeamDefSwipe}
+        />
         <FoulSwipeBtn
           active={foulAwaitingSwipe}
           disabled={!pendingPlayer}
           onActivate={() => tap('FOUL')}
           onPenalty={onFoulPenalty}
         />
-        <button
-          type="button"
-          disabled={!pendingPlayer}
-          onPointerDown={() => { if (pendingPlayer) tap('TOV'); }}
-          className={cn(
-            'flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
-            'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] touch-none',
-            'shadow-sm shadow-black/20',
-            isSelected('TOV')
-              ? 'bg-orange-700/80 text-white border-2 border-orange-400'
-              : 'bg-neutral-800/60 text-orange-200/90 border border-orange-900/40 active:bg-neutral-700/70',
-            !pendingPlayer && 'opacity-35 pointer-events-none',
-          )}
-        >
-          {actions.TOV ?? 'TOV'}
-        </button>
+        <StatSwipeBtn
+          label={actions.TOV ?? 'TOV'}
+          active={isSelected('TOV')}
+          teamDefActive={teamDefAwaitingVictim}
+          tapDisabled={!pendingPlayer}
+          selectedClass="bg-orange-700/80 text-white border-2 border-orange-400 ring-2 ring-orange-300/40"
+          idleClass="bg-neutral-800/60 text-orange-200/90 border border-orange-900/40 active:bg-neutral-700/70"
+          onTap={() => tap('TOV')}
+          onTeamDefSwipe={onTeamDefSwipe}
+        />
       </div>
 
       <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
         {g.shotSwipeLegend}
+      </p>
+      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+        {g.teamDefSwipeLegend}
       </p>
 
       <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">

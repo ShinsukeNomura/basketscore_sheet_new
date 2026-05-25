@@ -5,6 +5,7 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import type { ActionType } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { formatFoulPenalty } from '@/lib/playerGesture';
+import { formatLogActionLabel } from '@/lib/timelineLabel';
 import { cn } from '@/lib/utils';
 import { ChevronRight, X } from 'lucide-react';
 
@@ -45,6 +46,8 @@ function LogLine({
   ourFallback,
   theirFallback,
   isLinked,
+  tovDict,
+  teamDefenseLabel,
 }: {
   log: StatsLog;
   playerMap: Record<string, Player>;
@@ -54,6 +57,8 @@ function LogLine({
   ourFallback: string;
   theirFallback: string;
   isLinked?: boolean;
+  tovDict: Record<string, string>;
+  teamDefenseLabel: string;
 }) {
   const isOurs = log.team_id === ourTeam.id;
   const team = isOurs ? ourTeam : theirTeam;
@@ -102,7 +107,7 @@ function LogLine({
           isPoint ? 'text-emerald-400' : 'text-white/55',
         )}
       >
-        {actions[log.action_type]}{foulSuffix}
+        {formatLogActionLabel(log, actions[log.action_type], tovDict, teamDefenseLabel)}{foulSuffix}
         {isPoint && ` +${log.points}`}
       </span>
     </div>
@@ -117,6 +122,8 @@ function TimelineRow({
   ourTeam,
   theirTeam,
   onUndo,
+  tovDict,
+  teamDefenseLabel,
 }: {
   entry: TimelineEntry;
   playerMap: Record<string, Player>;
@@ -125,6 +132,8 @@ function TimelineRow({
   ourTeam: Team;
   theirTeam: Team;
   onUndo: (id: string) => void;
+  tovDict: Record<string, string>;
+  teamDefenseLabel: string;
 }) {
   const { primary, linked } = entry;
 
@@ -140,6 +149,8 @@ function TimelineRow({
             theirTeam={theirTeam}
             ourFallback={tl.ourShort}
             theirFallback={tl.theirShort}
+            tovDict={tovDict}
+            teamDefenseLabel={teamDefenseLabel}
           />
           {linked.map((l) => (
             <LogLine
@@ -152,6 +163,8 @@ function TimelineRow({
               ourFallback={tl.ourShort}
               theirFallback={tl.theirShort}
               isLinked
+              tovDict={tovDict}
+              teamDefenseLabel={teamDefenseLabel}
             />
           ))}
         </div>
@@ -182,7 +195,9 @@ export function Timeline({
 }: TimelineProps) {
   const dict = useDictionary();
   const tl = dict.timeline;
+  const g = dict.game;
   const actions = dict.actions as Record<ActionType, string>;
+  const tovDict = dict.tov as Record<string, string>;
   const playerMap = Object.fromEntries(allPlayers.map((p) => [p.id, p]));
 
   const total = totalCount ?? entries.length;
@@ -221,6 +236,8 @@ export function Timeline({
             ourTeam={ourTeam}
             theirTeam={theirTeam}
             onUndo={onUndo}
+            tovDict={tovDict}
+            teamDefenseLabel={g.teamDefenseLabel}
           />
         ))
       )}

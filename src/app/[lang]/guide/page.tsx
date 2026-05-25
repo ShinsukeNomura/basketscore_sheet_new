@@ -110,8 +110,10 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
     ['ORbd / DRbd',    g.statBtnRbd,  'text-blue-400'],
     ['AST / BLK',      g.statBtnAst,  'text-violet-400'],
     ['STL',            g.statBtnStl,  'text-violet-300'],
+    ['STL →',          g.statBtnStlTeam, 'text-white/70'],
     ['FOUL',           g.statBtnFoul, 'text-amber-400'],
     ['TOV',            g.statBtnTov,   'text-orange-400'],
+    ['TOV →',          g.statBtnTovTeam, 'text-white/70'],
   ];
 
   return (
@@ -230,6 +232,10 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3StlLink}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3StlLinkDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamDef}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{g.step3TeamDefDesc}</p>
               </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TovFlow}</p>
