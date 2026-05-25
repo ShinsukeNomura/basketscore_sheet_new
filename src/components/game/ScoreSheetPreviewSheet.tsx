@@ -45,8 +45,17 @@ export function ScoreSheetPreviewSheet({
   const viewportRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [scale, setScale] = useState(1);
+  const [contentHeight, setContentHeight] = useState(A4_PREVIEW_HEIGHT_PX);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
+
+  const measureIframeHeight = useCallback(() => {
+    const iframe = iframeRef.current;
+    const body = iframe?.contentDocument?.body;
+    if (!body) return;
+    const h = Math.ceil(body.scrollHeight || body.offsetHeight);
+    if (h > 0) setContentHeight(h);
+  }, []);
 
   const updateScale = useCallback(() => {
     const el = viewportRef.current;
@@ -69,6 +78,18 @@ export function ScoreSheetPreviewSheet({
     const t = window.setTimeout(() => { el.scrollTop = 0; }, 50);
     return () => window.clearTimeout(t);
   }, [doc.fullHtml]);
+
+  useEffect(() => {
+    setContentHeight(A4_PREVIEW_HEIGHT_PX);
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    const onLoad = () => {
+      measureIframeHeight();
+      window.setTimeout(measureIframeHeight, 100);
+    };
+    iframe.addEventListener('load', onLoad);
+    return () => iframe.removeEventListener('load', onLoad);
+  }, [doc.fullHtml, measureIframeHeight]);
 
   const handlePrint = () => {
     printGameScoreSheet(doc, popupBlocked);
@@ -101,7 +122,7 @@ export function ScoreSheetPreviewSheet({
     }
   };
 
-  const scaledH = A4_PREVIEW_HEIGHT_PX * scale;
+  const scaledH = contentHeight * scale;
 
   return (
     <div className="fixed inset-0 z-[60] bg-neutral-950 flex flex-col">
@@ -139,7 +160,7 @@ export function ScoreSheetPreviewSheet({
             className="bg-white border-0 shadow-md origin-top-left"
             style={{
               width: A4_PREVIEW_WIDTH_PX,
-              height: A4_PREVIEW_HEIGHT_PX,
+              height: contentHeight,
               transform: `scale(${scale})`,
             }}
           />

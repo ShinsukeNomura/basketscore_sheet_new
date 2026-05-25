@@ -12,9 +12,6 @@ export { printGameScoreSheet } from '@/lib/scoreSheetExport';
 export type ScoreSheetLabels = Dictionary['pdf']['scoreSheet'];
 export type { ScoreSheetAiReport };
 
-/** A4用スタイル */
-const PAGE_H = '287mm';
-
 const BASE_STYLE = `
   @page { size: A4 portrait; margin: 2mm 4mm 4mm 4mm; }
   * { box-sizing: border-box; }
@@ -22,14 +19,13 @@ const BASE_STYLE = `
     width: 210mm; max-width: 210mm; margin: 0; padding: 0;
     font-family: 'Hiragino Sans', 'Meiryo', 'Yu Gothic', sans-serif;
     color: #1a1a1a; font-size: 7pt; line-height: 1.2;
-    overflow: hidden;
+    overflow: visible;
   }
   .a4-sheet {
     width: 202mm; max-width: 202mm; margin: 0 auto;
     display: flex; flex-direction: column;
     gap: 1.5mm;
     height: auto;
-    max-height: ${PAGE_H};
   }
   .sheet-top {
     flex: 0 0 auto;
@@ -103,36 +99,11 @@ const BASE_STYLE = `
     border-top: 1px solid #d1d5db;
     padding-top: 1.5mm;
   }
-  .sheet-bottom.has-ai {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 2mm;
-  }
-  .a4-sheet.no-ai .sheet-running {
-    width: 100%;
-    max-width: none;
-    height: auto;
-    border-left: none;
-    padding-left: 0;
-  }
-  .a4-sheet.has-ai {
-    height: ${PAGE_H};
-    max-height: ${PAGE_H};
-  }
-  .a4-sheet.has-ai .sheet-top {
-    flex: 1 1 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 1.5mm;
-  }
-  .a4-sheet.has-ai .sheet-stats {
+  .sheet-ai-section {
     flex: 0 0 auto;
-    margin-top: auto;
+    margin-top: 1.5mm;
+    border-top: 1px solid #d1d5db;
+    padding-top: 1.5mm;
   }
   .sheet-foot {
     flex: 0 0 auto;
@@ -150,16 +121,12 @@ const BASE_STYLE = `
       max-height: none; gap: 2mm; padding: 0 1mm;
     }
     .sheet-top { flex: 0 0 auto; }
-    .a4-sheet.no-ai .sheet-bottom { flex: 0 0 auto; min-height: auto; }
-    .sheet-bottom.has-ai { flex-direction: column; }
     .sheet-running { max-width: 100%; border-left: none; padding-left: 0; height: auto; }
     .sheet-ai .ai-body { column-count: 1; }
   }
   @media print {
-    html, body { overflow: hidden; }
-    .a4-sheet { page-break-inside: avoid; width: 202mm; max-width: 202mm; }
-    .a4-sheet.has-ai { height: ${PAGE_H}; max-height: ${PAGE_H}; }
-    .a4-sheet.no-ai { height: auto; max-height: ${PAGE_H}; }
+    html, body { overflow: visible; }
+    .a4-sheet { page-break-inside: avoid; width: 202mm; max-width: 202mm; height: auto; max-height: none; }
   }
 `;
 
@@ -302,7 +269,7 @@ export function buildGameScoreSheetDocument(
   const aiHtml = hasAi && aiReport ? buildAiPanelHtml(aiReport) : '';
 
   const bodyHtml = `
-    <div class="a4-sheet${hasAi ? ' has-ai' : ' no-ai'}">
+    <div class="a4-sheet">
       <div class="sheet-top">
         <div class="sheet-head">
           <h1>${escapeHtml(labels.title)}</h1>
@@ -338,10 +305,11 @@ export function buildGameScoreSheetDocument(
         </section>
       </div>
 
-      <div class="sheet-bottom${hasAi ? ' has-ai' : ''}">
-        ${aiHtml}
+      <div class="sheet-bottom">
         ${runningHtml || ''}
       </div>
+
+      ${hasAi ? `<section class="sheet-ai-section">${aiHtml}</section>` : ''}
 
       <footer class="sheet-foot">
         <p class="abbr"><strong>${escapeHtml(labels.abbrevTitle)}:</strong> ${escapeHtml(labels.abbrev)}</p>
