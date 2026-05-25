@@ -13,19 +13,20 @@ interface PlayerCardProps {
   isSelected?:      boolean;
   isPending?:       boolean;
   shotPhase?:       'type' | 'result' | null;
-  foulMode?:        boolean;
   onTap:            (player: Player) => void;
   onGesture:        (player: Player, gesture: PlayerGesture) => void;
 }
 
 export function PlayerCard({
   player, fouls, colorConfig,
-  isSelected, isPending, shotPhase, foulMode,
+  isSelected, isPending, shotPhase,
   onTap, onGesture,
 }: PlayerCardProps) {
   const isFouledOut = fouls >= 5;
   const ref = useRef<HTMLButtonElement>(null);
   const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  const hasTopHint = isPending && (shotPhase === 'type' || shotPhase === 'result');
 
   const finishGesture = useCallback((dx: number, dy: number) => {
     const g = classifyPointerGesture(dx, dy);
@@ -57,11 +58,6 @@ export function PlayerCard({
       return;
     }
 
-    if (foulMode) {
-      finishGesture(dx, dy);
-      return;
-    }
-
     if (shotPhase === 'type' || shotPhase === 'result') {
       if (gesture === 'tap') {
         onTap(player);
@@ -76,7 +72,7 @@ export function PlayerCard({
     } else {
       finishGesture(dx, dy);
     }
-  }, [isFouledOut, isPending, foulMode, shotPhase, onTap, player, finishGesture]);
+  }, [isFouledOut, isPending, shotPhase, onTap, player, finishGesture]);
 
   const handlePointerCancel = useCallback(() => {
     startRef.current = null;
@@ -98,47 +94,41 @@ export function PlayerCard({
       onPointerCancel={handlePointerCancel}
       disabled={isFouledOut}
       className={cn(
-        'relative flex flex-col items-center justify-center gap-1 rounded-xl',
-        'min-w-0 flex-1 touch-none',
+        'relative flex flex-col items-center justify-center rounded-xl',
+        'min-w-0 flex-1 touch-none min-h-[58px]',
+        hasTopHint && 'pt-3',
+        shotPhase === 'result' && isPending && 'pb-2.5',
         colorConfig.cardBg,
         !isFouledOut && cn(colorConfig.cardHover, colorConfig.cardActive, 'active:scale-95'),
         'transition-all duration-75',
         isSelected && 'ring-2 ring-emerald-400 ring-offset-1 ring-offset-transparent',
-        isPending && !foulMode && 'ring-2 ring-sky-400/80',
-        isPending && foulMode && 'ring-2 ring-amber-400/90',
+        isPending && 'ring-2 ring-sky-400/80',
         isFouledOut && 'opacity-35 cursor-not-allowed',
       )}
     >
-      {isPending && shotPhase === 'type' && (
-        <span className="absolute inset-x-0 top-0 flex justify-between px-0.5 pt-0.5 pointer-events-none">
-          <span className="text-[7px] font-bold text-white/35">3PT</span>
-          <span className="text-[7px] font-bold text-emerald-400/80">2PT</span>
+      {shotPhase === 'type' && isPending && (
+        <span className="absolute top-0.5 inset-x-0 flex justify-between px-1 pointer-events-none">
+          <span className="text-[7px] font-bold text-white/40 leading-none">3PT</span>
+          <span className="text-[7px] font-bold text-emerald-400/80 leading-none">2PT</span>
         </span>
       )}
-      {isPending && shotPhase === 'result' && (
+      {shotPhase === 'result' && isPending && (
         <>
-          <span className="absolute inset-x-0 top-0 flex justify-between px-1 pt-0.5 pointer-events-none">
-            <span className="text-[7px] font-bold text-rose-400/90">×</span>
-            <span className="text-[7px] font-bold text-emerald-400/90">○</span>
+          <span className="absolute top-0.5 inset-x-0 flex justify-between px-1 pointer-events-none">
+            <span className="text-[7px] font-bold text-rose-400/90 leading-none">×</span>
+            <span className="text-[7px] font-bold text-emerald-400/90 leading-none">○</span>
           </span>
-          <span className="absolute bottom-0 inset-x-0 text-center text-[6px] font-semibold text-sky-300/70 pointer-events-none leading-none pb-0.5">
+          <span className="absolute bottom-0.5 inset-x-0 text-center text-[6px] font-semibold text-sky-300/70 pointer-events-none leading-none">
             2×
           </span>
         </>
       )}
-      {isPending && foulMode && (
-        <span className="absolute inset-x-0 top-0 flex justify-between px-1 pt-0.5 pointer-events-none text-[7px] font-bold">
-          <span className="text-amber-300/90">P1</span>
-          <span className="text-white/50">P</span>
-          <span className="text-red-300/90">P2</span>
-        </span>
-      )}
 
-      <span className="text-white font-black text-lg tabular-nums leading-none truncate w-full text-center px-1">
+      <span className="text-white font-black text-lg tabular-nums leading-none">
         #{player.back_number}
       </span>
 
-      <span className={cn('text-[11px] leading-none tabular-nums font-bold', foulColor)}>
+      <span className={cn('text-[11px] leading-none tabular-nums font-bold mt-0.5', foulColor)}>
         F:{fouls}
       </span>
 

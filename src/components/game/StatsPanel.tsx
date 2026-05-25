@@ -1,29 +1,25 @@
 'use client';
 
-import { ActionType, StatDef, TovMode, Player } from '@/types';
+import { useRef, useCallback } from 'react';
+import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
+import { classifyPointerGesture } from '@/lib/playerGesture';
 import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
 const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV');
 
 interface StatsPanelProps {
-  pendingPlayer:   Player | null;
-  foulMode:        boolean;
-  shotPhase:       'type' | 'result' | null;
-  highlightStat:   ActionType | null;
-  onSelectStat:    (action: ActionType) => void;
-  ourTeamName:     string;
-  theirTeamName:   string;
-  ourTov:          number;
-  theirTov:        number;
-  onOurTov:        () => void;
-  onTheirTov:      () => void;
-  isPremium?:      boolean;
-  tovMode?:        TovMode;
-  onTovModeChange?: (mode: TovMode) => void;
+  pendingPlayer:      Player | null;
+  foulAwaitingSwipe:  boolean;
+  shotPhase:          'type' | 'result' | null;
+  highlightStat:      ActionType | null;
+  onSelectStat:       (action: ActionType) => void;
+  onFoulPenalty:      (penalty: FoulPenalty) => void;
+  isPremium?:         boolean;
+  tovMode?:           TovMode;
+  onTovModeChange?:   (mode: TovMode) => void;
 }
 
 function Btn({
@@ -60,7 +56,7 @@ function Btn({
       onPointerDown={() => { if (!disabled) onClick(); }}
       className={cn(
         'flex flex-1 min-h-0 flex-col items-center justify-center gap-0 rounded-xl',
-        'transition-all duration-75 active:scale-[0.97] select-none',
+        'transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         sizeClass,
         variantClass,
@@ -72,9 +68,78 @@ function Btn({
   );
 }
 
+function FoulSwipeBtn({
+  active,
+  disabled,
+  onActivate,
+  onPenalty,
+}: {
+  active: boolean;
+  disabled: boolean;
+  onActivate: () => void;
+  onPenalty: (p: FoulPenalty) => void;
+}) {
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    startRef.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, [disabled]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const start = startRef.current;
+    startRef.current = null;
+    if (disabled || !start) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    const gesture = classifyPointerGesture(dx, dy);
+
+    if (!active) {
+      if (gesture === 'tap') onActivate();
+      return;
+    }
+
+    let penalty: FoulPenalty | null = null;
+    if (gesture === 'tap') penalty = 'P';
+    else if (gesture === 'left') penalty = 'P1';
+    else if (gesture === 'right') penalty = 'P2';
+    if (!penalty) return;
+    if (navigator.vibrate) navigator.vibrate(28);
+    onPenalty(penalty);
+  }, [active, disabled, onActivate, onPenalty]);
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={() => { startRef.current = null; }}
+      className={cn(
+        'relative flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
+        'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'shadow-sm shadow-black/20',
+        active
+          ? 'bg-amber-700/80 text-white border-2 border-amber-400 ring-2 ring-amber-300/50'
+          : 'bg-neutral-800/60 text-amber-200/90 border border-amber-900/40 active:bg-neutral-700/70',
+        disabled && 'opacity-35 pointer-events-none',
+      )}
+    >
+      {active && (
+        <span className="absolute inset-x-0 top-0.5 flex justify-between px-1.5 pointer-events-none text-[8px] font-bold leading-none">
+          <span className="text-amber-300/90">P1</span>
+          <span className="text-white/70">P</span>
+          <span className="text-red-300/90">P2</span>
+        </span>
+      )}
+      <span className={cn('leading-none', active && 'mt-2')}>Foul</span>
+    </button>
+  );
+}
+
 export function StatsPanel({
-  pendingPlayer, foulMode, shotPhase, highlightStat, onSelectStat,
-  ourTeamName, theirTeamName, ourTov, theirTov, onOurTov, onTheirTov,
+  pendingPlayer, foulAwaitingSwipe, shotPhase, highlightStat, onSelectStat, onFoulPenalty,
   isPremium = false, tovMode = 'simple', onTovModeChange,
 }: StatsPanelProps) {
   const dict = useDictionary();
@@ -88,13 +153,12 @@ export function StatsPanel({
     onSelectStat(action);
   }
 
-  const needsPlayer = (a: ActionType) => a !== 'TOV' || !!pendingPlayer;
   const isSelected = (a: ActionType) => highlightStat === a;
 
   let hint = g.selectPlayerFirst;
   if (pendingPlayer) {
     const num = pendingPlayer.back_number;
-    if (foulMode) hint = g.foulGestureHint.replace('{num}', num);
+    if (foulAwaitingSwipe) hint = g.foulGestureHint.replace('{num}', num);
     else if (shotPhase === 'type') hint = g.shotTypeHint.replace('{num}', num);
     else if (shotPhase === 'result') hint = g.shotResultHint.replace('{num}', num);
     else hint = g.pendingPlayerHint.replace('{num}', num);
@@ -135,31 +199,6 @@ export function StatsPanel({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 shrink-0">
-        <button
-          type="button"
-          onPointerDown={() => { onOurTov(); if (navigator.vibrate) navigator.vibrate(30); }}
-          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
-        >
-          <span className="text-[11px] font-bold leading-none truncate max-w-[80px]">{ourTeamName}</span>
-          <span className="text-[11px] font-black leading-none text-amber-300/70">TOV</span>
-          {ourTov > 0 && (
-            <span className="text-sm font-black leading-none bg-amber-800/40 rounded-md px-1.5 py-0.5 tabular-nums">{ourTov}</span>
-          )}
-        </button>
-        <button
-          type="button"
-          onPointerDown={() => { onTheirTov(); if (navigator.vibrate) navigator.vibrate(30); }}
-          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
-        >
-          {theirTov > 0 && (
-            <span className="text-sm font-black leading-none bg-amber-800/40 rounded-md px-1.5 py-0.5 tabular-nums">{theirTov}</span>
-          )}
-          <span className="text-[11px] font-black leading-none text-amber-300/70">TOV</span>
-          <span className="text-[11px] font-bold leading-none truncate max-w-[80px]">{theirTeamName}</span>
-        </button>
-      </div>
-
       <div className="flex items-center justify-center min-h-[28px] shrink-0 px-1">
         <div className={cn(
           'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
@@ -199,13 +238,19 @@ export function StatsPanel({
             onClick={() => tap(def.action)}
           />
         ))}
+        <FoulSwipeBtn
+          active={foulAwaitingSwipe}
+          disabled={!pendingPlayer}
+          onActivate={() => tap('FOUL')}
+          onPenalty={onFoulPenalty}
+        />
         <button
           type="button"
           disabled={!pendingPlayer}
           onPointerDown={() => { if (pendingPlayer) tap('TOV'); }}
           className={cn(
             'flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
-            'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97]',
+            'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97] touch-none',
             'shadow-sm shadow-black/20',
             isSelected('TOV')
               ? 'bg-orange-700/80 text-white border-2 border-orange-400'
@@ -213,7 +258,7 @@ export function StatsPanel({
             !pendingPlayer && 'opacity-35 pointer-events-none',
           )}
         >
-          TOV
+          {actions.TOV ?? 'TOV'}
         </button>
       </div>
 

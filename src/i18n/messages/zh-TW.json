@@ -151,7 +151,7 @@
     "pendingPlayerHint": "#{num} → 點擊統計",
     "shotTypeHint": "#{num} 右2分 左3分 上罰球",
     "shotResultHint": "#{num} 右命中 左未中 · 雙擊返回2分/3分/罰球",
-    "foulGestureHint": "#{num} 點P 左P1 右P2",
+    "foulGestureHint": "#{num} → 滑動犯規按鈕（點P 左P1 右P2）",
     "shotSwipeLegend": "得分: 背號→滑動(2分/3分/罰球→中/未中)→球場",
     "quarter": "{q}節",
     "ot1": "延長1",

@@ -17,7 +17,6 @@ interface TeamSectionProps {
   teamFoulCount:    number;
   pendingPlayerId:  string | null;
   shotPhase:        'type' | 'result' | null;
-  foulMode:         boolean;
   flashPlayerId:    string | null;
   onPlayerTap:      (player: Player) => void;
   onPlayerGesture:  (player: Player, gesture: PlayerGesture) => void;
@@ -27,7 +26,7 @@ interface TeamSectionProps {
 
 export function TeamSection({
   team, courtPlayers, totalPlayerCount, playerFouls, teamFoulCount,
-  pendingPlayerId, shotPhase, foulMode, flashPlayerId,
+  pendingPlayerId, shotPhase, flashPlayerId,
   onPlayerTap, onPlayerGesture, onSubstitute, onRenameTeam,
 }: TeamSectionProps) {
   const ts = useDictionary().teamSection;
@@ -141,7 +140,7 @@ export function TeamSection({
           </span>
         </button>
       ) : (
-        <div className="flex gap-1.5 h-[52px] shrink-0 overflow-hidden mt-0.5">
+        <div className="flex gap-1.5 min-h-[58px] shrink-0 mt-0.5">
           {courtPlayers.slice(0, 5).map((player) => (
             <PlayerCard
               key={player.id}
@@ -151,7 +150,6 @@ export function TeamSection({
               isSelected={flashPlayerId === player.id}
               isPending={pendingPlayerId === player.id}
               shotPhase={pendingPlayerId === player.id ? shotPhase : null}
-              foulMode={pendingPlayerId === player.id && foulMode}
               onTap={onPlayerTap}
               onGesture={onPlayerGesture}
             />
@@ -162,7 +160,7 @@ export function TeamSection({
               type="button"
               onClick={() => onSubstitute(team)}
               className={cn(
-                'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[52px]',
+                'flex-1 rounded-xl border border-dashed flex items-center justify-center min-h-[58px]',
                 'active:opacity-60 transition-opacity',
                 cfg.emptyBorder,
               )}

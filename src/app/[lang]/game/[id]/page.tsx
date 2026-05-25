@@ -60,7 +60,7 @@ export default function GamePage() {
   const [pendingPlayer,    setPendingPlayer]    = useState<Player | null>(null);
   const [shotPhase,        setShotPhase]        = useState<'type' | 'result' | null>(null);
   const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);
-  const [foulMode,         setFoulMode]         = useState(false);
+  const [foulAwaitingSwipe, setFoulAwaitingSwipe] = useState(false);
   const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
 
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
@@ -97,7 +97,7 @@ export default function GamePage() {
     setPendingPlayer(null);
     setShotPhase(null);
     setPendingShotType(null);
-    setFoulMode(false);
+    setFoulAwaitingSwipe(false);
     setHighlightStat(null);
   }, []);
 
@@ -121,12 +121,6 @@ export default function GamePage() {
   }, [user?.id]);
 
   const handlePlayerTap = useCallback((player: Player) => {
-    if (foulMode && pendingPlayer?.id === player.id) {
-      logPlayerStat(player, 'FOUL', { foulPenalty: 'P' });
-      clearInputState();
-      return;
-    }
-
     if (pendingPlayer?.id === player.id && shotPhase === 'result') {
       const now = Date.now();
       const last = shotTapRef.current;
@@ -151,23 +145,18 @@ export default function GamePage() {
     setPendingPlayer(player);
     setShotPhase('type');
     setPendingShotType(null);
-    setFoulMode(false);
+    setFoulAwaitingSwipe(false);
     setHighlightStat(null);
-  }, [foulMode, pendingPlayer, shotPhase, logPlayerStat, clearInputState]);
+  }, [pendingPlayer, shotPhase, clearInputState]);
+
+  const handleFoulPenalty = useCallback((penalty: FoulPenalty) => {
+    if (!pendingPlayer) return;
+    logPlayerStat(pendingPlayer, 'FOUL', { foulPenalty: penalty });
+    clearInputState();
+  }, [pendingPlayer, logPlayerStat, clearInputState]);
 
   const handlePlayerGesture = useCallback((player: Player, gesture: PlayerGesture) => {
     if (!pendingPlayer || pendingPlayer.id !== player.id) return;
-
-    if (foulMode) {
-      let penalty: FoulPenalty | null = null;
-      if (gesture === 'tap') penalty = 'P';
-      else if (gesture === 'left') penalty = 'P1';
-      else if (gesture === 'right') penalty = 'P2';
-      if (!penalty) return;
-      logPlayerStat(player, 'FOUL', { foulPenalty: penalty });
-      clearInputState();
-      return;
-    }
 
     if (shotPhase === 'type') {
       let type: ShotType | null = null;
@@ -193,7 +182,7 @@ export default function GamePage() {
         clearInputState();
       }
     }
-  }, [pendingPlayer, foulMode, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
+  }, [pendingPlayer, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
 
   const handleStatSelect = useCallback((action: ActionType) => {
     if (!pendingPlayer) return;
@@ -210,7 +199,7 @@ export default function GamePage() {
     }
 
     if (action === 'FOUL') {
-      setFoulMode(true);
+      setFoulAwaitingSwipe(true);
       setHighlightStat('FOUL');
       setShotPhase(null);
       setPendingShotType(null);
@@ -219,7 +208,7 @@ export default function GamePage() {
 
     logPlayerStat(pendingPlayer, action);
     clearInputState();
-  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, logPlayerStat, clearInputState, openTovDetail]);
+  }, [pendingPlayer, isPremium, tovMode, logTeamTov, logPlayerStat, clearInputState, openTovDetail]);
 
   function handleCourtSelect(location: CourtLocation) {
     if (!courtMapPlayer || !courtMapAction) return;
@@ -236,27 +225,6 @@ export default function GamePage() {
   function handleCourtCancel() {
     setCourtMapPlayer(null);
     setCourtMapAction(null);
-  }
-
-  const openTeamTov = useCallback((teamId: string, isOurs: boolean) => {
-    // 背番号選択中は誤って別チームTOVを押しても、選択済み選手で記録する
-    const linked = pendingPlayer ?? null;
-    const tid = linked?.team_id ?? teamId;
-    const ours = linked ? linked.team_id === ourTeam.id : isOurs;
-    if (isPremium && tovMode !== 'simple') {
-      openTovDetail(tid, ours, linked);
-    } else {
-      logTeamTov(tid, undefined, linked?.id);
-      if (linked) clearInputState();
-    }
-  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, clearInputState, openTovDetail]);
-
-  function handleOurTov() {
-    openTeamTov(ourTeam.id, true);
-  }
-
-  function handleTheirTov() {
-    openTeamTov(theirTeam.id, false);
   }
 
   function handleTovConfirm(reason: TovReason, playerId: string | null) {
@@ -305,7 +273,6 @@ export default function GamePage() {
           teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
           pendingPlayerId={pendingPlayerId}
           shotPhase={shotPhase}
-          foulMode={foulMode}
           flashPlayerId={flashPlayerId}
           onPlayerTap={handlePlayerTap}
           onPlayerGesture={handlePlayerGesture}
@@ -317,16 +284,11 @@ export default function GamePage() {
       <div className="flex-[4] min-h-0">
         <StatsPanel
           pendingPlayer={pendingPlayer}
-          foulMode={foulMode}
+          foulAwaitingSwipe={foulAwaitingSwipe}
           shotPhase={shotPhase}
           highlightStat={highlightStat}
           onSelectStat={handleStatSelect}
-          ourTeamName={ourTeam.team_name || g.ourTeam}
-          theirTeamName={theirTeam.team_name || g.theirTeam}
-          ourTov={teamTovCounts[ourTeam.id] ?? 0}
-          theirTov={teamTovCounts[theirTeam.id] ?? 0}
-          onOurTov={handleOurTov}
-          onTheirTov={handleTheirTov}
+          onFoulPenalty={handleFoulPenalty}
           isPremium={isPremium}
           tovMode={tovMode}
           onTovModeChange={(newMode) => {
@@ -345,7 +307,6 @@ export default function GamePage() {
           teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
           pendingPlayerId={pendingPlayerId}
           shotPhase={shotPhase}
-          foulMode={foulMode}
           flashPlayerId={flashPlayerId}
           onPlayerTap={handlePlayerTap}
           onPlayerGesture={handlePlayerGesture}
