@@ -13,6 +13,7 @@ const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TO
 interface StatsPanelProps {
   pendingPlayer:      Player | null;
   foulAwaitingSwipe:  boolean;
+  stlAwaitingVictim:  boolean;
   shotPhase:          'type' | 'result' | null;
   highlightStat:      ActionType | null;
   onSelectStat:       (action: ActionType) => void;
@@ -145,7 +146,7 @@ function FoulSwipeBtn({
 }
 
 export function StatsPanel({
-  pendingPlayer, foulAwaitingSwipe, shotPhase, highlightStat, onSelectStat, onFoulPenalty,
+  pendingPlayer, foulAwaitingSwipe, stlAwaitingVictim, shotPhase, highlightStat, onSelectStat, onFoulPenalty,
   isPremium = false, tovMode = 'simple', onTovModeChange,
 }: StatsPanelProps) {
   const dict = useDictionary();
@@ -165,6 +166,7 @@ export function StatsPanel({
   if (pendingPlayer) {
     const num = pendingPlayer.back_number;
     if (foulAwaitingSwipe) hint = g.foulGestureHint.replace('{num}', num);
+    else if (stlAwaitingVictim) hint = g.stlVictimHint.replace('{num}', num);
     else if (shotPhase === 'type') hint = g.shotTypeHint.replace('{num}', num);
     else if (shotPhase === 'result') hint = g.shotResultHint.replace('{num}', num);
     else hint = g.pendingPlayerHint.replace('{num}', num);

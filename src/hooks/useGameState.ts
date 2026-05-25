@@ -86,6 +86,7 @@ type GameAction =
   | { type: 'SELECT_STAT';     payload: ActionType }
   | { type: 'LOG_STAT';        payload: { player: Player; courtLocation?: CourtLocation } }
   | { type: 'LOG_PLAYER_STAT'; payload: { player: Player; actionType: ActionType; courtLocation?: CourtLocation; foulPenalty?: FoulPenalty } }
+  | { type: 'LOG_STL_WITH_VICTIM'; payload: { stealer: Player; victim: Player } }
   | { type: 'LOG_TEAM_TOV';   payload: { teamId: string; tovReason?: TovReason; playerId?: string } }  // チーム単位 TOV
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
@@ -133,12 +134,11 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
     case 'LOG_PLAYER_STAT': {
       const { player, actionType, courtLocation, foulPenalty } = action.payload;
+      if (actionType === 'STL') return state;
       const ts = new Date().toISOString();
-      const isStl = actionType === 'STL';
-      const linkId = isStl ? makeId() : undefined;
 
       const mainLog: StatsLog = {
-        id: makeId(), link_id: linkId, is_auto: false,
+        id: makeId(), is_auto: false,
         game_id: state.game.id, team_id: player.team_id,
         player_id: player.id, period: state.game.current_period,
         timestamp: ts, action_type: actionType,
@@ -148,28 +148,44 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         ...(foulPenalty ? { foul_penalty: foulPenalty } : {}),
       };
 
-      const newLogs: StatsLog[] = [mainLog];
+      return {
+        ...state,
+        logs: [...state.logs, mainLog],
+        flashPlayerId: player.id,
+        selectedStat: null,
+      };
+    }
 
-      if (isStl && linkId) {
-        const opponentTeamId = player.team_id === state.ourTeam.id
-          ? state.theirTeam.id
-          : state.ourTeam.id;
-        const autoTov: StatsLog = {
-          id: makeId(), link_id: linkId, is_auto: true,
-          game_id: state.game.id, team_id: opponentTeamId,
-          player_id: null,
-          period: state.game.current_period,
-          timestamp: ts, action_type: 'TOV',
-          points: 0, is_deleted: false,
-          created_at: ts,
-        };
-        newLogs.push(autoTov);
-      }
+    case 'LOG_STL_WITH_VICTIM': {
+      const { stealer, victim } = action.payload;
+      if (stealer.team_id === victim.team_id) return state;
+      const ts = new Date().toISOString();
+      const linkId = makeId();
+
+      const stlLog: StatsLog = {
+        id: makeId(), link_id: linkId, is_auto: false,
+        game_id: state.game.id, team_id: stealer.team_id,
+        player_id: stealer.id, period: state.game.current_period,
+        timestamp: ts, action_type: 'STL',
+        points: 0, is_deleted: false,
+        created_at: ts,
+      };
+
+      const tovLog: StatsLog = {
+        id: makeId(), link_id: linkId, is_auto: true,
+        game_id: state.game.id, team_id: victim.team_id,
+        player_id: victim.id,
+        period: state.game.current_period,
+        timestamp: ts, action_type: 'TOV',
+        points: 0, is_deleted: false,
+        created_at: ts,
+        tov_reason: 'steal',
+      };
 
       return {
         ...state,
-        logs: [...state.logs, ...newLogs],
-        flashPlayerId: player.id,
+        logs: [...state.logs, stlLog, tovLog],
+        flashPlayerId: victim.id,
         selectedStat: null,
       };
     }
@@ -603,6 +619,10 @@ export function useGameState(gameId: string) {
     });
     setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
   }, []);
+  const logStlWithVictim = useCallback((stealer: Player, victim: Player) => {
+    dispatch({ type: 'LOG_STL_WITH_VICTIM', payload: { stealer, victim } });
+    setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
+  }, []);
   const undoLog      = useCallback((id: string)    => dispatch({ type: 'UNDO_LOG',      payload: id }),             []);
   const changePeriod = useCallback((p: Period)     => dispatch({ type: 'CHANGE_PERIOD', payload: p }),             []);
   const endGame      = useCallback(()              => dispatch({ type: 'END_GAME' }),                              []);
@@ -648,7 +668,7 @@ export function useGameState(gameId: string) {
     recentEntries,
     allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    selectStat, logStat, logPlayerStat, undoLog, changePeriod, endGame, resumeGame, substitute,
+    selectStat, logStat, logPlayerStat, logStlWithVictim, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
     cloudSyncStatus, saveToCloud,

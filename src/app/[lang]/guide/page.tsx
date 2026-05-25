@@ -105,12 +105,13 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
   };
 
   const STAT_BUTTONS = [
-    ['2PT / 3PT / FT',                g.statBtn2pt,   'text-emerald-400'],
-    ['2PT miss / 3PT miss / FT miss', g.statBtnMiss,  'text-red-400'],
-    ['ORbd / DRbd',                   g.statBtnRbd,   'text-blue-400'],
-    ['AST / STL / BLK',               g.statBtnAst,   'text-violet-400'],
-    ['FOUL',                          g.statBtnFoul,  'text-amber-400'],
-    ['TOV',                           g.statBtnTov,   'text-orange-400'],
+    ['2PT / 3PT / FT', g.statBtn2pt,  'text-emerald-400'],
+    ['—',              g.statBtnMiss, 'text-red-400/60'],
+    ['ORbd / DRbd',    g.statBtnRbd,  'text-blue-400'],
+    ['AST / BLK',      g.statBtnAst,  'text-violet-400'],
+    ['STL',            g.statBtnStl,  'text-violet-300'],
+    ['FOUL',           g.statBtnFoul, 'text-amber-400'],
+    ['TOV',            g.statBtnTov,   'text-orange-400'],
   ];
 
   return (
@@ -215,12 +216,28 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 </div>
               </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3ShotFlow}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{g.step3ShotFlowDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3FoulFlow}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{g.step3FoulFlowDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3CourtMap}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3CourtMapDesc}</p>
               </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3StlLink}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3StlLinkDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TovFlow}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{g.step3TovFlowDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamFoul}</p>
+                <p className="text-white/40 text-xs leading-relaxed">{g.step3TeamFoulDesc}</p>
               </div>
               <StepCard icon={History} title={g.step3Timeline} desc={g.step3TimelineDesc} color="bg-violet-700/70" />
               <StepCard icon={RotateCcw} title={g.step3Undo} desc={g.step3UndoDesc} color="bg-neutral-600" />

@@ -37,7 +37,7 @@ export default function GamePage() {
     flashPlayerId,
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    logPlayerStat, undoLog,
+    logPlayerStat, logStlWithVictim, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
     renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
@@ -61,6 +61,7 @@ export default function GamePage() {
   const [shotPhase,        setShotPhase]        = useState<'type' | 'result' | null>(null);
   const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);
   const [foulAwaitingSwipe, setFoulAwaitingSwipe] = useState(false);
+  const [stlAwaitingVictim, setStlAwaitingVictim] = useState(false);
   const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
 
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
@@ -107,6 +108,7 @@ export default function GamePage() {
     setShotPhase(null);
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
+    setStlAwaitingVictim(false);
     setHighlightStat(null);
   }, []);
 
@@ -130,6 +132,21 @@ export default function GamePage() {
   }, [user?.id]);
 
   const handlePlayerTap = useCallback((player: Player) => {
+    if (stlAwaitingVictim && pendingPlayer) {
+      if (player.team_id === pendingPlayer.team_id) {
+        if (player.id === pendingPlayer.id) clearInputState();
+        else {
+          setPendingPlayer(player);
+          setStlAwaitingVictim(false);
+          setHighlightStat(null);
+        }
+        return;
+      }
+      logStlWithVictim(pendingPlayer, player);
+      clearInputState();
+      return;
+    }
+
     if (pendingPlayer?.id === player.id && shotPhase === 'result') {
       const now = Date.now();
       const last = shotTapRef.current;
@@ -155,8 +172,9 @@ export default function GamePage() {
     setShotPhase('type');
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
+    setStlAwaitingVictim(false);
     setHighlightStat(null);
-  }, [pendingPlayer, shotPhase, clearInputState]);
+  }, [pendingPlayer, shotPhase, stlAwaitingVictim, logStlWithVictim, clearInputState]);
 
   const handleFoulPenalty = useCallback((penalty: FoulPenalty) => {
     if (!pendingPlayer) return;
@@ -209,7 +227,17 @@ export default function GamePage() {
 
     if (action === 'FOUL') {
       setFoulAwaitingSwipe(true);
+      setStlAwaitingVictim(false);
       setHighlightStat('FOUL');
+      setShotPhase(null);
+      setPendingShotType(null);
+      return;
+    }
+
+    if (action === 'STL') {
+      setStlAwaitingVictim(true);
+      setFoulAwaitingSwipe(false);
+      setHighlightStat('STL');
       setShotPhase(null);
       setPendingShotType(null);
       return;
@@ -295,6 +323,7 @@ export default function GamePage() {
           <StatsPanel
             pendingPlayer={pendingPlayer}
             foulAwaitingSwipe={foulAwaitingSwipe}
+            stlAwaitingVictim={stlAwaitingVictim}
             shotPhase={shotPhase}
             highlightStat={highlightStat}
             onSelectStat={handleStatSelect}
