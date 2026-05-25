@@ -168,9 +168,9 @@ export default function GamePage() {
 
   const handlePlayerTap = useCallback((player: Player) => {
     if (teamDefAwaitingVictim) {
-      if (player.team_id !== theirTeam.id) return;
+      const defenseTeamId = player.team_id === ourTeam.id ? theirTeam.id : ourTeam.id;
       if (tovMode === 'simple') {
-        logTeamDefense(ourTeam.id, player);
+        logTeamDefense(defenseTeamId, player);
         clearInputState();
         return;
       }
@@ -361,14 +361,15 @@ export default function GamePage() {
       <div className="flex-1 min-h-0 flex flex-col gap-1.5">
         <div className="shrink-0 isolate z-10">
           <TeamSection
-            team={ourTeam}
-            courtPlayers={ourCourtPlayers}
-            totalPlayerCount={[...ourCourtPlayers, ...ourBenchPlayers].length}
+            team={theirTeam}
+            courtPlayers={theirCourtPlayers}
+            totalPlayerCount={[...theirCourtPlayers, ...theirBenchPlayers].length}
             playerFouls={playerFouls}
-            teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
+            teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
+            teamDefPickTeamId={teamDefAwaitingVictim ? theirTeam.id : null}
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
             onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
@@ -398,14 +399,15 @@ export default function GamePage() {
 
         <div className="shrink-0 isolate z-10">
           <TeamSection
-            team={theirTeam}
-            courtPlayers={theirCourtPlayers}
-            totalPlayerCount={[...theirCourtPlayers, ...theirBenchPlayers].length}
+            team={ourTeam}
+            courtPlayers={ourCourtPlayers}
+            totalPlayerCount={[...ourCourtPlayers, ...ourBenchPlayers].length}
             playerFouls={playerFouls}
-            teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
+            teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
+            teamDefPickTeamId={teamDefAwaitingVictim ? ourTeam.id : null}
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
             onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}

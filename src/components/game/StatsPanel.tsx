@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react';
 import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { classifyPointerGesture, foulPenaltyFromGesture } from '@/lib/playerGesture';
+import { classifyPointerGesture, foulPenaltyFromGesture, TEAM_DEF_LONG_PRESS_MS } from '@/lib/playerGesture';
 import { cn } from '@/lib/utils';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
@@ -85,11 +85,11 @@ function FoulSwipeBtn({
   onActivate: () => void;
   onPenalty: (p: FoulPenalty) => void;
 }) {
-  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     if (disabled) return;
-    startRef.current = { x: e.clientX, y: e.clientY };
+    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
     e.currentTarget.setPointerCapture(e.pointerId);
   }, [disabled]);
 
@@ -111,6 +111,8 @@ function FoulSwipeBtn({
     if (navigator.vibrate) navigator.vibrate(28);
     onPenalty(penalty);
   }, [active, disabled, onActivate, onPenalty]);
+
+  const handlePointerCancel = useCallback(() => { startRef.current = null; }, []);
 
   return (
     <button
@@ -170,10 +172,10 @@ function StatSwipeBtn({
   onTeamDefSwipe: () => void;
 }) {
   const g = useDictionary().game;
-  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    startRef.current = { x: e.clientX, y: e.clientY };
+    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
     e.currentTarget.setPointerCapture(e.pointerId);
   }, []);
 
@@ -184,8 +186,9 @@ function StatSwipeBtn({
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     const gesture = classifyPointerGesture(dx, dy);
+    const held = Date.now() - start.t;
 
-    if (gesture === 'right') {
+    if (gesture === 'right' && held >= TEAM_DEF_LONG_PRESS_MS) {
       if (navigator.vibrate) navigator.vibrate(28);
       onTeamDefSwipe();
       return;

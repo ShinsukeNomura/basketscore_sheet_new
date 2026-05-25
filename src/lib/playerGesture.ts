@@ -6,6 +6,9 @@ export type PlayerGesture = 'tap' | 'left' | 'right' | 'up' | 'down';
 const MIN_SWIPE = 36;
 const MAX_TAP = 14;
 
+/** STL/TOV のチーム守備：長押ししてから右スワイプ */
+export const TEAM_DEF_LONG_PRESS_MS = 320;
+
 export function classifyPointerGesture(dx: number, dy: number): PlayerGesture {
   const adx = Math.abs(dx);
   const ady = Math.abs(dy);
