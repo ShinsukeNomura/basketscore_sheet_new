@@ -6,8 +6,10 @@ import type { StlCausePick } from '@/lib/stlTovCause';
 import { cn } from '@/lib/utils';
 import { Route, Footprints, X, Timer, ShieldAlert } from 'lucide-react';
 
+export type StlCauseSheetMode = 'stl' | 'stl-pressure' | 'teamTov';
+
 interface StlCauseSheetProps {
-  mode: 'stl' | 'teamDef';
+  mode: StlCauseSheetMode;
   victimBackNumber: string;
   teamLabel: string;
   onPick: (cause: StlCausePick) => void;
@@ -40,7 +42,7 @@ export function StlCauseSheet({
     },
   ];
 
-  const teamDefItems: { id: StlCausePick; label: string; sub: string; icon: ReactNode; color: string }[] = [
+  const teamTovItems: { id: StlCausePick; label: string; sub: string; icon: ReactNode; color: string }[] = [
     {
       id: '24sec',
       label: g.teamDefCause24,
@@ -78,8 +80,16 @@ export function StlCauseSheet({
     },
   ];
 
-  const items = mode === 'teamDef' ? teamDefItems : stlItems;
-  const title = mode === 'teamDef' ? g.teamDefCauseTitle : g.stlCauseTitle;
+  const isTeamTov = mode === 'teamTov';
+  const items = isTeamTov ? teamTovItems : stlItems;
+  const title =
+    mode === 'teamTov' ? g.teamDefCauseTitle
+    : mode === 'stl-pressure' ? g.stlPressureCauseTitle
+    : g.stlCauseTitle;
+  const hint =
+    mode === 'teamTov' ? g.teamDefCauseHint
+    : mode === 'stl-pressure' ? g.stlPressureCauseHint
+    : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
@@ -90,8 +100,13 @@ export function StlCauseSheet({
             <p className="text-xs text-neutral-400 mt-0.5">
               {g.stlCauseVictim.replace('{team}', teamLabel).replace('{num}', victimBackNumber)}
             </p>
-            {mode === 'teamDef' && (
-              <p className="text-[10px] text-cyan-400/80 mt-1 leading-snug">{g.teamDefCauseHint}</p>
+            {hint && (
+              <p className={cn(
+                'text-[10px] mt-1 leading-snug',
+                isTeamTov ? 'text-sky-400/80' : 'text-cyan-400/80',
+              )}>
+                {hint}
+              </p>
             )}
           </div>
           <button
@@ -103,12 +118,7 @@ export function StlCauseSheet({
             <X size={20} />
           </button>
         </div>
-        <div
-          className={cn(
-            'gap-2 pb-4',
-            mode === 'teamDef' ? 'grid grid-cols-2' : 'grid grid-cols-2',
-          )}
-        >
+        <div className="grid grid-cols-2 gap-2 pb-4">
           {items.map((item) => (
             <button
               key={item.id}
@@ -121,7 +131,7 @@ export function StlCauseSheet({
                 'flex flex-col items-center justify-center gap-1.5 rounded-xl border py-3.5 px-2',
                 'transition-all active:scale-[0.98] touch-none',
                 item.color,
-                mode === 'teamDef' && item.id === 'violation' && 'col-span-2',
+                isTeamTov && item.id === 'violation' && 'col-span-2',
               )}
             >
               {item.icon}

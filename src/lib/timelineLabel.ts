@@ -24,9 +24,10 @@ export function formatLogActionLabel(
   actionLabel: string,
   tovDict: TovDict,
   teamDefenseLabel: string,
+  stlPressureLabel?: string,
 ): string {
   if (log.team_defense && log.action_type === 'STL') {
-    return teamDefenseLabel;
+    return stlPressureLabel ?? teamDefenseLabel;
   }
   if (log.action_type === 'TOV' && log.tov_reason) {
     const key = TOV_REASON_KEYS[log.tov_reason];

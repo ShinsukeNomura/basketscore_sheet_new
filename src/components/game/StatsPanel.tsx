@@ -5,7 +5,7 @@ import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { classifyPointerGesture, foulPenaltyFromGesture, TEAM_DEF_LONG_PRESS_MS } from '@/lib/playerGesture';
-import { getStatButtonClasses, getNegativeStatButtonClasses } from '@/lib/statUiTier';
+import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral' && s.action !== 'STL');
@@ -20,12 +20,14 @@ interface StatsPanelProps {
   pendingPlayer:       Player | null;
   foulAwaitingSwipe:   boolean;
   stlAwaitingVictim:   boolean;
-  teamDefAwaitingVictim: boolean;
+  stlPressureAwaitingVictim: boolean;
+  teamTovAwaitingVictim: boolean;
   shotPhase:           'type' | 'result' | null;
   highlightStat:       ActionType | null;
   onSelectStat:        (action: ActionType) => void;
   onFoulPenalty:       (penalty: FoulPenalty) => void;
-  onTeamDefSwipe:      () => void;
+  onStlPressureSwipe:  () => void;
+  onTeamTovSwipe:      () => void;
   isPremium?:          boolean;
   tovMode?:            TovMode;
   onTovModeChange?:    (mode: TovMode) => void;
@@ -141,17 +143,21 @@ function FoulSwipeBtn({
 function StatSwipeBtn({
   label,
   active,
-  teamDefActive,
+  longPressActive,
+  longPressTier,
   tapDisabled,
   onTap,
-  onTeamDefSwipe,
+  onLongPressSwipe,
+  longPressBadge,
 }: {
   label: string;
   active: boolean;
-  teamDefActive: boolean;
+  longPressActive: boolean;
+  longPressTier: 'signature' | 'teamTov';
   tapDisabled: boolean;
   onTap: () => void;
-  onTeamDefSwipe: () => void;
+  onLongPressSwipe: () => void;
+  longPressBadge?: string;
 }) {
   const g = useDictionary().game;
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -172,17 +178,17 @@ function StatSwipeBtn({
 
     if (gesture === 'right' && held >= TEAM_DEF_LONG_PRESS_MS) {
       if (navigator.vibrate) navigator.vibrate(28);
-      onTeamDefSwipe();
+      onLongPressSwipe();
       return;
     }
     if (gesture === 'tap' && !tapDisabled) {
       if (navigator.vibrate) navigator.vibrate(18);
       onTap();
     }
-  }, [tapDisabled, onTap, onTeamDefSwipe]);
+  }, [tapDisabled, onTap, onLongPressSwipe]);
 
-  const armed = active || teamDefActive;
-  const tier = teamDefActive ? 'signature' : 'linked';
+  const armed = active || longPressActive;
+  const tier: StatUiTier = longPressActive ? longPressTier : 'linked';
   const btnClass = getStatButtonClasses(tier, armed);
 
   return (
@@ -196,12 +202,17 @@ function StatSwipeBtn({
         'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         btnClass,
-        tapDisabled && !teamDefActive && 'opacity-35',
+        tapDisabled && !longPressActive && 'opacity-35',
       )}
     >
-      {armed && (
+      {longPressActive && longPressBadge && (
         <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
-          {teamDefActive ? g.teamDefSwipeBadge : '→'}
+          {longPressBadge}
+        </span>
+      )}
+      {active && !longPressActive && (
+        <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
+          →
         </span>
       )}
       <span className="leading-none">{label}</span>
@@ -213,12 +224,14 @@ export function StatsPanel({
   pendingPlayer,
   foulAwaitingSwipe,
   stlAwaitingVictim,
-  teamDefAwaitingVictim,
+  stlPressureAwaitingVictim,
+  teamTovAwaitingVictim,
   shotPhase,
   highlightStat,
   onSelectStat,
   onFoulPenalty,
-  onTeamDefSwipe,
+  onStlPressureSwipe,
+  onTeamTovSwipe,
   isPremium = false,
   tovMode = 'simple',
   onTovModeChange,
@@ -237,8 +250,10 @@ export function StatsPanel({
   const isSelected = (a: ActionType) => highlightStat === a;
 
   let hint = g.selectPlayerFirst;
-  if (teamDefAwaitingVictim) {
-    hint = g.teamDefVictimHint;
+  if (stlPressureAwaitingVictim) {
+    hint = g.stlPressureVictimHint;
+  } else if (teamTovAwaitingVictim) {
+    hint = g.teamTovVictimHint;
   } else if (pendingPlayer) {
     const num = pendingPlayer.back_number;
     if (foulAwaitingSwipe) hint = g.foulGestureHint.replace('{num}', num);
@@ -286,23 +301,25 @@ export function StatsPanel({
       <div className="flex items-center justify-center shrink-0 min-h-[18px] px-1">
         <div className={cn(
           'flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-full',
-          teamDefAwaitingVictim
+          stlPressureAwaitingVictim
             ? 'bg-cyan-950/50 border border-cyan-500/40'
+            : teamTovAwaitingVictim
+            ? 'bg-sky-950/50 border border-sky-500/40'
             : pendingPlayer
             ? shotPhase
               ? 'bg-emerald-950/50 border border-emerald-600/40'
               : 'bg-sky-950/60 border border-sky-600/40'
             : 'bg-neutral-900/40 border border-neutral-800/50',
         )}>
-          {(pendingPlayer || teamDefAwaitingVictim) && (
+          {(pendingPlayer || stlPressureAwaitingVictim || teamTovAwaitingVictim) && (
             <span className={cn(
               'w-1.5 h-1.5 rounded-full animate-pulse shrink-0',
-              teamDefAwaitingVictim ? 'bg-cyan-400' : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
+              stlPressureAwaitingVictim ? 'bg-cyan-400' : teamTovAwaitingVictim ? 'bg-sky-400' : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
             )} />
           )}
           <span className={cn(
             'text-[11px] font-semibold truncate',
-            teamDefAwaitingVictim ? 'text-cyan-100' : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
+            stlPressureAwaitingVictim ? 'text-cyan-100' : teamTovAwaitingVictim ? 'text-sky-100' : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
           )}>
             {hint}
           </span>
@@ -343,10 +360,12 @@ export function StatsPanel({
         <StatSwipeBtn
           label={STL_DEF.label}
           active={isSelected('STL')}
-          teamDefActive={teamDefAwaitingVictim}
+          longPressActive={stlPressureAwaitingVictim}
+          longPressTier="signature"
+          longPressBadge={g.stlPressureSwipeBadge}
           tapDisabled={!pendingPlayer}
           onTap={() => tap('STL')}
-          onTeamDefSwipe={onTeamDefSwipe}
+          onLongPressSwipe={onStlPressureSwipe}
         />
         <FoulSwipeBtn
           active={foulAwaitingSwipe}
@@ -357,10 +376,12 @@ export function StatsPanel({
         <StatSwipeBtn
           label={actions.TOV ?? 'TOV'}
           active={isSelected('TOV')}
-          teamDefActive={teamDefAwaitingVictim}
+          longPressActive={teamTovAwaitingVictim}
+          longPressTier="teamTov"
+          longPressBadge={g.teamTovSwipeBadge}
           tapDisabled={!pendingPlayer}
           onTap={() => tap('TOV')}
-          onTeamDefSwipe={onTeamDefSwipe}
+          onLongPressSwipe={onTeamTovSwipe}
         />
       </div>
 
@@ -368,7 +389,10 @@ export function StatsPanel({
         {g.shotSwipeLegend}
       </p>
       <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
-        {g.teamDefSwipeLegend}
+        {g.stlPressureSwipeLegend}
+      </p>
+      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+        {g.teamTovSwipeLegend}
       </p>
 
       <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-0.5 pointer-events-none select-none">

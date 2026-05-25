@@ -113,7 +113,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
     ['STL →',          g.statBtnStlTeam, 'text-cyan-400'],
     ['FOUL',           g.statBtnFoul, 'text-amber-400'],
     ['TOV',            g.statBtnTov,   'text-orange-400'],
-    ['TOV →',          g.statBtnTovTeam, 'text-cyan-400'],
+    ['TOV →',          g.statBtnTovTeam, 'text-sky-400'],
   ];
 
   return (
@@ -253,8 +253,12 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3StlLinkDesc}</p>
               </div>
               <div className="rounded-2xl bg-cyan-950/25 border border-cyan-500/25 p-4">
-                <p className="text-cyan-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamDef}</p>
-                <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3TeamDefDesc}</p>
+                <p className="text-cyan-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3StlPressure}</p>
+                <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3StlPressureDesc}</p>
+              </div>
+              <div className="rounded-2xl bg-sky-950/25 border border-sky-500/25 p-4">
+                <p className="text-sky-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamTov}</p>
+                <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3TeamTovDesc}</p>
               </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TovFlow}</p>

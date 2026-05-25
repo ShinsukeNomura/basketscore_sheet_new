@@ -33,9 +33,9 @@ export function tovReasonFromTeamDefCause(
 export function tovReasonFromCausePick(
   pick: StlCausePick,
   mode: TovMode,
-  context: 'stl' | 'teamDef',
+  context: 'stl' | 'stl-pressure' | 'teamTov',
 ): TovReason | undefined {
-  if (context === 'teamDef') {
+  if (context === 'teamTov') {
     return tovReasonFromTeamDefCause(pick as TeamDefCause, mode);
   }
   return tovReasonFromStlCause(pick as StlTovCause, mode);

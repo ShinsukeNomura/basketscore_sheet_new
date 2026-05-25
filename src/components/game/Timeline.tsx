@@ -49,6 +49,7 @@ function LogLine({
   isLinked,
   tovDict,
   teamDefenseLabel,
+  stlPressureLabel,
 }: {
   log: StatsLog;
   playerMap: Record<string, Player>;
@@ -60,6 +61,7 @@ function LogLine({
   isLinked?: boolean;
   tovDict: Record<string, string>;
   teamDefenseLabel: string;
+  stlPressureLabel: string;
 }) {
   const isOurs = log.team_id === ourTeam.id;
   const team = isOurs ? ourTeam : theirTeam;
@@ -108,7 +110,7 @@ function LogLine({
           labelClass,
         )}
       >
-        {formatLogActionLabel(log, actions[log.action_type], tovDict, teamDefenseLabel)}{foulSuffix}
+        {formatLogActionLabel(log, actions[log.action_type], tovDict, teamDefenseLabel, stlPressureLabel)}{foulSuffix}
         {log.points > 0 && ` +${log.points}`}
       </span>
     </div>
@@ -125,6 +127,7 @@ function TimelineRow({
   onUndo,
   tovDict,
   teamDefenseLabel,
+  stlPressureLabel,
 }: {
   entry: TimelineEntry;
   playerMap: Record<string, Player>;
@@ -135,6 +138,7 @@ function TimelineRow({
   onUndo: (id: string) => void;
   tovDict: Record<string, string>;
   teamDefenseLabel: string;
+  stlPressureLabel: string;
 }) {
   const { primary, linked } = entry;
 
@@ -152,6 +156,7 @@ function TimelineRow({
             theirFallback={tl.theirShort}
             tovDict={tovDict}
             teamDefenseLabel={teamDefenseLabel}
+            stlPressureLabel={stlPressureLabel}
           />
           {linked.map((l) => (
             <LogLine
@@ -166,6 +171,7 @@ function TimelineRow({
               isLinked
               tovDict={tovDict}
               teamDefenseLabel={teamDefenseLabel}
+              stlPressureLabel={stlPressureLabel}
             />
           ))}
         </div>
@@ -239,6 +245,7 @@ export function Timeline({
             onUndo={onUndo}
             tovDict={tovDict}
             teamDefenseLabel={g.teamDefenseLabel}
+            stlPressureLabel={g.stlPressureLabel}
           />
         ))
       )}

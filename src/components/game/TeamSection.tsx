@@ -19,7 +19,7 @@ interface TeamSectionProps {
   shotPhase:           'type' | 'result' | null;
   flashPlayerId:       string | null;
   /** チーム守備で背番号選択中 */
-  teamDefPickActive?: boolean;
+  opponentPickActive?: boolean;
   /** マイチーム（自チーム） */
   isMyTeam?:           boolean;
   onPlayerTap:      (player: Player) => void;
@@ -30,10 +30,10 @@ interface TeamSectionProps {
 
 export function TeamSection({
   team, courtPlayers, totalPlayerCount, playerFouls, teamFoulCount,
-  pendingPlayerId, shotPhase, flashPlayerId, teamDefPickActive = false, isMyTeam = false,
+  pendingPlayerId, shotPhase, flashPlayerId, opponentPickActive = false, isMyTeam = false,
   onPlayerTap, onPlayerGesture, onSubstitute, onRenameTeam,
 }: TeamSectionProps) {
-  const teamDefPick = teamDefPickActive;
+  const opponentPick = opponentPickActive;
   const ts = useDictionary().teamSection;
   const g = useDictionary().game;
   const cfg = getColorConfig(team.color);
@@ -61,7 +61,7 @@ export function TeamSection({
         ? 'border-sky-500/60 bg-sky-950/35 shadow-[0_0_12px_rgba(14,165,233,0.15)]'
         : 'border-transparent bg-black/20',
       cfg.sectionBg,
-      teamDefPick && 'ring-2 ring-white/35',
+      opponentPick && 'ring-2 ring-white/35',
     )}>
 
       <div className="flex items-center justify-between mb-0.5 shrink-0">

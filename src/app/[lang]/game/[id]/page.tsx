@@ -64,10 +64,12 @@ export default function GamePage() {
   const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);
   const [foulAwaitingSwipe, setFoulAwaitingSwipe] = useState(false);
   const [stlAwaitingVictim, setStlAwaitingVictim] = useState(false);
-  const [teamDefAwaitingVictim, setTeamDefAwaitingVictim] = useState(false);
+  const [stlPressureAwaitingVictim, setStlPressureAwaitingVictim] = useState(false);
+  const [teamTovAwaitingVictim, setTeamTovAwaitingVictim] = useState(false);
   const [stlCausePending, setStlCausePending] = useState<
     | { mode: 'stl'; stealer: Player; victim: Player }
-    | { mode: 'teamDef'; victim: Player }
+    | { mode: 'stl-pressure'; victim: Player }
+    | { mode: 'teamTov'; victim: Player }
     | null
   >(null);
   const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
@@ -117,32 +119,43 @@ export default function GamePage() {
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
-    setTeamDefAwaitingVictim(false);
+    setStlPressureAwaitingVictim(false);
+    setTeamTovAwaitingVictim(false);
     setStlCausePending(null);
     setHighlightStat(null);
   }, []);
 
   const handleStlCausePick = useCallback((cause: StlCausePick) => {
     if (!stlCausePending) return;
-    const reason = tovReasonFromCausePick(
-      cause,
-      tovMode,
-      stlCausePending.mode === 'teamDef' ? 'teamDef' : 'stl',
-    );
+    const reason = tovReasonFromCausePick(cause, tovMode, stlCausePending.mode);
     if (stlCausePending.mode === 'stl') {
       logStlWithVictim(stlCausePending.stealer, stlCausePending.victim, reason);
-    } else {
+    } else if (stlCausePending.mode === 'stl-pressure') {
       const defenseTeamId = stlCausePending.victim.team_id === theirTeam.id
         ? ourTeam.id
         : theirTeam.id;
       logTeamDefense(defenseTeamId, stlCausePending.victim, reason);
+    } else {
+      logTeamTov(stlCausePending.victim.team_id, reason, stlCausePending.victim.id);
     }
     setStlCausePending(null);
     clearInputState();
-  }, [stlCausePending, tovMode, logStlWithVictim, logTeamDefense, ourTeam.id, theirTeam.id, clearInputState]);
+  }, [stlCausePending, tovMode, logStlWithVictim, logTeamDefense, logTeamTov, ourTeam.id, theirTeam.id, clearInputState]);
 
-  const handleTeamDefSwipe = useCallback(() => {
-    setTeamDefAwaitingVictim(true);
+  const handleStlPressureSwipe = useCallback(() => {
+    setStlPressureAwaitingVictim(true);
+    setTeamTovAwaitingVictim(false);
+    setPendingPlayer(null);
+    setStlAwaitingVictim(false);
+    setFoulAwaitingSwipe(false);
+    setHighlightStat(null);
+    setShotPhase(null);
+    setPendingShotType(null);
+  }, []);
+
+  const handleTeamTovSwipe = useCallback(() => {
+    setTeamTovAwaitingVictim(true);
+    setStlPressureAwaitingVictim(false);
     setPendingPlayer(null);
     setStlAwaitingVictim(false);
     setFoulAwaitingSwipe(false);
@@ -171,15 +184,26 @@ export default function GamePage() {
   }, [user?.id]);
 
   const handlePlayerTap = useCallback((player: Player) => {
-    if (teamDefAwaitingVictim) {
+    if (stlPressureAwaitingVictim) {
       const defenseTeamId = player.team_id === ourTeam.id ? theirTeam.id : ourTeam.id;
       if (tovMode === 'simple') {
         logTeamDefense(defenseTeamId, player);
         clearInputState();
         return;
       }
-      setStlCausePending({ mode: 'teamDef', victim: player });
-      setTeamDefAwaitingVictim(false);
+      setStlCausePending({ mode: 'stl-pressure', victim: player });
+      setStlPressureAwaitingVictim(false);
+      return;
+    }
+
+    if (teamTovAwaitingVictim) {
+      if (tovMode === 'simple') {
+        logTeamTov(player.team_id, undefined, player.id);
+        clearInputState();
+        return;
+      }
+      setStlCausePending({ mode: 'teamTov', victim: player });
+      setTeamTovAwaitingVictim(false);
       return;
     }
 
@@ -230,11 +254,12 @@ export default function GamePage() {
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
-    setTeamDefAwaitingVictim(false);
+    setStlPressureAwaitingVictim(false);
+    setTeamTovAwaitingVictim(false);
     setHighlightStat(null);
   }, [
-    pendingPlayer, shotPhase, stlAwaitingVictim, teamDefAwaitingVictim,
-    tovMode, logStlWithVictim, logTeamDefense, ourTeam.id, clearInputState,
+    pendingPlayer, shotPhase, stlAwaitingVictim, stlPressureAwaitingVictim, teamTovAwaitingVictim,
+    tovMode, logStlWithVictim, logTeamDefense, logTeamTov, ourTeam.id, clearInputState,
   ]);
 
   const handleFoulPenalty = useCallback((penalty: FoulPenalty) => {
@@ -289,6 +314,8 @@ export default function GamePage() {
     if (action === 'FOUL') {
       setFoulAwaitingSwipe(true);
       setStlAwaitingVictim(false);
+      setStlPressureAwaitingVictim(false);
+      setTeamTovAwaitingVictim(false);
       setHighlightStat('FOUL');
       setShotPhase(null);
       setPendingShotType(null);
@@ -298,6 +325,8 @@ export default function GamePage() {
     if (action === 'STL') {
       setStlAwaitingVictim(true);
       setFoulAwaitingSwipe(false);
+      setStlPressureAwaitingVictim(false);
+      setTeamTovAwaitingVictim(false);
       setHighlightStat('STL');
       setShotPhase(null);
       setPendingShotType(null);
@@ -373,7 +402,7 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            teamDefPickActive={teamDefAwaitingVictim}
+            opponentPickActive={stlPressureAwaitingVictim || teamTovAwaitingVictim}
             isMyTeam={false}
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
@@ -387,12 +416,14 @@ export default function GamePage() {
             pendingPlayer={pendingPlayer}
             foulAwaitingSwipe={foulAwaitingSwipe}
             stlAwaitingVictim={stlAwaitingVictim}
-            teamDefAwaitingVictim={teamDefAwaitingVictim}
+            stlPressureAwaitingVictim={stlPressureAwaitingVictim}
+            teamTovAwaitingVictim={teamTovAwaitingVictim}
             shotPhase={shotPhase}
             highlightStat={highlightStat}
             onSelectStat={handleStatSelect}
             onFoulPenalty={handleFoulPenalty}
-            onTeamDefSwipe={handleTeamDefSwipe}
+            onStlPressureSwipe={handleStlPressureSwipe}
+            onTeamTovSwipe={handleTeamTovSwipe}
             isPremium={isPremium}
             tovMode={tovMode}
             onTovModeChange={(newMode) => {
@@ -412,7 +443,7 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            teamDefPickActive={teamDefAwaitingVictim}
+            opponentPickActive={stlPressureAwaitingVictim || teamTovAwaitingVictim}
             isMyTeam
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
@@ -438,7 +469,7 @@ export default function GamePage() {
 
       {stlCausePending && (
         <StlCauseSheet
-          mode={stlCausePending.mode === 'teamDef' ? 'teamDef' : 'stl'}
+          mode={stlCausePending.mode}
           victimBackNumber={stlCausePending.victim.back_number}
           teamLabel={
             stlCausePending.victim.team_id === theirTeam.id
