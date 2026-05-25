@@ -138,7 +138,7 @@ export function StatsPanel({
       <div className="grid grid-cols-2 gap-2 shrink-0">
         <button
           type="button"
-          onClick={() => { onOurTov(); if (navigator.vibrate) navigator.vibrate(30); }}
+          onPointerDown={() => { onOurTov(); if (navigator.vibrate) navigator.vibrate(30); }}
           className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
           <span className="text-[11px] font-bold leading-none truncate max-w-[80px]">{ourTeamName}</span>
@@ -149,7 +149,7 @@ export function StatsPanel({
         </button>
         <button
           type="button"
-          onClick={() => { onTheirTov(); if (navigator.vibrate) navigator.vibrate(30); }}
+          onPointerDown={() => { onTheirTov(); if (navigator.vibrate) navigator.vibrate(30); }}
           className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
           {theirTov > 0 && (

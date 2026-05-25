@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { ArrowLeft, X, Hand, Route, AlertTriangle, Clock, HelpCircle, Footprints } from 'lucide-react';
 import { TovReason, TovMode, Player } from '@/types';
@@ -8,21 +8,33 @@ import { cn } from '@/lib/utils';
 import { sortPlayersByBackNumber } from '@/lib/playerSort';
 
 interface TovCategorySheetProps {
-  mode:     Exclude<TovMode, 'simple'>;
-  teamName: string;
-  isOurs:   boolean;
-  players:  Player[];
-  /** 背番号選択済みの場合は種類のみ選択 */
-  presetPlayer?: Player | null;
-  onConfirm: (reason: TovReason, playerId: string | null) => void;
-  onCancel:  () => void;
+  mode:               Exclude<TovMode, 'simple'>;
+  teamName:           string;
+  isOurs:             boolean;
+  players:            Player[];
+  /** 背番号選択済みの選手ID（あれば種類のみ・即確定） */
+  lockedPlayerId:     string | null;
+  lockedBackNumber?:  string | null;
+  onConfirm:          (reason: TovReason, playerId: string | null) => void;
+  onCancel:           () => void;
 }
 
-export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer, onConfirm, onCancel }: TovCategorySheetProps) {
+export function TovCategorySheet({
+  mode,
+  teamName,
+  isOurs,
+  players,
+  lockedPlayerId,
+  lockedBackNumber,
+  onConfirm,
+  onCancel,
+}: TovCategorySheetProps) {
   const dict = useDictionary();
   const t = dict.tov;
   const c = dict.common;
   const g = dict.game;
+
+  const playerLocked = Boolean(lockedPlayerId);
 
   const sixReasons = useMemo(() => [
     { id: 'steal' as TovReason,          label: t.steal,          sub: t.stealSub,          icon: <Hand size={22} />,          color: 'bg-rose-900/60 border-rose-700/60 text-rose-200 active:bg-rose-800' },
@@ -48,18 +60,9 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
     { id: 'other' as TovReason,          label: t.other,          sub: t.otherSub },
   ], [t]);
 
-  const [step,           setStep]           = useState<'reason' | 'player'>('reason');
+  const [step, setStep] = useState<'reason' | 'player'>('reason');
   const [selectedReason, setSelectedReason] = useState<TovReason | null>(null);
-  const [flash,          setFlash]          = useState<string | null>(null);
-
-  /** 背番号選択済みなら種類だけで確定（選手ステップを出さない） */
-  const lockedPlayerId = presetPlayer?.id ?? null;
-
-  useEffect(() => {
-    setStep('reason');
-    setSelectedReason(null);
-    setFlash(null);
-  }, [lockedPlayerId, mode]);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const courtPlayers = useMemo(() => sortPlayersByBackNumber(players), [players]);
 
@@ -68,9 +71,9 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
     : 'bg-rose-900/50 text-rose-200 border-rose-700/50';
 
   const handleReasonSelect = useCallback((reason: TovReason) => {
-    if (lockedPlayerId) {
-      setFlash(reason);
-      setTimeout(() => onConfirm(reason, lockedPlayerId), 160);
+    if (playerLocked && lockedPlayerId) {
+      if (navigator.vibrate) navigator.vibrate(30);
+      onConfirm(reason, lockedPlayerId);
       return;
     }
     setSelectedReason(reason);
@@ -79,12 +82,12 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
       setFlash(null);
       setStep('player');
     }, 160);
-  }, [lockedPlayerId, onConfirm]);
+  }, [playerLocked, lockedPlayerId, onConfirm]);
 
   const handlePlayerSelect = useCallback((playerId: string) => {
     if (!selectedReason) return;
-    setFlash(playerId);
-    setTimeout(() => onConfirm(selectedReason, playerId), 160);
+    if (navigator.vibrate) navigator.vibrate(30);
+    onConfirm(selectedReason, playerId);
   }, [selectedReason, onConfirm]);
 
   const handleSkip = useCallback(() => {
@@ -92,23 +95,63 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
   }, [selectedReason, onConfirm]);
 
   const handleBack = useCallback(() => {
-    if (!lockedPlayerId && step === 'player') {
+    if (!playerLocked && step === 'player') {
       setStep('reason');
       setFlash(null);
     } else {
       onCancel();
     }
-  }, [lockedPlayerId, step, onCancel]);
+  }, [playerLocked, step, onCancel]);
 
-  const showPlayerStep = step === 'player' && !lockedPlayerId;
+  const reasonGrid = mode === '6-grid' ? (
+    <div className="grid grid-cols-2 gap-3">
+      {sixReasons.map((r) => (
+        <button
+          key={r.id}
+          type="button"
+          onPointerDown={() => handleReasonSelect(r.id)}
+          className={cn(
+            'flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 min-h-[96px]',
+            'transition-transform active:scale-95',
+            flash === r.id ? 'ring-2 ring-white scale-95' : r.color,
+          )}
+        >
+          {r.icon}
+          <div className="text-center">
+            <div className="text-sm font-bold leading-tight">{r.label}</div>
+            <div className="text-[10px] opacity-65 leading-tight mt-0.5">{r.sub}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  ) : (
+    <div className="grid grid-cols-3 gap-2">
+      {twelveReasons.map((r) => (
+        <button
+          key={r.id}
+          type="button"
+          onPointerDown={() => handleReasonSelect(r.id)}
+          className={cn(
+            'flex flex-col items-center justify-center p-3 rounded-xl border-2 min-h-[68px]',
+            'bg-neutral-800 border-neutral-700 text-neutral-200',
+            'transition-transform active:scale-95 active:bg-neutral-700',
+            flash === r.id && 'ring-2 ring-white scale-95 bg-emerald-900/60',
+          )}
+        >
+          <div className="text-xs font-bold text-center leading-tight">{r.label}</div>
+          <div className="text-[9px] text-neutral-400 text-center leading-tight mt-0.5">{r.sub}</div>
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-black/65">
       <div className="w-full bg-neutral-900 rounded-t-2xl border-t border-x border-neutral-800 overflow-hidden">
 
-        {/* ヘッダー */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-800">
           <button
+            type="button"
             onClick={handleBack}
             className="flex items-center gap-1 text-neutral-400 active:text-white min-h-[44px] min-w-[44px] justify-center"
           >
@@ -122,6 +165,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
             </div>
           </div>
           <button
+            type="button"
             onClick={onCancel}
             className="text-neutral-500 active:text-white min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
@@ -129,11 +173,10 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
           </button>
         </div>
 
-        {/* ステップインジケーター */}
         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800/40 border-b border-neutral-800 text-[11px]">
-          {lockedPlayerId && presetPlayer ? (
+          {playerLocked ? (
             <span className="text-amber-200 font-semibold">
-              #{presetPlayer.back_number} — {t.stepReason}
+              #{lockedBackNumber ?? '?'} — {t.stepReason}
             </span>
           ) : (
             <>
@@ -148,52 +191,10 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
           )}
         </div>
 
-        {/* コンテンツ */}
         <div className="p-4 overflow-y-auto max-h-[65vh]">
-          {!showPlayerStep ? (
-            mode === '6-grid' ? (
-              /* 厳選6カテゴリー (2×3) */
-              <div className="grid grid-cols-2 gap-3">
-                {sixReasons.map((r) => (
-                  <button
-                    key={r.id}
-                    onClick={() => handleReasonSelect(r.id)}
-                    className={cn(
-                      'flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 min-h-[96px]',
-                      'transition-transform active:scale-95',
-                      flash === r.id ? 'ring-2 ring-white scale-95' : r.color,
-                    )}
-                  >
-                    {r.icon}
-                    <div className="text-center">
-                      <div className="text-sm font-bold leading-tight">{r.label}</div>
-                      <div className="text-[10px] opacity-65 leading-tight mt-0.5">{r.sub}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              /* 公式12カテゴリー (3×4) */
-              <div className="grid grid-cols-3 gap-2">
-                {twelveReasons.map((r) => (
-                  <button
-                    key={r.id}
-                    onClick={() => handleReasonSelect(r.id)}
-                    className={cn(
-                      'flex flex-col items-center justify-center p-3 rounded-xl border-2 min-h-[68px]',
-                      'bg-neutral-800 border-neutral-700 text-neutral-200',
-                      'transition-transform active:scale-95 active:bg-neutral-700',
-                      flash === r.id && 'ring-2 ring-white scale-95 bg-emerald-900/60',
-                    )}
-                  >
-                    <div className="text-xs font-bold text-center leading-tight">{r.label}</div>
-                    <div className="text-[9px] text-neutral-400 text-center leading-tight mt-0.5">{r.sub}</div>
-                  </button>
-                ))}
-              </div>
-            )
+          {playerLocked || step === 'reason' ? (
+            reasonGrid
           ) : (
-            /* 選手選択 */
             <div className="space-y-3">
               <div className="text-center text-xs text-neutral-400 mb-3">
                 {t.selectPlayer}
@@ -203,11 +204,11 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
                   {courtPlayers.map((p) => (
                     <button
                       key={p.id}
-                      onClick={() => handlePlayerSelect(p.id)}
+                      type="button"
+                      onPointerDown={() => handlePlayerSelect(p.id)}
                       className={cn(
                         'flex flex-col items-center justify-center p-2 rounded-xl border-2 min-h-[64px]',
                         'transition-transform active:scale-95',
-                        flash === p.id ? 'ring-2 ring-white scale-95' : '',
                         isOurs
                           ? 'bg-sky-900/40 border-sky-700/50 text-sky-100 active:bg-sky-800'
                           : 'bg-rose-900/40 border-rose-700/50 text-rose-100 active:bg-rose-800',
@@ -222,6 +223,7 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
                 <div className="text-center text-xs text-neutral-600 py-4">{g.noPlayers}</div>
               )}
               <button
+                type="button"
                 onClick={handleSkip}
                 className="w-full py-3 rounded-xl bg-neutral-800 border border-neutral-700 text-neutral-300 text-sm font-medium active:bg-neutral-700 transition-all"
               >
@@ -231,7 +233,6 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer
           )}
         </div>
 
-        {/* セーフエリア余白 */}
         <div className="h-safe-bottom bg-neutral-900 min-h-[env(safe-area-inset-bottom,0px)]" />
       </div>
     </div>

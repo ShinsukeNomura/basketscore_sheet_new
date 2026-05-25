@@ -70,8 +70,22 @@ export default function GamePage() {
   const [tovPending, setTovPending] = useState<{
     teamId: string;
     isOurs: boolean;
-    presetPlayer?: Player;
+    lockedPlayerId: string | null;
+    lockedBackNumber: string | null;
   } | null>(null);
+
+  const openTovDetail = useCallback((
+    teamId: string,
+    isOurs: boolean,
+    player: Player | null,
+  ) => {
+    setTovPending({
+      teamId,
+      isOurs,
+      lockedPlayerId: player?.id ?? null,
+      lockedBackNumber: player?.back_number ?? null,
+    });
+  }, []);
 
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
@@ -169,11 +183,7 @@ export default function GamePage() {
     if (action === 'TOV') {
       const isOurs = pendingPlayer.team_id === ourTeam.id;
       if (isPremium && tovMode !== 'simple') {
-        setTovPending({
-          teamId: pendingPlayer.team_id,
-          isOurs,
-          presetPlayer: pendingPlayer,
-        });
+        openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer);
       } else {
         logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id);
         clearInputState();
@@ -191,7 +201,7 @@ export default function GamePage() {
 
     logPlayerStat(pendingPlayer, action);
     clearInputState();
-  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, logPlayerStat, clearInputState]);
+  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, logPlayerStat, clearInputState, openTovDetail]);
 
   function handleCourtSelect(location: CourtLocation) {
     if (!courtMapPlayer || !courtMapAction) return;
@@ -211,14 +221,17 @@ export default function GamePage() {
   }
 
   const openTeamTov = useCallback((teamId: string, isOurs: boolean) => {
-    const preset = pendingPlayer?.team_id === teamId ? pendingPlayer : undefined;
+    // 背番号選択中は誤って別チームTOVを押しても、選択済み選手で記録する
+    const linked = pendingPlayer ?? null;
+    const tid = linked?.team_id ?? teamId;
+    const ours = linked ? linked.team_id === ourTeam.id : isOurs;
     if (isPremium && tovMode !== 'simple') {
-      setTovPending({ teamId, isOurs, presetPlayer: preset });
+      openTovDetail(tid, ours, linked);
     } else {
-      logTeamTov(teamId, undefined, preset?.id);
-      if (preset) clearInputState();
+      logTeamTov(tid, undefined, linked?.id);
+      if (linked) clearInputState();
     }
-  }, [pendingPlayer, isPremium, tovMode, logTeamTov, clearInputState]);
+  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, clearInputState, openTovDetail]);
 
   function handleOurTov() {
     openTeamTov(ourTeam.id, true);
@@ -230,7 +243,7 @@ export default function GamePage() {
 
   function handleTovConfirm(reason: TovReason, playerId: string | null) {
     if (!tovPending) return;
-    const pid = playerId ?? tovPending.presetPlayer?.id;
+    const pid = playerId ?? tovPending.lockedPlayerId ?? undefined;
     logTeamTov(tovPending.teamId, reason, pid);
     setTovPending(null);
     clearInputState();
@@ -339,12 +352,13 @@ export default function GamePage() {
 
       {tovPending && tovMode !== 'simple' && (
         <TovCategorySheet
-          key={tovPending.presetPlayer?.id ?? `team-${tovPending.teamId}`}
+          key={`${tovPending.teamId}-${tovPending.lockedPlayerId ?? 'team'}`}
           mode={tovMode as Exclude<TovMode, 'simple'>}
           teamName={tovPending.isOurs ? (ourTeam.team_name || g.ourTeam) : (theirTeam.team_name || g.theirTeam)}
           isOurs={tovPending.isOurs}
           players={allPlayers.filter((p) => p.team_id === tovPending.teamId && p.is_on_court)}
-          presetPlayer={tovPending.presetPlayer ?? null}
+          lockedPlayerId={tovPending.lockedPlayerId}
+          lockedBackNumber={tovPending.lockedBackNumber}
           onConfirm={handleTovConfirm}
           onCancel={() => { setTovPending(null); clearInputState(); }}
         />
