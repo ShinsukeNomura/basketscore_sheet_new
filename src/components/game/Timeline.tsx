@@ -74,13 +74,13 @@ function LogLine({
   return (
     <div
       className={cn(
-        'flex items-center gap-2 min-h-[36px]',
-        isLinked ? 'pl-3 opacity-90' : '',
+        'flex items-center gap-1.5 min-h-0 py-0.5',
+        isLinked ? 'pl-2 opacity-90' : '',
       )}
     >
       {!isLinked && (
         <>
-          <span className="text-white/25 text-[11px] tabular-nums shrink-0 w-[52px]">
+          <span className="text-white/25 text-[10px] tabular-nums shrink-0 w-[46px]">
             {fmt(log.timestamp)}
           </span>
           <span className="text-white/30 text-[11px] tabular-nums shrink-0">
@@ -88,7 +88,7 @@ function LogLine({
           </span>
         </>
       )}
-      {isLinked && <span className="text-white/20 text-[11px] shrink-0 w-[52px]">↳</span>}
+      {isLinked && <span className="text-white/20 text-[10px] shrink-0 w-[46px]">↳</span>}
       <span
         className={cn(
           'text-[10px] font-bold rounded-md px-1.5 py-0.5 shrink-0 max-w-[72px] truncate',
@@ -139,7 +139,7 @@ function TimelineRow({
   const { primary, linked } = entry;
 
   return (
-    <div className="bg-white/4 rounded-lg px-2.5 py-1.5">
+    <div className="bg-white/4 rounded-lg px-2 py-1">
       <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0 flex flex-col gap-0.5">
           <LogLine
@@ -175,7 +175,7 @@ function TimelineRow({
             if (navigator.vibrate) navigator.vibrate([25, 15, 25]);
             onUndo(primary.id);
           }}
-          className="shrink-0 -mr-1 p-2.5 rounded-lg text-white/25 active:text-red-400 active:bg-red-950/50 transition-colors"
+          className="shrink-0 -mr-0.5 p-1.5 rounded-lg text-white/25 active:text-red-400 active:bg-red-950/50 transition-colors"
           aria-label={tl.undo}
         >
           <X size={13} />
@@ -205,12 +205,12 @@ export function Timeline({
   const hasMore = total > entries.length && onViewAll;
 
   return (
-    <div className="bg-neutral-950 px-2 py-1 flex flex-col gap-1 shrink-0">
+    <div className="bg-neutral-950 px-2 py-0.5 flex flex-col gap-0.5 shrink-0">
       {hasMore && (
         <button
           type="button"
           onClick={onViewAll}
-          className="flex items-center justify-between gap-2 w-full px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 active:bg-white/8 text-left"
+          className="flex items-center justify-between gap-2 w-full px-2 py-1 rounded-lg bg-white/5 border border-white/10 active:bg-white/8 text-left"
         >
           <span className="text-white/50 text-[10px]">
             {tl.previewHint.replace('{shown}', String(entries.length)).replace('{total}', String(total))}

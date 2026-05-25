@@ -14,6 +14,8 @@ const NEG = STAT_DEFS.filter(
 );
 const STL_DEF = STAT_DEFS.find((s) => s.action === 'STL')!;
 
+const BTN_ROW = 'shrink-0 flex gap-1.5 min-h-[46px] h-[46px]';
+
 interface StatsPanelProps {
   pendingPlayer:       Player | null;
   foulAwaitingSwipe:   boolean;
@@ -30,20 +32,14 @@ interface StatsPanelProps {
 }
 
 function Btn({
-  def, isSelected, size, onClick, disabled, useViolet = false,
+  def, isSelected, onClick, disabled, useViolet = false,
 }: {
   def: StatDef;
   isSelected: boolean;
-  size: 'md' | 'sm';
   onClick: () => void;
   disabled?: boolean;
   useViolet?: boolean;
 }) {
-  const sizeClass = {
-    md: 'py-2 text-base font-bold min-h-[52px]',
-    sm: 'py-1 text-xs font-semibold',
-  }[size];
-
   const variantClass = useViolet
     ? isSelected
       ? 'bg-violet-700/80 text-white border-2 border-violet-400'
@@ -56,40 +52,15 @@ function Btn({
       disabled={disabled}
       onPointerDown={() => { if (!disabled) onClick(); }}
       className={cn(
-        'flex flex-1 min-h-0 flex-col items-center justify-center gap-0 rounded-xl',
-        'transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
-        sizeClass,
         variantClass,
         disabled && 'opacity-35 pointer-events-none',
       )}
     >
       <span className="leading-none">{def.label}</span>
     </button>
-  );
-}
-
-function StatsColorLegend() {
-  const sp = useDictionary().statsPanel;
-  const items: { dot: string; label: string }[] = [
-    { dot: 'bg-blue-500', label: sp.colorStandard },
-    { dot: 'bg-violet-500', label: sp.colorLinked },
-    { dot: 'bg-cyan-400/90 ring-1 ring-cyan-300/60 ring-dashed', label: sp.colorSignature },
-    { dot: 'bg-amber-500', label: sp.colorGesture },
-    { dot: 'bg-emerald-500', label: sp.colorShot },
-  ];
-  return (
-    <div className="shrink-0 rounded-lg bg-neutral-900/80 border border-neutral-800/60 px-2 py-1.5">
-      <p className="text-[9px] font-bold text-neutral-500 uppercase tracking-wide mb-1">{sp.colorLegendTitle}</p>
-      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-        {items.map(({ dot, label }) => (
-          <span key={label} className="flex items-center gap-1 min-w-0">
-            <span className={cn('w-2 h-2 rounded-full shrink-0', dot)} />
-            <span className="text-[9px] text-neutral-400 leading-tight truncate">{label}</span>
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -139,8 +110,8 @@ function FoulSwipeBtn({
       onPointerUp={handlePointerUp}
       onPointerCancel={() => { startRef.current = null; }}
       className={cn(
-        'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
-        'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         getStatButtonClasses('gesture', active),
         disabled && 'opacity-35 pointer-events-none',
@@ -148,16 +119,16 @@ function FoulSwipeBtn({
     >
       {active && (
         <>
-          <span className="absolute top-0.5 inset-x-0 text-center text-[8px] font-bold text-white/80 pointer-events-none leading-none">
+          <span className="absolute top-0.5 inset-x-0 text-center text-[7px] font-bold text-white/80 pointer-events-none leading-none">
             P
           </span>
-          <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] font-bold text-amber-300/90 pointer-events-none leading-none">
+          <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-amber-300/90 pointer-events-none leading-none">
             P1
           </span>
-          <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[8px] font-bold text-red-300/90 pointer-events-none leading-none">
+          <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-red-300/90 pointer-events-none leading-none">
             P2
           </span>
-          <span className="absolute bottom-0.5 inset-x-0 text-center text-[8px] font-bold text-violet-300/90 pointer-events-none leading-none">
+          <span className="absolute bottom-0.5 inset-x-0 text-center text-[7px] font-bold text-violet-300/90 pointer-events-none leading-none">
             U/T
           </span>
         </>
@@ -221,8 +192,8 @@ function StatSwipeBtn({
       onPointerUp={handlePointerUp}
       onPointerCancel={() => { startRef.current = null; }}
       className={cn(
-        'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
-        'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         btnClass,
         tapDisabled && !teamDefActive && 'opacity-35',
@@ -231,11 +202,6 @@ function StatSwipeBtn({
       {armed && (
         <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
           {teamDefActive ? g.teamDefSwipeBadge : '→'}
-        </span>
-      )}
-      {!armed && (
-        <span className="absolute top-0.5 inset-x-0 text-center text-[7px] font-semibold text-cyan-500/50 pointer-events-none leading-none">
-          {g.teamDefHoldHint}
         </span>
       )}
       <span className="leading-none">{label}</span>
@@ -283,9 +249,7 @@ export function StatsPanel({
   }
 
   return (
-    <div className="h-full flex flex-col gap-1 px-2 py-1 bg-neutral-950 overflow-hidden">
-
-      <StatsColorLegend />
+    <div className="h-full flex flex-col justify-center gap-1 px-2 py-0.5 bg-neutral-950 overflow-hidden">
 
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
@@ -295,7 +259,7 @@ export function StatsPanel({
               type="button"
               onPointerDown={() => onTovModeChange?.(mode)}
               className={cn(
-                'py-1 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-0.5',
+                'py-0.5 rounded-lg text-[9px] font-bold transition-all border flex items-center justify-center gap-0.5',
                 tovMode === mode
                   ? mode === 'simple'
                     ? 'bg-neutral-700 border-neutral-500 text-neutral-100'
@@ -319,9 +283,9 @@ export function StatsPanel({
         </div>
       )}
 
-      <div className="flex items-center justify-center min-h-[22px] shrink-0 px-1">
+      <div className="flex items-center justify-center shrink-0 min-h-[18px] px-1">
         <div className={cn(
-          'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
+          'flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-full',
           teamDefAwaitingVictim
             ? 'bg-cyan-950/50 border border-cyan-500/40'
             : pendingPlayer
@@ -332,12 +296,12 @@ export function StatsPanel({
         )}>
           {(pendingPlayer || teamDefAwaitingVictim) && (
             <span className={cn(
-              'w-2 h-2 rounded-full animate-pulse shrink-0',
+              'w-1.5 h-1.5 rounded-full animate-pulse shrink-0',
               teamDefAwaitingVictim ? 'bg-cyan-400' : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
             )} />
           )}
           <span className={cn(
-            'text-xs font-semibold truncate',
+            'text-[11px] font-semibold truncate',
             teamDefAwaitingVictim ? 'text-cyan-100' : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
           )}>
             {hint}
@@ -345,13 +309,12 @@ export function StatsPanel({
         </div>
       </div>
 
-      <div className="flex gap-2 flex-1 min-h-[56px]">
+      <div className={BTN_ROW}>
         {NEUTRAL.map((def) => (
           <Btn
             key={def.action}
             def={def}
             isSelected={isSelected(def.action)}
-            size="md"
             disabled={!pendingPlayer}
             useViolet={def.action === 'AST'}
             onClick={() => tap(def.action)}
@@ -359,7 +322,7 @@ export function StatsPanel({
         ))}
       </div>
 
-      <div className="flex gap-2 flex-1 min-h-[56px]">
+      <div className={BTN_ROW}>
         {NEG.map((def) => (
           <button
             key={def.action}
@@ -367,8 +330,8 @@ export function StatsPanel({
             disabled={!pendingPlayer}
             onPointerDown={() => { if (pendingPlayer) tap(def.action); }}
             className={cn(
-              'flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
-              'py-2 text-base font-bold min-h-[52px] transition-all duration-75 active:scale-[0.97] select-none touch-none',
+              'flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+              'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
               'shadow-sm shadow-black/20',
               getNegativeStatButtonClasses(isSelected(def.action)),
               !pendingPlayer && 'opacity-35 pointer-events-none',
@@ -401,14 +364,14 @@ export function StatsPanel({
         />
       </div>
 
-      <p className="shrink-0 text-center text-[9px] text-emerald-500/70 leading-tight px-1">
+      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
         {g.shotSwipeLegend}
       </p>
-      <p className="shrink-0 text-center text-[9px] text-cyan-500/60 leading-tight px-1">
+      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
         {g.teamDefSwipeLegend}
       </p>
 
-      <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">
+      <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-0.5 pointer-events-none select-none">
         {[
           ['ORbd', sp.legendOrbd], ['DRbd', sp.legendDrbd], ['AST', sp.legendAst],
           ['STL', sp.legendStl], ['BLK', sp.legendBlk], ['FOUL', sp.legendFoul], ['TOV', sp.legendTov],
