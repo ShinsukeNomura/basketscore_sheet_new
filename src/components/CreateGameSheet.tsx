@@ -9,6 +9,7 @@ import {
 } from '@/lib/storage';
 import { useAuth } from '@/hooks/useAuth';
 import { JerseyColorId, DEFAULT_WHITE_COLOR, DEFAULT_DARK_COLOR } from '@/lib/colors';
+import type { MainTeamSide } from '@/types';
 import { cn } from '@/lib/utils';
 import { ColorPicker } from '@/components/ColorPicker';
 import { MyTeamsSheet } from '@/components/MyTeamsSheet';
@@ -274,6 +275,8 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
   const [darkColor,     setDarkColor]     = useState<JerseyColorId>(DEFAULT_DARK_COLOR);
   const [darkPlayers,   setDarkPlayers]   = useState<string[]>([]);
   const [errors,        setErrors]        = useState<{ white?: string; dark?: string }>({});
+  const [mainTeamSide,  setMainTeamSide]  = useState<MainTeamSide>('white');
+  const [setupHasLogs,  setSetupHasLogs]  = useState(false);
   const [myTeamsOpen,   setMyTeamsOpen]   = useState(false);
   const [myTeamsTarget, setMyTeamsTarget] = useState<'white' | 'dark'>('white');
 
@@ -296,15 +299,22 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     setGameType(type);
     setDate(p.game.date);
     setScorekeeper(p.game.scorekeeper ?? '');
-    setWhiteName(p.ourTeam.team_name);
-    setWhiteColor((p.ourTeam.color || DEFAULT_WHITE_COLOR) as JerseyColorId);
-    setDarkName(p.theirTeam.team_name);
-    setDarkColor((p.theirTeam.color || DEFAULT_DARK_COLOR) as JerseyColorId);
+    const main = p.game.main_team_side ?? 'white';
+    setMainTeamSide(main);
+    setSetupHasLogs(p.logs.some((l) => !l.is_deleted));
+    const whiteId = main === 'white' ? p.ourTeam.id : p.theirTeam.id;
+    const darkId  = main === 'white' ? p.theirTeam.id : p.ourTeam.id;
+    const whiteTeam = main === 'white' ? p.ourTeam : p.theirTeam;
+    const darkTeam  = main === 'white' ? p.theirTeam : p.ourTeam;
+    setWhiteName(whiteTeam.team_name);
+    setWhiteColor((whiteTeam.color || DEFAULT_WHITE_COLOR) as JerseyColorId);
+    setDarkName(darkTeam.team_name);
+    setDarkColor((darkTeam.color || DEFAULT_DARK_COLOR) as JerseyColorId);
     setWhitePlayers(
-      p.allPlayers.filter((pl) => pl.team_id === p.ourTeam.id).map((pl) => pl.back_number),
+      p.allPlayers.filter((pl) => pl.team_id === whiteId).map((pl) => pl.back_number),
     );
     setDarkPlayers(
-      p.allPlayers.filter((pl) => pl.team_id === p.theirTeam.id).map((pl) => pl.back_number),
+      p.allPlayers.filter((pl) => pl.team_id === darkId).map((pl) => pl.back_number),
     );
     setErrors({});
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -354,6 +364,8 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     setGameType(g.typePractice);
     setDate(todayString());
     setScorekeeper('');
+    setMainTeamSide('white');
+    setSetupHasLogs(false);
     setWhiteName(''); setWhiteColor(DEFAULT_WHITE_COLOR); setWhitePlayers([]);
     setDarkName('');  setDarkColor(DEFAULT_DARK_COLOR);   setDarkPlayers([]);
     setErrors({});
@@ -365,6 +377,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
       gameType,
       date:           date || todayString(),
       scorekeeper:    scorekeeper.trim() || undefined,
+      mainTeamSide,
       whiteTeamName:  whiteName.trim(),
       whiteTeamColor: whiteColor,
       blueTeamName:   darkName.trim(),
@@ -386,7 +399,7 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
     onClose();
     router.push(`/${locale}/game/${id}`);
   }, [
-    gameType, date, scorekeeper, whiteName, whiteColor, whitePlayers,
+    gameType, date, scorekeeper, mainTeamSide, whiteName, whiteColor, whitePlayers,
     darkName, darkColor, darkPlayers, validate, onClose, router, locale,
     isEdit, gameId, onSaved, user?.id, resetForm,
   ]);
@@ -485,6 +498,36 @@ export function CreateGameSheet({ open, onClose, gameId, onSaved }: Props) {
                   onChange={setScorekeeper}
                   maxLength={30}
                 />
+
+                {/* メインチーム（記録視点） */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-white/40 text-xs font-semibold tracking-wider uppercase px-0.5">
+                    {g.mainTeamLabel}
+                  </label>
+                  <p className="text-white/35 text-xs leading-relaxed px-0.5">{g.mainTeamHint}</p>
+                  <div className="flex gap-2">
+                    {(['white', 'dark'] as MainTeamSide[]).map((side) => (
+                      <button
+                        key={side}
+                        type="button"
+                        disabled={isEdit && setupHasLogs}
+                        onClick={() => setMainTeamSide(side)}
+                        className={cn(
+                          'flex-1 py-3 rounded-xl text-sm font-bold transition-all border-2',
+                          mainTeamSide === side
+                            ? 'border-sky-500 bg-sky-600/30 text-sky-100'
+                            : 'border-white/10 bg-white/6 text-white/45 active:bg-white/10',
+                          isEdit && setupHasLogs && 'opacity-45 pointer-events-none',
+                        )}
+                      >
+                        {side === 'white' ? g.mainTeamWhite : g.mainTeamDark}
+                      </button>
+                    ))}
+                  </div>
+                  {isEdit && setupHasLogs && (
+                    <p className="text-amber-400/80 text-[10px] px-0.5">{g.mainTeamLocked}</p>
+                  )}
+                </div>
 
                 {/* チーム（白） */}
                 <div className="flex flex-col gap-3 rounded-2xl bg-white/4 p-4">

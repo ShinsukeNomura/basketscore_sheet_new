@@ -4,6 +4,8 @@
 
 export type Period = 1 | 2 | 3 | 4 | 5 | 6; // 5=OT1, 6=OT2
 export type GameStatus = 'progress' | 'finished';
+/** 試合作成フォームの白/紺スロットのどちらを記録メインとするか */
+export type MainTeamSide = 'white' | 'dark';
 
 export type ActionType =
   | '2PT_MADE' | '2PT_MISS'
@@ -53,6 +55,8 @@ export interface Game {
   created_at:     string;
   /** スコア記載者名（任意） */
   scorekeeper?:   string;
+  /** 記録視点のメインチーム（白 or 紺スロット）。未設定は白=メイン */
+  main_team_side?: MainTeamSide;
 }
 
 export interface Team {

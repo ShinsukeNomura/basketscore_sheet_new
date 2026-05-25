@@ -326,6 +326,8 @@ export interface CreateGameParams {
   gameType:       string;
   date:           string;
   scorekeeper?:   string;
+  /** 記録するメインチーム（白 or 紺スロット） */
+  mainTeamSide?:  import('@/types').MainTeamSide;
   whiteTeamName:  string;
   whiteTeamColor: string;
   blueTeamName:   string;
@@ -335,36 +337,66 @@ export interface CreateGameParams {
   userId?:        string;
 }
 
+function slotTeamIdsFromPersisted(persisted: PersistedGameState): { whiteId: string; darkId: string } {
+  const main = persisted.game.main_team_side ?? 'white';
+  return {
+    whiteId: main === 'white' ? persisted.ourTeam.id : persisted.theirTeam.id,
+    darkId:  main === 'white' ? persisted.theirTeam.id : persisted.ourTeam.id,
+  };
+}
+
+function buildTeamsAndGame(
+  gameId: string,
+  now: string,
+  params: CreateGameParams,
+  baseGame: Partial<Game>,
+  slotIds?: { whiteId: string; darkId: string },
+): { game: Game; ourTeam: Team; theirTeam: Team; whiteId: string; darkId: string } {
+  const mainSide = params.mainTeamSide ?? 'white';
+  const whiteId  = slotIds?.whiteId ?? makeId();
+  const darkId   = slotIds?.darkId ?? makeId();
+  const sk = params.scorekeeper?.trim();
+
+  const whiteTeam: Team = {
+    id: whiteId, game_id: gameId,
+    team_name: params.whiteTeamName,
+    is_ours: mainSide === 'white',
+    color: params.whiteTeamColor || 'white',
+    created_at: now,
+  };
+  const darkTeam: Team = {
+    id: darkId, game_id: gameId,
+    team_name: params.blueTeamName,
+    is_ours: mainSide === 'dark',
+    color: params.blueTeamColor || 'navy',
+    created_at: now,
+  };
+
+  const game: Game = {
+    id:             gameId,
+    game_name:      params.gameType,
+    date:           params.date || now.split('T')[0],
+    status:         baseGame.status ?? 'progress',
+    current_period: baseGame.current_period ?? 1,
+    created_at:     baseGame.created_at ?? now,
+    main_team_side: mainSide,
+  };
+  if (sk) game.scorekeeper = sk;
+  else if (baseGame.scorekeeper) game.scorekeeper = baseGame.scorekeeper;
+
+  return {
+    game,
+    ourTeam:   mainSide === 'white' ? whiteTeam : darkTeam,
+    theirTeam: mainSide === 'white' ? darkTeam : whiteTeam,
+    whiteId,
+    darkId,
+  };
+}
+
 export function createNewGame(params: CreateGameParams): string {
   const id  = makeId();
   const now = new Date().toISOString();
-
-  const sk = params.scorekeeper?.trim();
-  const game: Game = {
-    id,
-    game_name:      params.gameType,
-    date:           params.date || now.split('T')[0],
-    status:         'progress',
-    current_period: 1,
-    created_at:     now,
-    ...(sk ? { scorekeeper: sk } : {}),
-  };
-  const ourTeam: Team = {
-    id:         makeId(),
-    game_id:    id,
-    team_name:  params.whiteTeamName,
-    is_ours:    true,
-    color:      params.whiteTeamColor || 'white',
-    created_at: now,
-  };
-  const theirTeam: Team = {
-    id:         makeId(),
-    game_id:    id,
-    team_name:  params.blueTeamName,
-    is_ours:    false,
-    color:      params.blueTeamColor || 'navy',
-    created_at: now,
-  };
+  const { game, ourTeam, theirTeam, whiteId, darkId } = buildTeamsAndGame(id, now, params, {});
 
   const allPlayers: Player[] = [];
   const addPlayers = (teamId: string, numbers: string[]) => {
@@ -379,8 +411,8 @@ export function createNewGame(params: CreateGameParams): string {
       });
     });
   };
-  if (params.whitePlayers?.length) addPlayers(ourTeam.id,   params.whitePlayers);
-  if (params.bluePlayers?.length)  addPlayers(theirTeam.id, params.bluePlayers);
+  if (params.whitePlayers?.length) addPlayers(whiteId, params.whitePlayers);
+  if (params.bluePlayers?.length)  addPlayers(darkId,  params.bluePlayers);
 
   const persisted: PersistedGameState = { game, ourTeam, theirTeam, allPlayers, logs: [] };
   savePersistedGame(persisted, 0, 0, params.userId);
@@ -393,27 +425,20 @@ export function updateGameSetup(gameId: string, params: CreateGameParams): boole
   if (!persisted) return false;
 
   const now = new Date().toISOString();
-  const sk = params.scorekeeper?.trim();
-  const game: Game = {
-    ...persisted.game,
-    game_name: params.gameType,
-    date:      params.date || persisted.game.date,
-  };
-  if (sk) game.scorekeeper = sk;
-  else delete game.scorekeeper;
-
-  const ourTeam: Team = {
-    ...persisted.ourTeam,
-    team_name: params.whiteTeamName,
-    color:     params.whiteTeamColor || 'white',
-  };
-  const theirTeam: Team = {
-    ...persisted.theirTeam,
-    team_name: params.blueTeamName,
-    color:     params.blueTeamColor || 'navy',
-  };
-
   const hasLogs = persisted.logs.some((l) => !l.is_deleted);
+  const mainSide = hasLogs
+    ? (persisted.game.main_team_side ?? 'white')
+    : (params.mainTeamSide ?? persisted.game.main_team_side ?? 'white');
+  const slotIds = slotTeamIdsFromPersisted(persisted);
+
+  const { game, ourTeam, theirTeam, whiteId, darkId } = buildTeamsAndGame(
+    gameId,
+    now,
+    { ...params, mainTeamSide: mainSide },
+    persisted.game,
+    slotIds,
+  );
+
   let allPlayers = persisted.allPlayers;
 
   if (!hasLogs && (params.whitePlayers?.length || params.bluePlayers?.length)) {
@@ -430,8 +455,8 @@ export function updateGameSetup(gameId: string, params: CreateGameParams): boole
         });
       });
     };
-    if (params.whitePlayers?.length) addPlayers(ourTeam.id, params.whitePlayers);
-    if (params.bluePlayers?.length)  addPlayers(theirTeam.id, params.bluePlayers);
+    if (params.whitePlayers?.length) addPlayers(whiteId, params.whitePlayers);
+    if (params.bluePlayers?.length)  addPlayers(darkId,  params.bluePlayers);
   }
 
   const active = persisted.logs.filter((l) => !l.is_deleted);

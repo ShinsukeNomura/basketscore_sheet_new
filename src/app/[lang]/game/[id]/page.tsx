@@ -168,9 +168,9 @@ export default function GamePage() {
 
   const handlePlayerTap = useCallback((player: Player) => {
     if (teamDefAwaitingVictim) {
-      const defenseTeamId = player.team_id === ourTeam.id ? theirTeam.id : ourTeam.id;
+      if (player.team_id !== theirTeam.id) return;
       if (tovMode === 'simple') {
-        logTeamDefense(defenseTeamId, player);
+        logTeamDefense(ourTeam.id, player);
         clearInputState();
         return;
       }
