@@ -5,6 +5,7 @@ import { Player, Team } from '@/types';
 import { getColorConfig, JerseyColorId } from '@/lib/colors';
 import { ColorPicker } from '@/components/ColorPicker';
 import { cn } from '@/lib/utils';
+import { backNumbersMatch, normalizeBackNumber } from '@/lib/backNumber';
 import {
   Sheet,
   SheetContent,
@@ -92,15 +93,16 @@ export function RosterSheet({
     if (!team) return;
 
     // 重複チェックはフック側でも行うが UI でも事前にフィードバック
+    const normNum = normalizeBackNumber(num);
     const dup = allPlayers.some(
-      (p) => p.team_id === team.id && p.back_number === num,
+      (p) => p.team_id === team.id && backNumbersMatch(p.back_number, normNum),
     );
     if (dup) {
       setError(g.errorDuplicate.replace('{num}', num));
       return;
     }
 
-    onAddPlayer(team.id, num);
+    onAddPlayer(team.id, normNum);
     setInput('');
     setError('');
     if (navigator.vibrate) navigator.vibrate(30);

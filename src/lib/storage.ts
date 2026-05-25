@@ -2,6 +2,7 @@ import {
   Game, Team, Player, StatsLog,
   GameSummary, PersistedGameState, GameStatus,
 } from '@/types';
+import { normalizeBackNumber } from '@/lib/backNumber';
 
 // re-export so callers can import GameSummary from '@/lib/storage'
 export type { GameSummary };
@@ -371,7 +372,7 @@ export function createNewGame(params: CreateGameParams): string {
       allPlayers.push({
         id:          makeId(),
         team_id:     teamId,
-        back_number: num,
+        back_number: normalizeBackNumber(num),
         name:        '',
         is_on_court: i < 5,
         created_at:  now,
@@ -422,7 +423,7 @@ export function updateGameSetup(gameId: string, params: CreateGameParams): boole
         allPlayers.push({
           id:          makeId(),
           team_id:     teamId,
-          back_number: num,
+          back_number: normalizeBackNumber(num),
           name:        '',
           is_on_court: i < 5,
           created_at:  now,

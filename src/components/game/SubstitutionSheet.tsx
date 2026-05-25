@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, type PointerEvent } from 'rea
 import { Player, Team } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
+import { backNumbersMatch, normalizeBackNumber } from '@/lib/backNumber';
 import {
   Sheet,
   SheetContent,
@@ -74,11 +75,12 @@ export function SubstitutionSheet({
       return;
     }
     if (!team) return;
-    if (allPlayers.some((p) => p.team_id === team.id && p.back_number === num)) {
-      setError(g.errorDuplicate.replace('{num}', num));
+    const normNum = normalizeBackNumber(num);
+    if (allPlayers.some((p) => p.team_id === team.id && backNumbersMatch(p.back_number, normNum))) {
+      setError(g.errorDuplicate.replace('{num}', normNum));
       return;
     }
-    onAddPlayer(team.id, num);
+    onAddPlayer(team.id, normNum);
     setInput('');
     setError('');
     if (navigator.vibrate) navigator.vibrate(30);

@@ -20,6 +20,8 @@ import { shouldPreferCloud } from '@/lib/cloudGameMerge';
 import { canSyncGameState, isReadyForCloudSync } from '@/lib/gameSyncGuard';
 import { useAuth } from '@/hooks/useAuth';
 import { sortPlayersByBackNumber } from '@/lib/playerSort';
+import { normalizeBackNumber, backNumbersMatch } from '@/lib/backNumber';
+import { mergeDuplicateBackNumbersInState } from '@/lib/mergePlayers';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 // ============================================================
@@ -125,7 +127,7 @@ function reducer(state: InternalState, action: GameAction): InternalState {
   switch (action.type) {
 
     case 'LOAD_PERSISTED': {
-      const p = action.payload;
+      const p = mergeDuplicateBackNumbersInState(action.payload);
       return { ...state, ...p, selectedStat: null, flashPlayerId: null, isLoaded: true };
     }
 
@@ -288,10 +290,11 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
     case 'ADD_PLAYER': {
       const { teamId, backNumber } = action.payload;
-      if (state.allPlayers.some((p) => p.team_id === teamId && p.back_number === backNumber)) return state;
+      const normNum = normalizeBackNumber(backNumber);
+      if (state.allPlayers.some((p) => p.team_id === teamId && backNumbersMatch(p.back_number, normNum))) return state;
       const courtCount = state.allPlayers.filter((p) => p.team_id === teamId && p.is_on_court).length;
       const newPlayer: Player = {
-        id: makeId(), team_id: teamId, back_number: backNumber,
+        id: makeId(), team_id: teamId, back_number: normNum,
         name: '', is_on_court: courtCount < 5, created_at: new Date().toISOString(),
       };
       return { ...state, allPlayers: [...state.allPlayers, newPlayer] };

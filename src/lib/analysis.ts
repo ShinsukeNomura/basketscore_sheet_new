@@ -1,5 +1,6 @@
 import { getGamesIndex, loadPersistedGame, GameSummary } from './storage';
 import { StatsLog } from '@/types';
+import { normalizeBackNumber, backNumbersMatch } from '@/lib/backNumber';
 
 // ============================================================
 // 型定義
@@ -118,7 +119,7 @@ export function buildTeamAnalysis(teamName: string): TeamAnalysis {
       const pLogs = teamLogs.filter((l) => l.player_id === player.id);
       if (pLogs.length === 0) continue;
 
-      const bn = player.back_number;
+      const bn = normalizeBackNumber(player.back_number);
       if (!playerMap.has(bn)) {
         playerMap.set(bn, {
           backNumber: bn, games: 0, pts: 0,
@@ -167,15 +168,18 @@ export function getPlayerShotLogs(teamName: string, backNumber: string): StatsLo
     );
     if (!matchedTeam) continue;
 
-    const player = game.allPlayers.find(
-      (p) => p.team_id === matchedTeam.id && p.back_number === backNumber,
+    const normTarget = normalizeBackNumber(backNumber);
+    const matchedPlayers = game.allPlayers.filter(
+      (p) => p.team_id === matchedTeam.id && backNumbersMatch(p.back_number, normTarget),
     );
-    if (!player) continue;
+    if (matchedPlayers.length === 0) continue;
 
+    const playerIds = new Set(matchedPlayers.map((p) => p.id));
     const shotLogs = game.logs.filter(
       (l) =>
         !l.is_deleted &&
-        l.player_id === player.id &&
+        l.player_id &&
+        playerIds.has(l.player_id) &&
         l.court_location !== undefined &&
         (l.action_type === '2PT_MADE' ||
           l.action_type === '2PT_MISS' ||
