@@ -561,13 +561,15 @@ export function useGameState(gameId: string) {
     return map;
   }, [activeLogs]);
 
-  // チームごとのファウル合計（FIBA: 5回以上でペナルティ）
+  // チームファウル（クォーターごとに独立）
   const teamFoulCounts = useMemo(() => {
     const map: Record<string, number> = {};
-    activeLogs.filter((l) => l.action_type === 'FOUL')
-              .forEach((l) => { map[l.team_id] = (map[l.team_id] ?? 0) + 1; });
+    const period = state.game.current_period;
+    activeLogs
+      .filter((l) => l.action_type === 'FOUL' && l.period === period)
+      .forEach((l) => { map[l.team_id] = (map[l.team_id] ?? 0) + 1; });
     return map;
-  }, [activeLogs]);
+  }, [activeLogs, state.game.current_period]);
 
   // チームごとの TOV 合計（自動生成分を含む）
   const teamTovCounts = useMemo(() => {

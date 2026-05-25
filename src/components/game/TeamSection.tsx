@@ -97,7 +97,7 @@ export function TeamSection({
       </div>
 
       {(() => {
-        const isBonus = teamFoulCount >= 5;
+        const isRedZone = teamFoulCount >= 4;
         return (
           <div className="flex items-center justify-between shrink-0 px-0.5">
             <div className="flex items-center gap-1.5">
@@ -108,7 +108,7 @@ export function TeamSection({
                     key={i}
                     className={cn(
                       'w-1.5 h-2.5 rounded-sm',
-                      isBonus ? 'bg-red-500' : 'bg-white/25',
+                      i >= 3 ? 'bg-red-500' : 'bg-white/25',
                     )}
                   />
                 ))}
@@ -119,7 +119,7 @@ export function TeamSection({
             </div>
             <span className={cn(
               'text-sm font-black tabular-nums',
-              isBonus ? 'text-red-400' : 'text-white/30',
+              isRedZone ? 'text-red-400' : 'text-white/30',
             )}>
               {teamFoulCount}
             </span>
