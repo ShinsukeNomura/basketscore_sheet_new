@@ -8,7 +8,7 @@ import { classifyPointerGesture } from '@/lib/playerGesture';
 import { cn } from '@/lib/utils';
 
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
-const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV');
+const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV' && s.action !== 'FOUL');
 
 interface StatsPanelProps {
   pendingPlayer:      Player | null;
@@ -35,7 +35,7 @@ function Btn({
   const isNegative = def.variant === 'negative';
 
   const sizeClass = {
-    md: 'py-1.5 text-sm font-bold',
+    md: 'py-2 text-base font-bold min-h-[52px]',
     sm: 'py-1 text-xs font-semibold',
   }[size];
 
@@ -117,8 +117,8 @@ function FoulSwipeBtn({
       onPointerUp={handlePointerUp}
       onPointerCancel={() => { startRef.current = null; }}
       className={cn(
-        'relative flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
-        'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'relative flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
+        'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         active
           ? 'bg-amber-700/80 text-white border-2 border-amber-400 ring-2 ring-amber-300/50'
@@ -199,7 +199,7 @@ export function StatsPanel({
         </div>
       )}
 
-      <div className="flex items-center justify-center min-h-[28px] shrink-0 px-1">
+      <div className="flex items-center justify-center min-h-[22px] shrink-0 px-1">
         <div className={cn(
           'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
           pendingPlayer ? 'bg-sky-950/60 border border-sky-600/40' : 'bg-neutral-900/40 border border-neutral-800/50',
@@ -214,7 +214,7 @@ export function StatsPanel({
         </div>
       </div>
 
-      <div className="flex gap-2 flex-[3] min-h-0 overflow-hidden">
+      <div className="flex gap-2 flex-1 min-h-[56px]">
         {NEUTRAL.map((def) => (
           <Btn
             key={def.action}
@@ -227,7 +227,7 @@ export function StatsPanel({
         ))}
       </div>
 
-      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
+      <div className="flex gap-2 flex-1 min-h-[56px]">
         {NEG.map((def) => (
           <Btn
             key={def.action}
@@ -249,8 +249,8 @@ export function StatsPanel({
           disabled={!pendingPlayer}
           onPointerDown={() => { if (pendingPlayer) tap('TOV'); }}
           className={cn(
-            'flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
-            'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97] touch-none',
+            'flex flex-1 min-h-[52px] flex-col items-center justify-center rounded-xl',
+            'py-2 text-base font-bold transition-all duration-75 active:scale-[0.97] touch-none',
             'shadow-sm shadow-black/20',
             isSelected('TOV')
               ? 'bg-orange-700/80 text-white border-2 border-orange-400'
@@ -262,7 +262,7 @@ export function StatsPanel({
         </button>
       </div>
 
-      <p className="shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+      <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
         {g.shotSwipeLegend}
       </p>
 

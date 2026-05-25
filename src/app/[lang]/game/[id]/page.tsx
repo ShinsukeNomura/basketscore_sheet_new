@@ -318,7 +318,7 @@ export default function GamePage() {
       </div>
 
       <div className="shrink-0 bg-neutral-950 border-t border-white/10 pb-safe">
-        <div className="max-h-[38dvh] overflow-y-auto overscroll-contain">
+        <div className="max-h-[min(20dvh,148px)] overflow-y-auto overscroll-contain">
           <Timeline
             entries={recentEntries}
             allPlayers={allPlayers}
