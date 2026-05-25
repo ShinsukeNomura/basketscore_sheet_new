@@ -108,7 +108,7 @@ export function TeamSection({
                     key={i}
                     className={cn(
                       'w-1.5 h-2.5 rounded-sm',
-                      i >= 3 ? 'bg-red-500' : 'bg-white/25',
+                      isRedZone ? 'bg-red-500' : 'bg-white/25',
                     )}
                   />
                 ))}
