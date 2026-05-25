@@ -12,11 +12,13 @@ interface TovCategorySheetProps {
   teamName: string;
   isOurs:   boolean;
   players:  Player[];
+  /** 背番号選択済みの場合は種類のみ選択 */
+  presetPlayer?: Player | null;
   onConfirm: (reason: TovReason, playerId: string | null) => void;
   onCancel:  () => void;
 }
 
-export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, onCancel }: TovCategorySheetProps) {
+export function TovCategorySheet({ mode, teamName, isOurs, players, presetPlayer, onConfirm, onCancel }: TovCategorySheetProps) {
   const dict = useDictionary();
   const t = dict.tov;
   const c = dict.common;
@@ -57,13 +59,18 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
     : 'bg-rose-900/50 text-rose-200 border-rose-700/50';
 
   const handleReasonSelect = useCallback((reason: TovReason) => {
+    if (presetPlayer) {
+      setFlash(reason);
+      setTimeout(() => onConfirm(reason, presetPlayer.id), 160);
+      return;
+    }
     setSelectedReason(reason);
     setFlash(reason);
     setTimeout(() => {
       setFlash(null);
       setStep('player');
     }, 160);
-  }, []);
+  }, [presetPlayer, onConfirm]);
 
   const handlePlayerSelect = useCallback((playerId: string) => {
     if (!selectedReason) return;
@@ -113,13 +120,21 @@ export function TovCategorySheet({ mode, teamName, isOurs, players, onConfirm, o
 
         {/* ステップインジケーター */}
         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800/40 border-b border-neutral-800 text-[11px]">
-          <span className={cn('px-2 py-0.5 rounded', step === 'reason' ? 'bg-amber-900/60 text-amber-200' : 'bg-neutral-700 text-neutral-500')}>
-            {t.stepReason}
-          </span>
-          <span className="text-neutral-700">→</span>
-          <span className={cn('px-2 py-0.5 rounded', step === 'player' ? 'bg-emerald-900/60 text-emerald-200' : 'bg-neutral-700 text-neutral-500')}>
-            {t.stepPlayer}
-          </span>
+          {presetPlayer ? (
+            <span className="text-amber-200 font-semibold">
+              #{presetPlayer.back_number} — {t.stepReason}
+            </span>
+          ) : (
+            <>
+              <span className={cn('px-2 py-0.5 rounded', step === 'reason' ? 'bg-amber-900/60 text-amber-200' : 'bg-neutral-700 text-neutral-500')}>
+                {t.stepReason}
+              </span>
+              <span className="text-neutral-700">→</span>
+              <span className={cn('px-2 py-0.5 rounded', step === 'player' ? 'bg-emerald-900/60 text-emerald-200' : 'bg-neutral-700 text-neutral-500')}>
+                {t.stepPlayer}
+              </span>
+            </>
+          )}
         </div>
 
         {/* コンテンツ */}

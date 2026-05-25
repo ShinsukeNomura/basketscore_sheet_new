@@ -1,7 +1,10 @@
 'use client';
 
 import { useReducer, useCallback, useMemo, useEffect, useRef, useState } from 'react';
-import { Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus, PersistedGameState, TimelineEntry, TovReason, TovMode } from '@/types';
+import {
+  Game, Team, Player, StatsLog, ActionType, CourtLocation, Period, GameStatus,
+  PersistedGameState, TovReason, TovMode, FoulPenalty,
+} from '@/types';
 import { buildTimelineEntries } from '@/lib/timelineEntries';
 import { ACTION_POINTS } from '@/lib/stats';
 import {
@@ -82,6 +85,7 @@ type GameAction =
   | { type: 'LOAD_PERSISTED';  payload: PersistedGameState }
   | { type: 'SELECT_STAT';     payload: ActionType }
   | { type: 'LOG_STAT';        payload: { player: Player; courtLocation?: CourtLocation } }
+  | { type: 'LOG_PLAYER_STAT'; payload: { player: Player; actionType: ActionType; courtLocation?: CourtLocation; foulPenalty?: FoulPenalty } }
   | { type: 'LOG_TEAM_TOV';   payload: { teamId: string; tovReason?: TovReason; playerId?: string } }  // チーム単位 TOV
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
@@ -126,6 +130,49 @@ function reducer(state: InternalState, action: GameAction): InternalState {
 
     case 'SELECT_STAT':
       return { ...state, selectedStat: state.selectedStat === action.payload ? null : action.payload };
+
+    case 'LOG_PLAYER_STAT': {
+      const { player, actionType, courtLocation, foulPenalty } = action.payload;
+      const ts = new Date().toISOString();
+      const isStl = actionType === 'STL';
+      const linkId = isStl ? makeId() : undefined;
+
+      const mainLog: StatsLog = {
+        id: makeId(), link_id: linkId, is_auto: false,
+        game_id: state.game.id, team_id: player.team_id,
+        player_id: player.id, period: state.game.current_period,
+        timestamp: ts, action_type: actionType,
+        points: ACTION_POINTS[actionType], is_deleted: false,
+        created_at: ts,
+        ...(courtLocation ? { court_location: courtLocation } : {}),
+        ...(foulPenalty ? { foul_penalty: foulPenalty } : {}),
+      };
+
+      const newLogs: StatsLog[] = [mainLog];
+
+      if (isStl && linkId) {
+        const opponentTeamId = player.team_id === state.ourTeam.id
+          ? state.theirTeam.id
+          : state.ourTeam.id;
+        const autoTov: StatsLog = {
+          id: makeId(), link_id: linkId, is_auto: true,
+          game_id: state.game.id, team_id: opponentTeamId,
+          player_id: null,
+          period: state.game.current_period,
+          timestamp: ts, action_type: 'TOV',
+          points: 0, is_deleted: false,
+          created_at: ts,
+        };
+        newLogs.push(autoTov);
+      }
+
+      return {
+        ...state,
+        logs: [...state.logs, ...newLogs],
+        flashPlayerId: player.id,
+        selectedStat: null,
+      };
+    }
 
     case 'LOG_STAT': {
       if (!state.selectedStat) return state;
@@ -543,6 +590,17 @@ export function useGameState(gameId: string) {
   // --- アクション ---
   const selectStat   = useCallback((a: ActionType) => dispatch({ type: 'SELECT_STAT',   payload: a }),              []);
   const logStat      = useCallback((p: Player, courtLocation?: CourtLocation) => { dispatch({ type: 'LOG_STAT', payload: { player: p, courtLocation } }); setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300); }, []);
+  const logPlayerStat = useCallback((
+    p: Player,
+    actionType: ActionType,
+    opts?: { courtLocation?: CourtLocation; foulPenalty?: FoulPenalty },
+  ) => {
+    dispatch({
+      type: 'LOG_PLAYER_STAT',
+      payload: { player: p, actionType, courtLocation: opts?.courtLocation, foulPenalty: opts?.foulPenalty },
+    });
+    setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
+  }, []);
   const undoLog      = useCallback((id: string)    => dispatch({ type: 'UNDO_LOG',      payload: id }),             []);
   const changePeriod = useCallback((p: Period)     => dispatch({ type: 'CHANGE_PERIOD', payload: p }),             []);
   const endGame      = useCallback(()              => dispatch({ type: 'END_GAME' }),                              []);
@@ -588,7 +646,7 @@ export function useGameState(gameId: string) {
     recentEntries,
     allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    selectStat, logStat, undoLog, changePeriod, endGame, resumeGame, substitute,
+    selectStat, logStat, logPlayerStat, undoLog, changePeriod, endGame, resumeGame, substitute,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
     cloudSyncStatus, saveToCloud,

@@ -31,6 +31,9 @@ export type TovReason =
   | '3sec'            // 3秒違反（12のみ）
   | 'other';          // その他
 
+/** ファウルペナルティ（P / P1 / P2） */
+export type FoulPenalty = 'P' | 'P1' | 'P2';
+
 export type CourtLocation =
   | 'restricted'
   | 'paint-left'       | 'paint-right'
@@ -89,6 +92,8 @@ export interface StatsLog {
   court_location?: CourtLocation;
   /** TOV 詳細理由（プレミアム機能）*/
   tov_reason?: TovReason;
+  /** ファウル種別（P / P1 / P2） */
+  foul_penalty?: FoulPenalty;
 }
 
 /** タイムライン表示用エントリ（primary + 連動ログを1セットに束ねる） */

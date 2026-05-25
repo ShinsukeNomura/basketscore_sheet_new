@@ -60,6 +60,9 @@ function LogLine({
   const player = log.player_id ? playerMap[log.player_id] : null;
   const isPoint = log.points > 0;
   const teamLabel = teamShortLabel(log.team_id, ourTeam, theirTeam, ourFallback, theirFallback);
+  const foulSuffix = log.action_type === 'FOUL' && log.foul_penalty
+    ? ` (${log.foul_penalty})`
+    : '';
 
   return (
     <div
@@ -98,7 +101,7 @@ function LogLine({
           isPoint ? 'text-emerald-400' : 'text-white/55',
         )}
       >
-        {actions[log.action_type]}
+        {actions[log.action_type]}{foulSuffix}
         {isPoint && ` +${log.points}`}
       </span>
     </div>

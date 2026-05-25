@@ -11,14 +11,19 @@ import { SubstitutionSheet }     from '@/components/game/SubstitutionSheet';
 import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
-import { CourtMap, isCourtMapAction } from '@/components/game/CourtMap';
-import { Team, Player, CourtLocation, TovMode, TovReason } from '@/types';
+import { CourtMap }              from '@/components/game/CourtMap';
+import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalty } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
 import type { GameSummary } from '@/types';
 import { UnsavedCloudSaveDialog } from '@/components/UnsavedCloudSaveDialog';
+import {
+  type PlayerGesture,
+  type ShotType,
+  shotAction,
+} from '@/lib/playerGesture';
 
 export default function GamePage() {
   const g = useDictionary().game;
@@ -29,10 +34,10 @@ export default function GamePage() {
 
   const {
     game, ourTeam, theirTeam, allPlayers, isLoaded,
-    selectedStat, flashPlayerId,
+    flashPlayerId,
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    selectStat, logStat, undoLog,
+    logPlayerStat, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
     renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
@@ -51,12 +56,33 @@ export default function GamePage() {
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [statsOpen,      setStatsOpen]      = useState(false);
+
+  const [pendingPlayer,    setPendingPlayer]    = useState<Player | null>(null);
+  const [shotPhase,        setShotPhase]        = useState<'type' | 'result' | null>(null);
+  const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);
+  const [foulMode,         setFoulMode]         = useState(false);
+  const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
+
   const [courtMapPlayer, setCourtMapPlayer] = useState<Player | null>(null);
-  const [tovMode,        setTovMode]        = useState<TovMode>('simple');
-  const [tovPending,     setTovPending]     = useState<{ teamId: string; isOurs: boolean } | null>(null);
+  const [courtMapAction, setCourtMapAction] = useState<ActionType | null>(null);
+
+  const [tovMode,    setTovMode]    = useState<TovMode>('simple');
+  const [tovPending, setTovPending] = useState<{
+    teamId: string;
+    isOurs: boolean;
+    presetPlayer?: Player;
+  } | null>(null);
 
   const benchForSub = subTeam?.is_ours ? ourBenchPlayers  : theirBenchPlayers;
   const courtForSub = subTeam?.is_ours ? ourCourtPlayers  : theirCourtPlayers;
+
+  const clearInputState = useCallback(() => {
+    setPendingPlayer(null);
+    setShotPhase(null);
+    setPendingShotType(null);
+    setFoulMode(false);
+    setHighlightStat(null);
+  }, []);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
     for (const { outId, inId } of pairs) substitute(outId, inId);
@@ -77,28 +103,111 @@ export default function GamePage() {
     setCreateOpen(true);
   }, [user?.id]);
 
-  function handlePlayerClick(player: Player) {
-    if (!selectedStat) return;
-    if (isCourtMapAction(selectedStat)) {
-      setCourtMapPlayer(player);
-    } else {
-      logStat(player);
+  const handlePlayerTap = useCallback((player: Player) => {
+    if (foulMode && pendingPlayer?.id === player.id) {
+      logPlayerStat(player, 'FOUL', { foulPenalty: 'P' });
+      clearInputState();
+      return;
     }
-  }
+    if (shotPhase === 'result') return;
+
+    if (pendingPlayer?.id === player.id) {
+      clearInputState();
+      return;
+    }
+
+    setPendingPlayer(player);
+    setShotPhase('type');
+    setPendingShotType(null);
+    setFoulMode(false);
+    setHighlightStat(null);
+  }, [foulMode, pendingPlayer, shotPhase, logPlayerStat, clearInputState]);
+
+  const handlePlayerGesture = useCallback((player: Player, gesture: PlayerGesture) => {
+    if (!pendingPlayer || pendingPlayer.id !== player.id) return;
+
+    if (foulMode) {
+      let penalty: FoulPenalty | null = null;
+      if (gesture === 'tap') penalty = 'P';
+      else if (gesture === 'left') penalty = 'P1';
+      else if (gesture === 'right') penalty = 'P2';
+      if (!penalty) return;
+      logPlayerStat(player, 'FOUL', { foulPenalty: penalty });
+      clearInputState();
+      return;
+    }
+
+    if (shotPhase === 'type') {
+      let type: ShotType | null = null;
+      if (gesture === 'right') type = '2PT';
+      else if (gesture === 'left') type = '3PT';
+      else if (gesture === 'up') type = 'FT';
+      if (!type) return;
+      setPendingShotType(type);
+      setShotPhase('result');
+      return;
+    }
+
+    if (shotPhase === 'result' && pendingShotType) {
+      if (gesture !== 'right' && gesture !== 'left') return;
+      const made = gesture === 'right';
+      const actionType = shotAction(pendingShotType, made);
+      if (pendingShotType === 'FT') {
+        logPlayerStat(player, actionType);
+        clearInputState();
+      } else {
+        setCourtMapAction(actionType);
+        setCourtMapPlayer(player);
+        clearInputState();
+      }
+    }
+  }, [pendingPlayer, foulMode, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
+
+  const handleStatSelect = useCallback((action: ActionType) => {
+    if (!pendingPlayer) return;
+
+    if (action === 'TOV') {
+      const isOurs = pendingPlayer.team_id === ourTeam.id;
+      if (isPremium && tovMode !== 'simple') {
+        setTovPending({
+          teamId: pendingPlayer.team_id,
+          isOurs,
+          presetPlayer: pendingPlayer,
+        });
+      } else {
+        logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id);
+        clearInputState();
+      }
+      return;
+    }
+
+    if (action === 'FOUL') {
+      setFoulMode(true);
+      setHighlightStat('FOUL');
+      setShotPhase(null);
+      setPendingShotType(null);
+      return;
+    }
+
+    logPlayerStat(pendingPlayer, action);
+    clearInputState();
+  }, [pendingPlayer, isPremium, tovMode, ourTeam.id, logTeamTov, logPlayerStat, clearInputState]);
 
   function handleCourtSelect(location: CourtLocation) {
-    if (!courtMapPlayer) return;
-    logStat(courtMapPlayer, location);
+    if (!courtMapPlayer || !courtMapAction) return;
+    logPlayerStat(courtMapPlayer, courtMapAction, { courtLocation: location });
     setCourtMapPlayer(null);
+    setCourtMapAction(null);
   }
 
   function handleCourtBack() {
     setCourtMapPlayer(null);
+    setCourtMapAction(null);
   }
 
   function handleCourtCancel() {
     setCourtMapPlayer(null);
-    if (selectedStat) selectStat(selectedStat);
+    setCourtMapAction(null);
   }
 
   function handleOurTov() {
@@ -121,6 +230,7 @@ export default function GamePage() {
     if (!tovPending) return;
     logTeamTov(tovPending.teamId, reason, playerId ?? undefined);
     setTovPending(null);
+    clearInputState();
   }
 
   if (!isLoaded) {
@@ -130,6 +240,8 @@ export default function GamePage() {
       </div>
     );
   }
+
+  const pendingPlayerId = pendingPlayer?.id ?? null;
 
   return (
     <div className="h-dvh flex flex-col bg-neutral-950 overflow-hidden relative">
@@ -156,11 +268,13 @@ export default function GamePage() {
           courtPlayers={ourCourtPlayers}
           totalPlayerCount={[...ourCourtPlayers, ...ourBenchPlayers].length}
           playerFouls={playerFouls}
-          teamTovCount={teamTovCounts[ourTeam.id] ?? 0}
           teamFoulCount={teamFoulCounts[ourTeam.id] ?? 0}
-          selectedStat={selectedStat}
+          pendingPlayerId={pendingPlayerId}
+          shotPhase={shotPhase}
+          foulMode={foulMode}
           flashPlayerId={flashPlayerId}
-          onPlayerClick={handlePlayerClick}
+          onPlayerTap={handlePlayerTap}
+          onPlayerGesture={handlePlayerGesture}
           onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
           onRenameTeam={renameTeam}
         />
@@ -168,8 +282,11 @@ export default function GamePage() {
 
       <div className="flex-[4] min-h-0">
         <StatsPanel
-          selectedStat={selectedStat}
-          onSelectStat={selectStat}
+          pendingPlayer={pendingPlayer}
+          foulMode={foulMode}
+          shotPhase={shotPhase}
+          highlightStat={highlightStat}
+          onSelectStat={handleStatSelect}
           ourTeamName={ourTeam.team_name || g.ourTeam}
           theirTeamName={theirTeam.team_name || g.theirTeam}
           ourTov={teamTovCounts[ourTeam.id] ?? 0}
@@ -191,11 +308,13 @@ export default function GamePage() {
           courtPlayers={theirCourtPlayers}
           totalPlayerCount={[...theirCourtPlayers, ...theirBenchPlayers].length}
           playerFouls={playerFouls}
-          teamTovCount={teamTovCounts[theirTeam.id] ?? 0}
           teamFoulCount={teamFoulCounts[theirTeam.id] ?? 0}
-          selectedStat={selectedStat}
+          pendingPlayerId={pendingPlayerId}
+          shotPhase={shotPhase}
+          foulMode={foulMode}
           flashPlayerId={flashPlayerId}
-          onPlayerClick={handlePlayerClick}
+          onPlayerTap={handlePlayerTap}
+          onPlayerGesture={handlePlayerGesture}
           onSubstitute={(t) => { setSubTeam(t); setSubOpen(true); }}
           onRenameTeam={renameTeam}
         />
@@ -221,14 +340,15 @@ export default function GamePage() {
           teamName={tovPending.isOurs ? (ourTeam.team_name || g.ourTeam) : (theirTeam.team_name || g.theirTeam)}
           isOurs={tovPending.isOurs}
           players={allPlayers.filter((p) => p.team_id === tovPending.teamId && p.is_on_court)}
+          presetPlayer={tovPending.presetPlayer ?? null}
           onConfirm={handleTovConfirm}
-          onCancel={() => setTovPending(null)}
+          onCancel={() => { setTovPending(null); clearInputState(); }}
         />
       )}
 
-      {courtMapPlayer && selectedStat && (
+      {courtMapPlayer && courtMapAction && (
         <CourtMap
-          action={selectedStat}
+          action={courtMapAction}
           player={courtMapPlayer}
           isOurs={courtMapPlayer.team_id === ourTeam.id}
           onSelect={handleCourtSelect}

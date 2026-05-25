@@ -1,20 +1,19 @@
 'use client';
 
-import { ActionType, StatDef, TovMode } from '@/types';
+import { ActionType, StatDef, TovMode, Player } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
 
-// 頻度別グループ
-// TOV はパネルから除外（TeamSection のチームTovボタンで入力）
-const MADE    = STAT_DEFS.filter((s) => s.variant === 'made');
-const MISS    = STAT_DEFS.filter((s) => s.variant === 'miss');
 const NEUTRAL = STAT_DEFS.filter((s) => s.variant === 'neutral');
-const NEG     = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV');
+const NEG = STAT_DEFS.filter((s) => s.variant === 'negative' && s.action !== 'TOV');
 
 interface StatsPanelProps {
-  selectedStat:    ActionType | null;
+  pendingPlayer:   Player | null;
+  foulMode:        boolean;
+  shotPhase:       'type' | 'result' | null;
+  highlightStat:   ActionType | null;
   onSelectStat:    (action: ActionType) => void;
   ourTeamName:     string;
   theirTeamName:   string;
@@ -27,35 +26,24 @@ interface StatsPanelProps {
   onTovModeChange?: (mode: TovMode) => void;
 }
 
-// ────────── 個別ボタン ──────────
 function Btn({
-  def, isSelected, size, onClick,
+  def, isSelected, size, onClick, disabled,
 }: {
   def: StatDef;
   isSelected: boolean;
-  size: 'lg' | 'md' | 'sm';
+  size: 'md' | 'sm';
   onClick: () => void;
+  disabled?: boolean;
 }) {
-  const isMiss = def.variant === 'miss';
-  const isMade = def.variant === 'made';
   const isNeutral = def.variant === 'neutral';
   const isNegative = def.variant === 'negative';
 
   const sizeClass = {
-    lg: 'py-2 text-base font-black tracking-wide',
     md: 'py-1.5 text-sm font-bold',
     sm: 'py-1 text-xs font-semibold',
   }[size];
 
-  const variantClass = isMiss
-    ? isSelected
-      ? 'border-2 border-rose-500 text-rose-300 bg-rose-950/60'
-      : 'border border-neutral-600/60 text-neutral-400 bg-neutral-900/50 active:bg-neutral-800/70 active:border-neutral-500'
-    : isMade
-    ? isSelected
-      ? 'bg-emerald-700 text-white border-2 border-emerald-400'
-      : 'bg-neutral-800 text-neutral-100 border border-neutral-700/50 active:bg-neutral-700 active:border-neutral-600'
-    : isNeutral
+  const variantClass = isNeutral
     ? isSelected
       ? 'bg-blue-700/80 text-white border-2 border-blue-400'
       : 'bg-neutral-800/80 text-neutral-200 border border-neutral-700/40 active:bg-neutral-700/80'
@@ -67,39 +55,25 @@ function Btn({
 
   return (
     <button
-      onPointerDown={onClick}
+      type="button"
+      disabled={disabled}
+      onPointerDown={() => { if (!disabled) onClick(); }}
       className={cn(
         'flex flex-1 min-h-0 flex-col items-center justify-center gap-0 rounded-xl',
         'transition-all duration-75 active:scale-[0.97] select-none',
         'shadow-sm shadow-black/20',
         sizeClass,
         variantClass,
+        disabled && 'opacity-35 pointer-events-none',
       )}
     >
-      {size === 'lg' ? (
-        <>
-          <span className="leading-tight">{def.label}</span>
-          <span className={cn(
-            "text-[10px] font-medium leading-tight mt-1",
-            isMade ? "text-emerald-400/70" : "text-neutral-500"
-          )}>
-            success
-          </span>
-        </>
-      ) : size === 'sm' ? (
-        <>
-          <span className="leading-none">{def.label}</span>
-          <span className="text-[9px] font-medium leading-none mt-0.5 opacity-50">miss</span>
-        </>
-      ) : (
-        <span className="leading-none">{def.label}</span>
-      )}
+      <span className="leading-none">{def.label}</span>
     </button>
   );
 }
 
 export function StatsPanel({
-  selectedStat, onSelectStat,
+  pendingPlayer, foulMode, shotPhase, highlightStat, onSelectStat,
   ourTeamName, theirTeamName, ourTov, theirTov, onOurTov, onTheirTov,
   isPremium = false, tovMode = 'simple', onTovModeChange,
 }: StatsPanelProps) {
@@ -114,17 +88,27 @@ export function StatsPanel({
     onSelectStat(action);
   }
 
-  const isSelected = (a: ActionType) => selectedStat === a;
+  const needsPlayer = (a: ActionType) => a !== 'TOV' || !!pendingPlayer;
+  const isSelected = (a: ActionType) => highlightStat === a;
+
+  let hint = g.selectPlayerFirst;
+  if (pendingPlayer) {
+    const num = pendingPlayer.back_number;
+    if (foulMode) hint = g.foulGestureHint.replace('{num}', num);
+    else if (shotPhase === 'type') hint = g.shotTypeHint.replace('{num}', num);
+    else if (shotPhase === 'result') hint = g.shotResultHint.replace('{num}', num);
+    else hint = g.pendingPlayerHint.replace('{num}', num);
+  }
 
   return (
     <div className="h-full flex flex-col gap-1.5 px-2 py-1.5 bg-neutral-950 overflow-hidden">
 
-      {/* ── プレミアム TOV モード切替 ── */}
       {isPremium && (
         <div className="grid grid-cols-3 gap-1 shrink-0">
           {([['simple', st.tovSimple, false], ['6-grid', st.tovDetail6, true], ['12-grid', st.tovDetail12, true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
             <button
               key={mode}
+              type="button"
               onPointerDown={() => onTovModeChange?.(mode)}
               className={cn(
                 'py-1 rounded-lg text-[10px] font-bold transition-all border flex items-center justify-center gap-0.5',
@@ -151,10 +135,9 @@ export function StatsPanel({
         </div>
       )}
 
-      {/* ── チームTOV（左右2カラム） ── */}
       <div className="grid grid-cols-2 gap-2 shrink-0">
-        {/* 自チームTOV（左） */}
         <button
+          type="button"
           onClick={() => { onOurTov(); if (navigator.vibrate) navigator.vibrate(30); }}
           className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
@@ -164,8 +147,8 @@ export function StatsPanel({
             <span className="text-sm font-black leading-none bg-amber-800/40 rounded-md px-1.5 py-0.5 tabular-nums">{ourTov}</span>
           )}
         </button>
-        {/* 相手チームTOV（右） */}
         <button
+          type="button"
           onClick={() => { onTheirTov(); if (navigator.vibrate) navigator.vibrate(30); }}
           className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-950/60 border border-amber-800/40 active:bg-amber-900/50 text-amber-100/90 transition-all active:scale-[0.97] shadow-sm shadow-black/20"
         >
@@ -177,57 +160,67 @@ export function StatsPanel({
         </button>
       </div>
 
-      {/* ── 選択中インジケーター ── */}
-      <div className="flex items-center justify-center h-6 shrink-0">
-        {selectedStat ? (
-          <div className="flex items-center gap-2 bg-neutral-800/60 border border-neutral-700/50 rounded-full px-4 py-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-neutral-100 text-xs font-semibold">
-              {actions[selectedStat]}
-            </span>
-            <span className="text-neutral-500 text-xs">{g.selectPlayer}</span>
-            <button
-              onPointerDown={() => { if (navigator.vibrate) navigator.vibrate(10); onSelectStat(selectedStat); }}
-              className="text-neutral-500 hover:text-neutral-300 ml-0.5 p-0.5"
-              aria-label={dict.common.close}
-            >
-              <X size={12} />
-            </button>
-          </div>
-        ) : (
-          <span className="text-neutral-600 text-xs tracking-wide">{g.selectStat}</span>
-        )}
+      <div className="flex items-center justify-center min-h-[28px] shrink-0 px-1">
+        <div className={cn(
+          'flex items-center gap-2 rounded-full px-3 py-1.5 max-w-full',
+          pendingPlayer ? 'bg-sky-950/60 border border-sky-600/40' : 'bg-neutral-900/40 border border-neutral-800/50',
+        )}>
+          {pendingPlayer && <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />}
+          <span className={cn(
+            'text-xs font-semibold truncate',
+            pendingPlayer ? 'text-sky-100' : 'text-neutral-500',
+          )}>
+            {hint}
+          </span>
+        </div>
       </div>
 
-      {/* ── Made（成功） ── */}
-      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
-        {MADE.map((def) => (
-          <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="lg" onClick={() => tap(def.action)} />
-        ))}
-      </div>
-
-      {/* ── Miss（不成功） ── */}
-      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
-        {MISS.map((def) => (
-          <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="sm" onClick={() => tap(def.action)} />
-        ))}
-      </div>
-
-      {/* ── Neutral（中） ── */}
-      <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
+      <div className="flex gap-2 flex-[3] min-h-0 overflow-hidden">
         {NEUTRAL.map((def) => (
-          <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
+          <Btn
+            key={def.action}
+            def={def}
+            isSelected={isSelected(def.action)}
+            size="md"
+            disabled={!pendingPlayer}
+            onClick={() => tap(def.action)}
+          />
         ))}
       </div>
 
-      {/* ── Negative（中） ── */}
       <div className="flex gap-2 flex-[2] min-h-0 overflow-hidden">
         {NEG.map((def) => (
-          <Btn key={def.action} def={def} isSelected={isSelected(def.action)} size="md" onClick={() => tap(def.action)} />
+          <Btn
+            key={def.action}
+            def={def}
+            isSelected={isSelected(def.action)}
+            size="md"
+            disabled={!pendingPlayer}
+            onClick={() => tap(def.action)}
+          />
         ))}
+        <button
+          type="button"
+          disabled={!pendingPlayer}
+          onPointerDown={() => { if (pendingPlayer) tap('TOV'); }}
+          className={cn(
+            'flex flex-1 min-h-0 flex-col items-center justify-center rounded-xl',
+            'py-1.5 text-sm font-bold transition-all duration-75 active:scale-[0.97]',
+            'shadow-sm shadow-black/20',
+            isSelected('TOV')
+              ? 'bg-orange-700/80 text-white border-2 border-orange-400'
+              : 'bg-neutral-800/60 text-orange-200/90 border border-orange-900/40 active:bg-neutral-700/70',
+            !pendingPlayer && 'opacity-35 pointer-events-none',
+          )}
+        >
+          TOV
+        </button>
       </div>
 
-      {/* ── 略語一覧（スマホ非表示） ── */}
+      <p className="shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
+        {g.shotSwipeLegend}
+      </p>
+
       <div className="hidden sm:flex shrink-0 flex-wrap gap-x-3 gap-y-0.5 px-1 pb-1 pointer-events-none select-none">
         {[
           ['ORbd', sp.legendOrbd], ['DRbd', sp.legendDrbd], ['AST', sp.legendAst],
@@ -239,7 +232,6 @@ export function StatsPanel({
           </span>
         ))}
       </div>
-
     </div>
   );
 }

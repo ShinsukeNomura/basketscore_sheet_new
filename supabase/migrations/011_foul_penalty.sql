@@ -1,0 +1,1 @@
+ALTER TABLE stats_logs ADD COLUMN IF NOT EXISTS foul_penalty TEXT;

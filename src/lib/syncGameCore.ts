@@ -141,7 +141,7 @@ async function upsertLogs(
   const playerIds = new Set(state.allPlayers.map((p) => p.id));
 
   const logRows = state.logs.map((l) => {
-    const row: LogRow & { court_location?: string; tov_reason?: string; is_auto?: boolean } = {
+    const row: LogRow & { court_location?: string; tov_reason?: string; is_auto?: boolean; foul_penalty?: string } = {
       id:          l.id,
       game_id:     l.game_id,
       team_id:     l.team_id,
@@ -155,6 +155,7 @@ async function upsertLogs(
     };
     if (l.court_location) row.court_location = l.court_location;
     if (l.tov_reason) row.tov_reason = l.tov_reason;
+    if (l.foul_penalty) row.foul_penalty = l.foul_penalty;
     if (l.is_auto) row.is_auto = true;
     return row;
   });
