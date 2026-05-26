@@ -19,6 +19,7 @@ import {
 import { PdfConfirmDialog } from '@/components/PdfConfirmDialog';
 import {
   getCachedReport, setCachedReport,
+  saveReportToCloud, loadReportsFromCloud,
   teamReportKey, playerReportKey, formatCacheDate,
 } from '@/lib/aiReportCache';
 import { useDictionary } from '@/i18n/DictionaryProvider';
@@ -78,13 +79,14 @@ function AiReportBox({ report, cachedAt, labelGenerated }: { report: string; cac
 }
 
 function TeamAnalysisView({
-  analysis, teamName, isRegistered, onRegister,
+  analysis, teamName, isRegistered, onRegister, cacheRevision,
 }: {
-  analysis: TeamAnalysis; teamName: string; isRegistered: boolean; onRegister: () => void;
+  analysis: TeamAnalysis; teamName: string; isRegistered: boolean; onRegister: () => void; cacheRevision: number;
 }) {
   const dict = useDictionary();
   const a = dict.analysis;
   const locale = useLocale();
+  const { user } = useAuth();
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerAnalysis | null>(null);
   const [aiReport,   setAiReport]   = useState('');
   const [aiCachedAt, setAiCachedAt] = useState('');
@@ -96,10 +98,10 @@ function TeamAnalysisView({
     setAiReport(''); setAiError(''); setAiCachedAt('');
     const cached = getCachedReport(teamReportKey(teamName));
     if (cached) { setAiReport(cached.report); setAiCachedAt(cached.cachedAt); }
-  }, [teamName]);
+  }, [teamName, cacheRevision]);
 
   if (selectedPlayer) {
-    return <PlayerDetailView player={selectedPlayer} teamName={teamName} onBack={() => setSelectedPlayer(null)} />;
+    return <PlayerDetailView player={selectedPlayer} teamName={teamName} onBack={() => setSelectedPlayer(null)} cacheRevision={cacheRevision} />;
   }
 
   const g = analysis.games;
@@ -120,7 +122,9 @@ function TeamAnalysisView({
         setAiReport(data.report);
         const now = new Date().toISOString();
         setAiCachedAt(now);
-        setCachedReport(teamReportKey(teamName), data.report);
+        const tKey = teamReportKey(teamName);
+        setCachedReport(tKey, data.report);
+        if (user?.id) void saveReportToCloud(user.id, tKey, data.report);
       }
     } catch {
       setAiError(a.networkError);
@@ -253,11 +257,12 @@ function TeamAnalysisView({
 }
 
 function PlayerDetailView({
-  player, teamName, onBack,
-}: { player: PlayerAnalysis; teamName: string; onBack: () => void }) {
+  player, teamName, onBack, cacheRevision = 0,
+}: { player: PlayerAnalysis; teamName: string; onBack: () => void; cacheRevision?: number }) {
   const dict = useDictionary();
   const a = dict.analysis;
   const locale = useLocale();
+  const { user } = useAuth();
   const [aiReport,   setAiReport]   = useState('');
   const [aiCachedAt, setAiCachedAt] = useState('');
   const [aiLoading,  setAiLoading]  = useState(false);
@@ -273,7 +278,7 @@ function PlayerDetailView({
   useEffect(() => {
     const cached = getCachedReport(playerReportKey(teamName, player.backNumber));
     if (cached) { setAiReport(cached.report); setAiCachedAt(cached.cachedAt); }
-  }, [teamName, player.backNumber]);
+  }, [teamName, player.backNumber, cacheRevision]);
 
   async function handleAiAnalyze() {
     setAiLoading(true); setAiError('');
@@ -290,7 +295,9 @@ function PlayerDetailView({
         setAiReport(data.report);
         const now = new Date().toISOString();
         setAiCachedAt(now);
-        setCachedReport(playerReportKey(teamName, player.backNumber), data.report);
+        const pKey = playerReportKey(teamName, player.backNumber);
+        setCachedReport(pKey, data.report);
+        if (user?.id) void saveReportToCloud(user.id, pKey, data.report);
       }
     } catch { setAiError(a.networkError); }
     finally { setAiLoading(false); }
@@ -420,8 +427,16 @@ export default function AnalysisPage() {
   const [historyTeamNames, setHistoryTeamNames] = useState<string[]>([]);
   const [activeTeamName,   setActiveTeamName]   = useState<string|null>(null);
   const [tab,              setTab]              = useState<'team'|'player'>('team');
+  const [cacheRevision,    setCacheRevision]    = useState(0);
 
   useEffect(() => { if (!loading && !user) window.location.href = `/${locale}/login`; }, [user, loading, locale]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    loadReportsFromCloud(user.id)
+      .then(() => setCacheRevision((r) => r + 1))
+      .catch(() => {});
+  }, [user?.id]);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -526,7 +541,7 @@ export default function AnalysisPage() {
 
           <div className="flex-1 overflow-y-auto py-4">
             {analysis && tab==='team' && activeTeamName && (
-              <TeamAnalysisView analysis={analysis} teamName={activeTeamName} isRegistered={isRegistered(activeTeamName)} onRegister={handleRegisterTeam} />
+              <TeamAnalysisView analysis={analysis} teamName={activeTeamName} isRegistered={isRegistered(activeTeamName)} onRegister={handleRegisterTeam} cacheRevision={cacheRevision} />
             )}
             {analysis && tab==='player' && (
               <div className="flex flex-col gap-3 px-4 pb-8">

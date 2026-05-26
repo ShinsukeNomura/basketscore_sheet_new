@@ -10,7 +10,7 @@ import { useLocale } from '@/i18n/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ScoreSheetPreviewSheet } from '@/components/game/ScoreSheetPreviewSheet';
 import type { GameScoreSheetDocument } from '@/lib/generatePDF';
-import { getCachedReport, setCachedReport, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
+import { getCachedReport, setCachedReport, saveReportToCloud, loadReportsFromCloud, gameReportKey, formatCacheDate } from '@/lib/aiReportCache';
 import { buildPracticeFormatNote, filterActivePeriods } from '@/lib/gameFormat';
 import { fillTemplate } from '@/lib/localeFormat';
 
@@ -238,14 +238,18 @@ export function EndGameOverlay({
   const [scoreSheetPreview, setScoreSheetPreview] = useState<GameScoreSheetDocument | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // キャッシュから読み込み（キャッシュがあれば自動表示）
+  // クラウド同期してからキャッシュ読み込み
   useEffect(() => {
-    const cached = getCachedReport(gameReportKey(game.id));
-    if (cached) {
-      setAiReport(cached.report);
-      setAiCachedAt(cached.cachedAt);
+    async function init() {
+      if (user?.id) await loadReportsFromCloud(user.id);
+      const cached = getCachedReport(gameReportKey(game.id));
+      if (cached) {
+        setAiReport(cached.report);
+        setAiCachedAt(cached.cachedAt);
+      }
     }
-  }, [game.id]);
+    void init();
+  }, [game.id, user?.id]);
 
   const buildAiForScoreSheet = () => {
     const cached = getCachedReport(gameReportKey(game.id));
@@ -313,7 +317,9 @@ export function EndGameOverlay({
         if (!error && report) {
           setAiReport(report);
           setAiCachedAt(new Date().toISOString());
-          setCachedReport(gameReportKey(game.id), report);
+          const gKey = gameReportKey(game.id);
+          setCachedReport(gKey, report);
+          if (user?.id) void saveReportToCloud(user.id, gKey, report);
         } else {
           setAiReport(eg.aiErrorPrefix.replace('{error}', error ?? 'unknown'));
         }
