@@ -4,7 +4,13 @@ import { useRef, useCallback } from 'react';
 import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { classifyPointerGesture, foulPenaltyFromGesture, isTeamDefLongPressSwipe } from '@/lib/playerGesture';
+import {
+  classifyPointerGesture,
+  foulPenaltyFromGesture,
+  isTeamDefLongPressSwipe,
+  TEAM_DEF_LONG_PRESS_MS,
+  type TeamDefSwipeDirection,
+} from '@/lib/playerGesture';
 import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
@@ -148,6 +154,7 @@ function StatSwipeBtn({
   active,
   longPressActive,
   longPressTier,
+  swipeDirection,
   tapDisabled,
   onTap,
   onLongPressSwipe,
@@ -157,45 +164,89 @@ function StatSwipeBtn({
   active: boolean;
   longPressActive: boolean;
   longPressTier: 'signature' | 'teamTov';
+  swipeDirection: TeamDefSwipeDirection;
   tapDisabled: boolean;
   onTap: () => void;
   onLongPressSwipe: () => void;
   longPressBadge?: string;
 }) {
-  const g = useDictionary().game;
   const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const armedRef = useRef(false);
+  const firedRef = useRef(false);
+  const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const clearArmTimer = useCallback(() => {
+    if (armTimerRef.current) {
+      clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
   }, []);
 
-  const finishPointer = useCallback((clientX: number, clientY: number) => {
-    const start = startRef.current;
+  const resetGesture = useCallback(() => {
+    clearArmTimer();
     startRef.current = null;
-    if (!start) return;
+    armedRef.current = false;
+    firedRef.current = false;
+  }, [clearArmTimer]);
+
+  const tryLongPressSwipe = useCallback((clientX: number, clientY: number) => {
+    if (firedRef.current) return true;
+    const start = startRef.current;
+    if (!start) return false;
     const dx = clientX - start.x;
     const dy = clientY - start.y;
     const held = Date.now() - start.t;
+    if (!isTeamDefLongPressSwipe(dx, dy, held, swipeDirection, armedRef.current)) return false;
+    firedRef.current = true;
+    clearArmTimer();
+    startRef.current = null;
+    armedRef.current = false;
+    if (navigator.vibrate) navigator.vibrate(28);
+    onLongPressSwipe();
+    return true;
+  }, [swipeDirection, onLongPressSwipe, clearArmTimer]);
 
-    if (isTeamDefLongPressSwipe(dx, dy, held)) {
-      if (navigator.vibrate) navigator.vibrate(28);
-      onLongPressSwipe();
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.pointerType === 'touch') e.preventDefault();
+    resetGesture();
+    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    armTimerRef.current = setTimeout(() => {
+      armedRef.current = true;
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, TEAM_DEF_LONG_PRESS_MS);
+  }, [resetGesture]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    tryLongPressSwipe(e.clientX, e.clientY);
+  }, [tryLongPressSwipe]);
+
+  const finishPointer = useCallback((clientX: number, clientY: number) => {
+    if (firedRef.current) {
+      resetGesture();
       return;
     }
-    const gesture = classifyPointerGesture(dx, dy);
-    if (gesture === 'tap' && !tapDisabled) {
-      if (navigator.vibrate) navigator.vibrate(18);
-      onTap();
+    if (!tryLongPressSwipe(clientX, clientY)) {
+      const start = startRef.current;
+      if (start) {
+        const dx = clientX - start.x;
+        const dy = clientY - start.y;
+        const gesture = classifyPointerGesture(dx, dy);
+        if (gesture === 'tap' && !tapDisabled) {
+          if (navigator.vibrate) navigator.vibrate(18);
+          onTap();
+        }
+      }
     }
-  }, [tapDisabled, onTap, onLongPressSwipe]);
+    resetGesture();
+  }, [tryLongPressSwipe, tapDisabled, onTap, resetGesture]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
     finishPointer(e.clientX, e.clientY);
   }, [finishPointer]);
 
   const handleLostPointerCapture = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!startRef.current) return;
+    if (!startRef.current || firedRef.current) return;
     finishPointer(e.clientX, e.clientY);
   }, [finishPointer]);
 
@@ -207,9 +258,10 @@ function StatSwipeBtn({
     <button
       type="button"
       onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onLostPointerCapture={handleLostPointerCapture}
-      onPointerCancel={() => { startRef.current = null; }}
+      onPointerCancel={resetGesture}
       className={cn(
         'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
         'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none touch-manipulation',
@@ -219,13 +271,19 @@ function StatSwipeBtn({
       )}
     >
       {longPressActive && longPressBadge && (
-        <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
+        <span className={cn(
+          'absolute top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none',
+          swipeDirection === 'left' ? 'left-0.5' : 'right-0.5',
+        )}>
           {longPressBadge}
         </span>
       )}
       {active && !longPressActive && (
-        <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
-          →
+        <span className={cn(
+          'absolute top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none',
+          swipeDirection === 'left' ? 'left-0.5' : 'right-0.5',
+        )}>
+          {swipeDirection === 'left' ? '←' : '→'}
         </span>
       )}
       <span className="leading-none">{label}</span>
@@ -388,6 +446,7 @@ export function StatsPanel({
           active={isSelected('STL')}
           longPressActive={stlPressureAwaitingVictim}
           longPressTier="signature"
+          swipeDirection="right"
           longPressBadge={g.stlPressureSwipeBadge}
           tapDisabled={false}
           onTap={() => tap('STL')}
@@ -407,6 +466,7 @@ export function StatsPanel({
           active={isSelected('TOV')}
           longPressActive={teamTovAwaitingVictim}
           longPressTier="teamTov"
+          swipeDirection="left"
           longPressBadge={g.teamTovSwipeBadge}
           tapDisabled={false}
           onTap={() => tap('TOV')}

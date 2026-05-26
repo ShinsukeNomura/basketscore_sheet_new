@@ -165,9 +165,9 @@
     "stlPressureVictimHint": "長押し→右済 · 失策# → パス/ドリブル（トラップ下カット）",
     "stlLongPressStealerHint": "STL長押し: まず奪った#をタップ",
     "stlLongPressVictimHint": "STL長押し: 相手の失策#をタップ → 「パスカット（STL）」",
-    "teamTovVictimHint": "長押し→右済 · 失策# → 24秒/8秒/5秒など",
+    "teamTovVictimHint": "長押し→左済 · 失策# → 24秒/8秒/5秒など",
     "stlPressureSwipeLegend": "STL長押し→右: トラップ下のパスカット（奪った#不要）",
-    "teamTovSwipeLegend": "TOV長押し→右: 24秒/8秒/5秒などの時間違反（STLなし）",
+    "teamTovSwipeLegend": "TOV長押し→左: 24秒/8秒/5秒などの時間違反（STLなし）",
     "stlPressureSwipeBadge": "カット",
     "teamTovSwipeBadge": "時間",
     "stlPressureLabel": "プレッシャーカット",
@@ -740,8 +740,8 @@
     "step3StlLinkDesc": "奪った選手の#→STL→相手#→パス/ドリブル。主に相手のロングパスをパスカットした場面（パス＝バッドパス、ドリブル＝公式12はロストボール等）。TOVが連動し、取り消しは一括です",
     "step3StlPressure": "STL長押し→右（プレッシャーカット）",
     "step3StlPressureDesc": "STLを約0.3秒長押ししてから右スワイプ（シアン破線）。奪った個人の#は不要。相手がキャッチ前後でダブルチーム等のプレッシャーを受け、身動きが取れず出したパスを誰かがカットした場面。失策#→パス/ドリブル選択。プレッシャーカットのSTL＋連動TOVが記録されます",
-    "step3TeamTov": "TOV長押し→右（時間違反など）",
-    "step3TeamTovDesc": "TOVを約0.3秒長押ししてから右スワイプ（空色破線）。STLは付きません。失策した相手の#→24秒/8秒/5秒などを選択。ショットクロック・バックコート・インバウンド制限など、個人のスティールが伴わないチーム失策向け",
+    "step3TeamTov": "TOV長押し→左（時間違反など）",
+    "step3TeamTovDesc": "TOVを約0.3秒長押ししてから左スワイプ（空色破線）。STLは付きません。失策した相手の#→24秒/8秒/5秒などを選択。ショットクロック・バックコート・インバウンド制限など、個人のスティールが伴わないチーム失策向け",
     "step3ColorLegend": "色の読み方（記録画面）",
     "step3ColorLegendDesc": "青＝通常タップ。紫＝STL（個人→相手TOV連動）。シアン破線＝STL長押し（プレッシャーカット）。空色破線＝TOV長押し（時間違反）。琥珀＝Foulスワイプ。緑＝得点スワイプ",
     "step3TovFlow": "TOVの記録",
@@ -812,7 +812,7 @@
     "statBtnStlTeam": "STL長押し→右→失策#（トラップ下カット）",
     "statBtnFoul": "背番号→Foul→スワイプ（P/P1/P2/U/T）",
     "statBtnTov": "背番号→TOV（プレミアムは詳細分類）",
-    "statBtnTovTeam": "TOV長押し→右→失策#（24/8/5秒など・STLなし）"
+    "statBtnTovTeam": "TOV長押し→左→失策#（24/8/5秒など・STLなし）"
   },
 
   "privacy": {

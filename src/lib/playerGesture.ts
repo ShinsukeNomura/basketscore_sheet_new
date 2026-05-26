@@ -3,22 +3,35 @@ import type { FoulPenalty } from '@/types';
 /** タップとスワイプの判定（選手カード用） */
 export type PlayerGesture = 'tap' | 'left' | 'right' | 'up' | 'down';
 
+export type TeamDefSwipeDirection = 'left' | 'right';
+
 const MIN_SWIPE = 36;
 const MAX_TAP = 14;
 
-/** STL/TOV のチーム守備：長押ししてから右スワイプ */
-export const TEAM_DEF_LONG_PRESS_MS = 280;
-/** 長押しスワイプの最小水平移動（タップ判定より緩い） */
-export const TEAM_DEF_SWIPE_MIN_X = 18;
+/** STL/TOV：長押しで武装してからスワイプ（ms） */
+export const TEAM_DEF_LONG_PRESS_MS = 240;
+/** 長押しスワイプの最小水平移動 */
+export const TEAM_DEF_SWIPE_MIN_X = 12;
+/** 武装後はこれだけ動けばスワイプ成立 */
+export const TEAM_DEF_ARMED_SWIPE_MIN_X = 8;
 
-/** 長押し後の右スワイプ（縦ブレ・短距離でも拾う） */
-export function isTeamDefLongPressSwipe(dx: number, dy: number, heldMs: number): boolean {
-  if (heldMs < TEAM_DEF_LONG_PRESS_MS) return false;
-  if (dx <= 0) return false;
+/** 長押し＋指定方向スワイプ（武装済みなら短いスワイプでも可） */
+export function isTeamDefLongPressSwipe(
+  dx: number,
+  dy: number,
+  heldMs: number,
+  direction: TeamDefSwipeDirection,
+  longPressArmed = false,
+): boolean {
   const adx = Math.abs(dx);
   const ady = Math.abs(dy);
-  if (adx < TEAM_DEF_SWIPE_MIN_X) return false;
-  return adx >= ady * 0.45;
+  const minX = longPressArmed ? TEAM_DEF_ARMED_SWIPE_MIN_X : TEAM_DEF_SWIPE_MIN_X;
+  if (adx < minX) return false;
+  if (adx < ady * 0.4) return false;
+  const okDir = direction === 'left' ? dx < 0 : dx > 0;
+  if (!okDir) return false;
+  if (longPressArmed) return true;
+  return heldMs >= TEAM_DEF_LONG_PRESS_MS;
 }
 
 export function classifyPointerGesture(dx: number, dy: number): PlayerGesture {
