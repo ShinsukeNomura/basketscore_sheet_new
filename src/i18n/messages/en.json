@@ -342,7 +342,7 @@
     "aiReport": "AI Analysis Report",
     "aiLoading": "Analyzing...",
     "showReport": "Show Report",
-    "hideReport": "Hide Report",
+    "hideReport": "Hide AI Report",
     "reAnalyze": "Re-analyze",
     "generatedAt": "Generated {date}",
     "pdfExport": "Export Score Sheet PDF",

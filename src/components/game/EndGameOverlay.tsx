@@ -244,7 +244,6 @@ export function EndGameOverlay({
     if (cached) {
       setAiReport(cached.report);
       setAiCachedAt(cached.cachedAt);
-      setShowReport(true);
     }
   }, [game.id]);
 

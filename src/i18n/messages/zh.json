@@ -342,7 +342,7 @@
     "aiReport": "AI分析报告",
     "aiLoading": "分析中...",
     "showReport": "显示报告",
-    "hideReport": "收起报告",
+    "hideReport": "收起AI报告",
     "reAnalyze": "重新分析",
     "generatedAt": "{date} 生成",
     "pdfExport": "导出得分表PDF",
