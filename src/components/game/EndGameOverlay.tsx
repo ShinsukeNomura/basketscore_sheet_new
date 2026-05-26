@@ -290,27 +290,38 @@ export function EndGameOverlay({
 
     const practiceFormatNote = buildPracticeFormatNote(game.game_name, logs);
 
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        gameName: game.game_name, date: game.date,
-        ourTeamName: ourTeam.team_name, theirTeamName: theirTeam.team_name,
-        ourScore, theirScore,
-        periodScores: periodRows,
-        practiceFormatNote,
-        playerStats: { our: buildStats(ourTeam.id), their: buildStats(theirTeam.id) },
-      }),
-    });
-    const { report, error } = await res.json();
-    if (!error && report) {
-      setAiReport(report);
-      setAiCachedAt(new Date().toISOString());
-      setCachedReport(gameReportKey(game.id), report);
-    } else {
-      setAiReport(error ? eg.aiErrorPrefix.replace('{error}', error) : report);
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameName: game.game_name, date: game.date,
+          ourTeamName: ourTeam.team_name, theirTeamName: theirTeam.team_name,
+          ourScore, theirScore,
+          periodScores: periodRows,
+          practiceFormatNote,
+          playerStats: { our: buildStats(ourTeam.id), their: buildStats(theirTeam.id) },
+        }),
+      });
+      if (!res.ok) {
+        let errMsg = `HTTP ${res.status}`;
+        try { const j = await res.json(); if (j.error) errMsg = j.error; } catch {}
+        setAiReport(eg.aiErrorPrefix.replace('{error}', errMsg));
+      } else {
+        const { report, error } = await res.json();
+        if (!error && report) {
+          setAiReport(report);
+          setAiCachedAt(new Date().toISOString());
+          setCachedReport(gameReportKey(game.id), report);
+        } else {
+          setAiReport(eg.aiErrorPrefix.replace('{error}', error ?? 'unknown'));
+        }
+      }
+    } catch (e) {
+      setAiReport(eg.aiErrorPrefix.replace('{error}', e instanceof Error ? e.message : String(e)));
+    } finally {
+      setAiLoading(false);
     }
-    setAiLoading(false);
   };
 
   return (
