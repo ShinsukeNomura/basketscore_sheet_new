@@ -681,7 +681,7 @@
       "total": "Total",
       "playerStats": "Player Stats",
       "abbrevTitle": "Abbreviations",
-      "abbrev": "PTS=Points / 2PM·2PA=2PT Made·Att / 3PM·3PA=3PT Made·Att / FTM·FTA=FT Made·Att / OR=Off. Reb / DR=Def. Reb / AST=Assist / STL=Steal / BLK=Block / TOV=Turnover / FOUL=Foul",
+      "abbrev": "PTS=Points / 2PM·2PA=2PT Made·Att / 3PM·3PA=3PT Made·Att / FTM·FTA=FT Made·Att / OR=Off. Reb / DR=Def. Reb / AST=Assist / STL=Steal / BLK=Block / TOV=Turnover / FOUL=Foul / GDF=Good Defense Forced Turnover",
       "teamFallback": "Team",
       "gameFormatNote": "※ {count}-quarter format (practice)",
       "runningScore": "Running Score",

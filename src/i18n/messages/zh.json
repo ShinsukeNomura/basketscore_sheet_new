@@ -681,7 +681,7 @@
       "total": "合计",
       "playerStats": "球员数据",
       "abbrevTitle": "缩写",
-      "abbrev": "PTS=得分 / 2PM·2PA=两分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罚球命中·出手 / OR=进攻篮板 / DR=防守篮板 / AST=助攻 / STL=抢断 / BLK=盖帽 / TOV=失误 / FOUL=犯规",
+      "abbrev": "PTS=得分 / 2PM·2PA=两分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罚球命中·出手 / OR=进攻篮板 / DR=防守篮板 / AST=助攻 / STL=抢断 / BLK=盖帽 / TOV=失误 / FOUL=犯规 / GDF=好防守逼出的失误",
       "teamFallback": "Team",
       "gameFormatNote": "※ {count}节制（练习赛）",
       "runningScore": "连续记分",

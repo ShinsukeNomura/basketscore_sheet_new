@@ -681,7 +681,7 @@
       "total": "合計",
       "playerStats": "選手スタッツ",
       "abbrevTitle": "略語",
-      "abbrev": "PTS=得点 / 2PM・2PA=2P成功・試投 / 3PM・3PA=3P成功・試投 / FTM・FTA=FT成功・試投 / OR=オフェンスリバウンド / DR=ディフェンスリバウンド / AST=アシスト / STL=スティール / BLK=ブロック / TOV=ターンオーバー / FOUL=ファウル",
+      "abbrev": "PTS=得点 / 2PM・2PA=2P成功・試投 / 3PM・3PA=3P成功・試投 / FTM・FTA=FT成功・試投 / OR=オフェンスリバウンド / DR=ディフェンスリバウンド / AST=アシスト / STL=スティール / BLK=ブロック / TOV=ターンオーバー / FOUL=ファウル / GDF=グッドディフェンス誘発ターンオーバー",
       "teamFallback": "Team",
       "gameFormatNote": "※ {count}クォーター制（練習試合）",
       "runningScore": "ランニングスコア",

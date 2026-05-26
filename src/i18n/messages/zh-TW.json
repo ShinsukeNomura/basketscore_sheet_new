@@ -681,7 +681,7 @@
       "total": "合計",
       "playerStats": "球員數據",
       "abbrevTitle": "縮寫",
-      "abbrev": "PTS=得分 / 2PM·2PA=兩分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罰球命中·出手 / OR=進攻籃板 / DR=防守籃板 / AST=助攻 / STL=抄截 / BLK=阻攻 / TOV=失誤 / FOUL=犯規",
+      "abbrev": "PTS=得分 / 2PM·2PA=兩分命中·出手 / 3PM·3PA=三分命中·出手 / FTM·FTA=罰球命中·出手 / OR=進攻籃板 / DR=防守籃板 / AST=助攻 / STL=抄截 / BLK=阻攻 / TOV=失誤 / FOUL=犯規 / GDF=好防守逼出的失誤",
       "teamFallback": "Team",
       "gameFormatNote": "※ {count}節制（練習賽）",
       "runningScore": "連續記分",

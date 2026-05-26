@@ -64,6 +64,11 @@ const BASE_STYLE = `
     flex: 1;
     min-width: 0;
   }
+  .stats-block-head { display: flex; align-items: center; gap: 1.5mm; margin-bottom: 0.5mm; }
+  .stats-block-head h2 { margin: 0; flex: 1; }
+  .stats-badges { display: flex; gap: 1mm; align-items: center; flex-shrink: 0; }
+  .tov-badge { font-size: 5.5pt; font-weight: 700; color: #fff; background: #d97706; border-radius: 2px; padding: 0.4px 2px; white-space: nowrap; }
+  .gdf-badge { font-size: 5.5pt; font-weight: 700; color: #fff; background: #059669; border-radius: 2px; padding: 0.4px 2px; white-space: nowrap; }
   .stats-pair h2 { font-size: 7pt; margin: 0 0 0.5mm; }
   .stats-pair table {
     width: 100%;
@@ -150,6 +155,16 @@ interface PlayerRow {
   foul:  number;
 }
 
+function computeTeamGdf(logs: StatsLog[], defenseTeamId: string): number {
+  return logs.filter(
+    (l) => l.action_type === 'TOV' && l.good_defense === true && l.defense_team_id === defenseTeamId && !l.is_deleted,
+  ).length;
+}
+
+function computeTeamTov(logs: StatsLog[], teamId: string): number {
+  return logs.filter((l) => l.action_type === 'TOV' && l.team_id === teamId && !l.is_deleted).length;
+}
+
 function buildPlayerRows(
   players: Player[],
   logs: StatsLog[],
@@ -187,9 +202,12 @@ function playerStatsTable(
   allPlayers: Player[],
   logs: StatsLog[],
   labels: ScoreSheetLabels,
+  gdf: number,
 ): string {
   const rows = buildPlayerRows(allPlayers, logs, team.id);
   if (rows.length === 0) return '';
+
+  const tov = computeTeamTov(logs, team.id);
 
   const header = `
     <tr>
@@ -206,9 +224,13 @@ function playerStatsTable(
     </tr>`).join('');
 
   const teamName = escapeHtml(team.team_name || labels.teamFallback);
+  const gdfBadge = gdf > 0 ? `<span class="gdf-badge">GDF ${gdf}</span>` : '';
   return `
     <div class="stats-block">
-      <h2>${teamName} — ${escapeHtml(labels.playerStats)}</h2>
+      <div class="stats-block-head">
+        <h2>${teamName} — ${escapeHtml(labels.playerStats)}</h2>
+        <div class="stats-badges"><span class="tov-badge">TOV ${tov}</span>${gdfBadge}</div>
+      </div>
       <table>${header}${body}</table>
     </div>`;
 }
@@ -240,6 +262,9 @@ export function buildGameScoreSheetDocument(
   htmlLang: string,
   aiReport?: ScoreSheetAiReport | null,
 ): GameScoreSheetDocument {
+  const ourGdf   = computeTeamGdf(logs, ourTeam.id);
+  const theirGdf = computeTeamGdf(logs, theirTeam.id);
+
   const periods = filterActivePeriods([1, 2, 3, 4, 5, 6], logs, game.game_name);
   const effectiveQ = getEffectiveRegularQuarters(logs, game.game_name);
   const formatNote =
@@ -299,8 +324,8 @@ export function buildGameScoreSheetDocument(
 
         <section class="sheet-stats">
           <div class="stats-pair">
-            ${playerStatsTable(ourTeam, allPlayers, logs, labels)}
-            ${playerStatsTable(theirTeam, allPlayers, logs, labels)}
+            ${playerStatsTable(ourTeam,   allPlayers, logs, labels, ourGdf)}
+            ${playerStatsTable(theirTeam, allPlayers, logs, labels, theirGdf)}
           </div>
         </section>
       </div>
