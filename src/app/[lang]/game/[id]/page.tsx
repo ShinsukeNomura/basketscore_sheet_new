@@ -232,7 +232,16 @@ export default function GamePage() {
       openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer, 'team');
       return;
     }
-    setNeutralPick({ mode: 'teamTov' });
+    setTeamTovAwaitingVictim(true);
+    setHighlightStat('TOV');
+    setPendingPlayer(null);
+    setStlAwaitingVictim(false);
+    setStlPressureAwaitingVictim(false);
+    setStlLongPressAwaitingVictim(false);
+    setStlLongPressStealer(null);
+    setFoulAwaitingSwipe(false);
+    setShotPhase(null);
+    setPendingShotType(null);
   }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamTov, clearInputState, openTovDetail]);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
@@ -532,7 +541,7 @@ export default function GamePage() {
           />
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden relative z-20">
           <StatsPanel
             pendingPlayer={pendingPlayer}
             foulAwaitingSwipe={foulAwaitingSwipe}

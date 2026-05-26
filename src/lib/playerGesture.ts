@@ -9,11 +9,11 @@ const MIN_SWIPE = 36;
 const MAX_TAP = 14;
 
 /** STL/TOV：長押しで武装してからスワイプ（ms） */
-export const TEAM_DEF_LONG_PRESS_MS = 240;
+export const TEAM_DEF_LONG_PRESS_MS = 220;
 /** 長押しスワイプの最小水平移動 */
-export const TEAM_DEF_SWIPE_MIN_X = 12;
+export const TEAM_DEF_SWIPE_MIN_X = 10;
 /** 武装後はこれだけ動けばスワイプ成立 */
-export const TEAM_DEF_ARMED_SWIPE_MIN_X = 8;
+export const TEAM_DEF_ARMED_SWIPE_MIN_X = 5;
 
 /** 長押し＋指定方向スワイプ（武装済みなら短いスワイプでも可） */
 export function isTeamDefLongPressSwipe(
@@ -27,7 +27,7 @@ export function isTeamDefLongPressSwipe(
   const ady = Math.abs(dy);
   const minX = longPressArmed ? TEAM_DEF_ARMED_SWIPE_MIN_X : TEAM_DEF_SWIPE_MIN_X;
   if (adx < minX) return false;
-  if (adx < ady * 0.4) return false;
+  if (adx < ady * 0.35) return false;
   const okDir = direction === 'left' ? dx < 0 : dx > 0;
   if (!okDir) return false;
   if (longPressArmed) return true;

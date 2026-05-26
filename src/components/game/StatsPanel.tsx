@@ -1,16 +1,11 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import {
-  classifyPointerGesture,
-  foulPenaltyFromGesture,
-  isTeamDefLongPressSwipe,
-  TEAM_DEF_LONG_PRESS_MS,
-  type TeamDefSwipeDirection,
-} from '@/lib/playerGesture';
+import { classifyPointerGesture, foulPenaltyFromGesture, type TeamDefSwipeDirection } from '@/lib/playerGesture';
+import { attachTeamDefGesture } from '@/lib/teamDefGesture';
 import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
@@ -170,93 +165,18 @@ function StatSwipeBtn({
   onLongPressSwipe: () => void;
   longPressBadge?: string;
 }) {
-  const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
-  const armedRef = useRef(false);
-  const firedRef = useRef(false);
-  const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
-  const clearArmTimer = useCallback(() => {
-    if (armTimerRef.current) {
-      clearTimeout(armTimerRef.current);
-      armTimerRef.current = null;
-    }
-  }, []);
-
-  const resetGesture = useCallback(() => {
-    clearArmTimer();
-    startRef.current = null;
-    armedRef.current = false;
-    firedRef.current = false;
-  }, [clearArmTimer]);
-
-  const tryLongPressSwipe = useCallback((clientX: number, clientY: number) => {
-    if (firedRef.current) return true;
-    const start = startRef.current;
-    if (!start) return false;
-    const dx = clientX - start.x;
-    const dy = clientY - start.y;
-    const held = Date.now() - start.t;
-    if (!isTeamDefLongPressSwipe(dx, dy, held, swipeDirection, armedRef.current)) return false;
-    firedRef.current = true;
-    clearArmTimer();
-    startRef.current = null;
-    armedRef.current = false;
-    if (navigator.vibrate) navigator.vibrate(28);
-    onLongPressSwipe();
-    return true;
-  }, [swipeDirection, onLongPressSwipe, clearArmTimer]);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    if (e.pointerType === 'touch') e.preventDefault();
-    resetGesture();
-    startRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
-    e.currentTarget.setPointerCapture(e.pointerId);
-    armTimerRef.current = setTimeout(() => {
-      armedRef.current = true;
-      if (navigator.vibrate) navigator.vibrate(12);
-    }, TEAM_DEF_LONG_PRESS_MS);
-  }, [resetGesture]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    tryLongPressSwipe(e.clientX, e.clientY);
-  }, [tryLongPressSwipe]);
-
-  const finishPointer = useCallback((clientX: number, clientY: number) => {
-    if (firedRef.current) {
-      resetGesture();
-      return;
-    }
-    if (!tryLongPressSwipe(clientX, clientY)) {
-      const start = startRef.current;
-      if (start) {
-        const held = Date.now() - start.t;
-        if (armedRef.current || held >= TEAM_DEF_LONG_PRESS_MS) {
-          firedRef.current = true;
-          if (navigator.vibrate) navigator.vibrate(28);
-          onLongPressSwipe();
-          resetGesture();
-          return;
-        }
-        const dx = clientX - start.x;
-        const dy = clientY - start.y;
-        const gesture = classifyPointerGesture(dx, dy);
-        if (gesture === 'tap' && !tapDisabled) {
-          if (navigator.vibrate) navigator.vibrate(18);
-          onTap();
-        }
-      }
-    }
-    resetGesture();
-  }, [tryLongPressSwipe, tapDisabled, onTap, resetGesture]);
-
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    finishPointer(e.clientX, e.clientY);
-  }, [finishPointer]);
-
-  const handleLostPointerCapture = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!startRef.current || firedRef.current) return;
-    finishPointer(e.clientX, e.clientY);
-  }, [finishPointer]);
+  useEffect(() => {
+    const el = btnRef.current;
+    if (!el) return;
+    return attachTeamDefGesture(el, {
+      direction: swipeDirection,
+      onLongPressSwipe,
+      onTap,
+      tapDisabled,
+    });
+  }, [swipeDirection, onLongPressSwipe, onTap, tapDisabled]);
 
   const armed = active || longPressActive;
   const tier: StatUiTier = longPressActive ? longPressTier : 'linked';
@@ -264,12 +184,8 @@ function StatSwipeBtn({
 
   return (
     <button
+      ref={btnRef}
       type="button"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onLostPointerCapture={handleLostPointerCapture}
-      onPointerCancel={resetGesture}
       className={cn(
         'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
         'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
