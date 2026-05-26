@@ -16,6 +16,7 @@ import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalt
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { StlCauseSheet } from '@/components/game/StlCauseSheet';
+import { NeutralTeamPickSheet } from '@/components/game/NeutralTeamPickSheet';
 import { tovReasonFromCausePick, type StlCausePick } from '@/lib/stlTovCause';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
@@ -39,7 +40,7 @@ export default function GamePage() {
     flashPlayerId,
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    logPlayerStat, logStlWithVictim, logTeamDefense, undoLog,
+    logPlayerStat, logStlWithVictim, logTeamDefense, logTeamStl, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
     renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
@@ -58,6 +59,7 @@ export default function GamePage() {
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [statsOpen,      setStatsOpen]      = useState(false);
+  const [neutralPick, setNeutralPick] = useState<null | { mode: 'teamTov' | 'teamStl' }>(null);
 
   const [pendingPlayer,    setPendingPlayer]    = useState<Player | null>(null);
   const [shotPhase,        setShotPhase]        = useState<'type' | 'result' | null>(null);
@@ -386,14 +388,24 @@ export default function GamePage() {
   }, [pendingPlayer, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
 
   const handleStatSelect = useCallback((action: ActionType) => {
-    if (!pendingPlayer) return;
+    // --- ニュートラル: 背番号未選択 ---
+    if (!pendingPlayer) {
+      if (action === 'TOV') {
+        setNeutralPick({ mode: 'teamTov' });
+      } else if (action === 'STL') {
+        setNeutralPick({ mode: 'teamStl' });
+      }
+      return;
+    }
 
+    // --- アクティブ: 背番号選択中 ---
     if (action === 'TOV') {
       const isOurs = pendingPlayer.team_id === ourTeam.id;
       if (isPremium && tovMode !== 'simple') {
         openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer);
       } else {
-        logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id);
+        // 個人TOV（理由なし）でも responsible_player_id は引き継ぐ
+        logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id, { responsiblePlayerId: pendingPlayer.id });
         clearInputState();
       }
       return;
@@ -411,13 +423,9 @@ export default function GamePage() {
     }
 
     if (action === 'STL') {
-      setStlAwaitingVictim(true);
-      setFoulAwaitingSwipe(false);
-      setStlPressureAwaitingVictim(false);
-      setTeamTovAwaitingVictim(false);
-      setHighlightStat('STL');
-      setShotPhase(null);
-      setPendingShotType(null);
+      // 選択中は個人STLを即確定してニュートラルへ戻す
+      logPlayerStat(pendingPlayer, 'STL');
+      clearInputState();
       return;
     }
 
@@ -445,7 +453,8 @@ export default function GamePage() {
   function handleTovConfirm(reason: TovReason, playerId: string | null) {
     if (!tovPending) return;
     const pid = playerId ?? tovPending.lockedPlayerId ?? undefined;
-    logTeamTov(tovPending.teamId, reason, pid);
+    // 個人TOV: player_id=pid、responsible_player_id=pid（lockedがあればそれ）
+    logTeamTov(tovPending.teamId, reason, pid, { responsiblePlayerId: pid ?? null });
     setTovPending(null);
     clearInputState();
   }
@@ -583,8 +592,38 @@ export default function GamePage() {
           players={allPlayers.filter((p) => p.team_id === tovPending.teamId && p.is_on_court)}
           lockedPlayerId={tovPending.lockedPlayerId}
           lockedBackNumber={tovPending.lockedBackNumber}
+          context="personal"
           onConfirm={handleTovConfirm}
           onCancel={() => { setTovPending(null); clearInputState(); }}
+        />
+      )}
+
+      {neutralPick && (
+        <NeutralTeamPickSheet
+          mode={neutralPick.mode}
+          ourTeam={ourTeam}
+          theirTeam={theirTeam}
+          onPick={(teamId) => {
+            if (neutralPick.mode === 'teamStl') {
+              logTeamStl(teamId);
+              setNeutralPick(null);
+              clearInputState();
+              return;
+            }
+            // ニュートラルTOV: まずチームを確定し、その後は従来の「TOV長押し」フローで失策#を選ぶ
+            setNeutralPick(null);
+            setTeamTovAwaitingVictim(true);
+            setStlPressureAwaitingVictim(false);
+            setStlLongPressAwaitingVictim(false);
+            setStlLongPressStealer(null);
+            setPendingPlayer(null);
+            setStlAwaitingVictim(false);
+            setFoulAwaitingSwipe(false);
+            setHighlightStat(null);
+            setShotPhase(null);
+            setPendingShotType(null);
+          }}
+          onCancel={() => { setNeutralPick(null); }}
         />
       )}
 

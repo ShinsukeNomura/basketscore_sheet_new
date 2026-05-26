@@ -15,6 +15,7 @@ interface TovCategorySheetProps {
   /** 背番号選択済みの選手ID（あれば種類のみ・即確定） */
   lockedPlayerId:     string | null;
   lockedBackNumber?:  string | null;
+  context?:           'personal' | 'team';
   onConfirm:          (reason: TovReason, playerId: string | null) => void;
   onCancel:           () => void;
 }
@@ -26,6 +27,7 @@ export function TovCategorySheet({
   players,
   lockedPlayerId,
   lockedBackNumber,
+  context = 'personal',
   onConfirm,
   onCancel,
 }: TovCategorySheetProps) {
@@ -41,9 +43,11 @@ export function TovCategorySheet({
     { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub,        icon: <Route size={22} />,         color: 'bg-amber-900/60 border-amber-700/60 text-amber-200 active:bg-amber-800' },
     { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub,      icon: <Footprints size={22} />,    color: 'bg-orange-900/60 border-orange-700/60 text-orange-200 active:bg-orange-800' },
     { id: 'offensive-foul' as TovReason, label: t.offensiveFoul,  sub: t.offensiveFoulSub,  icon: <AlertTriangle size={22} />, color: 'bg-red-900/60 border-red-700/60 text-red-200 active:bg-red-800' },
-    { id: 'violation' as TovReason,      label: t.violation,      sub: t.violationSub,      icon: <Clock size={22} />,         color: 'bg-sky-900/60 border-sky-700/60 text-sky-200 active:bg-sky-800' },
+    ...(context === 'personal'
+      ? []
+      : [{ id: 'violation' as TovReason, label: t.violation, sub: t.violationSub, icon: <Clock size={22} />, color: 'bg-sky-900/60 border-sky-700/60 text-sky-200 active:bg-sky-800' }]),
     { id: 'other' as TovReason,         label: t.other,          sub: t.otherSub,          icon: <HelpCircle size={22} />,    color: 'bg-neutral-700/60 border-neutral-600/60 text-neutral-200 active:bg-neutral-600' },
-  ], [t]);
+  ], [t, context]);
 
   const twelveReasons = useMemo(() => [
     { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub },
@@ -52,8 +56,7 @@ export function TovCategorySheet({
     { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub },
     { id: 'double-dribble' as TovReason, label: t.doubleDribble,  sub: t.doubleDribbleSub },
     { id: 'out-of-bounds' as TovReason,  label: t.outOfBounds,    sub: t.outOfBoundsSub },
-    { id: '5sec' as TovReason,           label: t.sec5,           sub: t.sec5Sub },
-    { id: 'backcourt' as TovReason,      label: t.backcourt,      sub: t.backcourtSub },
+    // チームTOVへ移行したバイオレーションは個人TOVモーダルから除外
     { id: '3sec' as TovReason,           label: t.sec3,           sub: t.sec3Sub },
     { id: 'other' as TovReason,          label: t.other,          sub: t.otherSub },
   ], [t]);

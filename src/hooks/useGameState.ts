@@ -90,6 +90,7 @@ type GameAction =
   | { type: 'LOG_PLAYER_STAT'; payload: { player: Player; actionType: ActionType; courtLocation?: CourtLocation; foulPenalty?: FoulPenalty } }
   | { type: 'LOG_STL_WITH_VICTIM'; payload: { stealer: Player; victim: Player; tovReason?: TovReason } }
   | { type: 'LOG_TEAM_DEFENSE'; payload: { defenseTeamId: string; victim: Player; tovReason?: TovReason } }
+  | { type: 'LOG_TEAM_STL'; payload: { teamId: string } }
   | {
       type: 'LOG_TEAM_TOV';
       payload: {
@@ -236,6 +237,19 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         flashPlayerId: victim.id,
         selectedStat: null,
       };
+    }
+
+    case 'LOG_TEAM_STL': {
+      const ts = new Date().toISOString();
+      const stlLog: StatsLog = {
+        id: makeId(), is_auto: false,
+        game_id: state.game.id, team_id: action.payload.teamId,
+        player_id: null, period: state.game.current_period,
+        timestamp: ts, action_type: 'STL',
+        points: 0, is_deleted: false,
+        created_at: ts,
+      };
+      return { ...state, logs: [...state.logs, stlLog], selectedStat: null };
     }
 
     case 'LOG_STAT': {
@@ -699,6 +713,10 @@ export function useGameState(gameId: string) {
     dispatch({ type: 'LOG_TEAM_DEFENSE', payload: { defenseTeamId, victim, tovReason } });
     setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
   }, []);
+  const logTeamStl = useCallback((teamId: string) => {
+    dispatch({ type: 'LOG_TEAM_STL', payload: { teamId } });
+    setTimeout(() => dispatch({ type: 'CLEAR_FLASH' }), 300);
+  }, []);
   const undoLog      = useCallback((id: string)    => dispatch({ type: 'UNDO_LOG',      payload: id }),             []);
   const changePeriod = useCallback((p: Period)     => dispatch({ type: 'CHANGE_PERIOD', payload: p }),             []);
   const endGame      = useCallback(()              => dispatch({ type: 'END_GAME' }),                              []);
@@ -766,6 +784,7 @@ export function useGameState(gameId: string) {
     allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, logPlayerStat, logStlWithVictim, logTeamDefense, undoLog, changePeriod, endGame, resumeGame, substitute,
+    logTeamStl,
     addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
     cloudSyncStatus, saveToCloud,

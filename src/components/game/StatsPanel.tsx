@@ -377,7 +377,7 @@ export function StatsPanel({
           longPressActive={stlPressureAwaitingVictim}
           longPressTier="signature"
           longPressBadge={g.stlPressureSwipeBadge}
-          tapDisabled={!pendingPlayer}
+          tapDisabled={false}
           onTap={() => tap('STL')}
           onLongPressSwipe={() => {
             // STL長押しは「パスカット（STL）」へ移行
@@ -396,7 +396,7 @@ export function StatsPanel({
           longPressActive={teamTovAwaitingVictim}
           longPressTier="teamTov"
           longPressBadge={g.teamTovSwipeBadge}
-          tapDisabled={!pendingPlayer}
+          tapDisabled={false}
           onTap={() => tap('TOV')}
           onLongPressSwipe={onTeamTovSwipe}
         />
