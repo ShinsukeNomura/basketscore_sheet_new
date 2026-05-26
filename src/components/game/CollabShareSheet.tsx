@@ -66,7 +66,7 @@ export function CollabShareSheet({
   }, [onRefreshFromCloud]);
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open={open} disablePointerDismissal onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="bottom"
         showCloseButton={false}
