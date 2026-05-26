@@ -260,6 +260,38 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
                 <p className="text-sky-400/90 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TeamTov}</p>
                 <p className="text-white/45 text-xs leading-relaxed whitespace-pre-line">{g.step3TeamTovDesc}</p>
               </div>
+              <div className="rounded-2xl bg-emerald-950/30 border border-emerald-500/35 p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center shrink-0">
+                    <BarChart2 size={11} className="text-emerald-400" />
+                  </div>
+                  <p className="text-emerald-300 text-xs font-black tracking-wider uppercase">{g.step3Gdf}</p>
+                </div>
+                <p className="text-white/55 text-xs leading-relaxed">{g.step3GdfDesc}</p>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <p className="text-emerald-400/70 text-[10px] font-semibold mb-1">{g.step3GdfReasons}</p>
+                    <p className="text-white/40 text-[11px] leading-relaxed">{g.step3GdfReasonItems}</p>
+                  </div>
+                  <div>
+                    <p className="text-emerald-400/70 text-[10px] font-semibold mb-1">{g.step3GdfHow}</p>
+                    <div className="flex flex-col gap-1 mt-0.5">
+                      <div className="flex items-start gap-2">
+                        <span className="text-cyan-400/70 text-[10px] font-bold shrink-0">①</span>
+                        <span className="text-white/40 text-[11px] leading-relaxed">{g.step3GdfHow1}</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-sky-400/70 text-[10px] font-bold shrink-0">②</span>
+                        <span className="text-white/40 text-[11px] leading-relaxed">{g.step3GdfHow2}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-emerald-400/70 text-[10px] font-semibold mb-1">{g.step3GdfDisplay}</p>
+                    <p className="text-white/40 text-[11px] leading-relaxed">{g.step3GdfDisplayDesc}</p>
+                  </div>
+                </div>
+              </div>
               <div className="rounded-2xl bg-white/4 border border-white/6 p-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase mb-2">{g.step3TovFlow}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.step3TovFlowDesc}</p>
