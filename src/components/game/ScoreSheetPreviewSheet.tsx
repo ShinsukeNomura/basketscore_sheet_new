@@ -21,7 +21,6 @@ interface ScoreSheetPreviewSheetProps {
   shareDoneLabel: string;
   shareFallbackLabel: string;
   popupBlocked: string;
-  shownAboveLabel: string;
   screenshotLabel: string;
   screenshotDoneLabel: string;
   screenshotFailLabel: string;
@@ -37,7 +36,6 @@ export function ScoreSheetPreviewSheet({
   shareDoneLabel,
   shareFallbackLabel,
   popupBlocked,
-  shownAboveLabel,
   screenshotLabel,
   screenshotDoneLabel,
   screenshotFailLabel,
@@ -45,6 +43,8 @@ export function ScoreSheetPreviewSheet({
   const viewportRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [scale, setScale] = useState(1);
+  const [userScale, setUserScale] = useState(1);
+  const userScaleRef = useRef(1);
   const [contentHeight, setContentHeight] = useState(A4_PREVIEW_HEIGHT_PX);
   const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [screenshotBusy, setScreenshotBusy] = useState(false);
@@ -91,6 +91,48 @@ export function ScoreSheetPreviewSheet({
     return () => iframe.removeEventListener('load', onLoad);
   }, [doc.fullHtml, measureIframeHeight]);
 
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    function pinchDist(t: TouchList) {
+      const dx = t[0].clientX - t[1].clientX;
+      const dy = t[0].clientY - t[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    let pinchState: { dist: number; baseScale: number } | null = null;
+
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length === 2) {
+        pinchState = { dist: pinchDist(e.touches), baseScale: userScaleRef.current };
+      }
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (e.touches.length !== 2 || !pinchState) return;
+      e.preventDefault();
+      const ratio = pinchDist(e.touches) / pinchState.dist;
+      const next = Math.min(4, Math.max(0.5, pinchState.baseScale * ratio));
+      userScaleRef.current = next;
+      setUserScale(next);
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (e.touches.length < 2) pinchState = null;
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, []);
+
   const handlePrint = () => {
     printGameScoreSheet(doc, popupBlocked);
   };
@@ -122,7 +164,8 @@ export function ScoreSheetPreviewSheet({
     }
   };
 
-  const scaledH = contentHeight * scale;
+  const appliedScale = scale * userScale;
+  const scaledH = contentHeight * appliedScale;
 
   return (
     <div className="fixed inset-0 z-[60] bg-neutral-950 flex flex-col">
@@ -147,7 +190,7 @@ export function ScoreSheetPreviewSheet({
         <div
           className="mx-auto"
           style={{
-            width: A4_PREVIEW_WIDTH_PX * scale,
+            width: A4_PREVIEW_WIDTH_PX * appliedScale,
             height: scaledH,
             marginTop: 4,
             marginBottom: 8,
@@ -161,7 +204,7 @@ export function ScoreSheetPreviewSheet({
             style={{
               width: A4_PREVIEW_WIDTH_PX,
               height: contentHeight,
-              transform: `scale(${scale})`,
+              transform: `scale(${appliedScale})`,
             }}
           />
         </div>
@@ -172,12 +215,6 @@ export function ScoreSheetPreviewSheet({
       )}
 
       <div className="shrink-0 flex flex-col gap-2 px-4 py-3 border-t border-white/10 bg-neutral-900/95 safe-area-pb">
-        <p
-          className="text-center text-amber-300 font-bold text-sm py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35"
-          role="status"
-        >
-          ↑ {shownAboveLabel}
-        </p>
         <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
