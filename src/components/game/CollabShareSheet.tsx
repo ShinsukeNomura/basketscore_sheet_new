@@ -4,13 +4,7 @@ import { useState, useCallback } from 'react';
 import { CollabRole } from '@/types';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { cn } from '@/lib/utils';
-import { Copy, Check, RefreshCw } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Copy, Check, RefreshCw, X } from 'lucide-react';
 
 interface CollabShareSheetProps {
   open:               boolean;
@@ -65,17 +59,29 @@ export function CollabShareSheet({
     if (ok) setTimeout(() => setRefreshState('idle'), 2000);
   }, [onRefreshFromCloud]);
 
+  if (!open) return null;
+
   return (
-    <Sheet open={open} disablePointerDismissal onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="bottom"
-        showCloseButton={false}
-        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe px-4 pt-4"
-      >
-        <SheetHeader className="mb-3">
-          <SheetTitle className="text-white text-base text-left">{c.shareTitle}</SheetTitle>
-          <p className="text-white/40 text-xs text-left">{c.shareHint}</p>
-        </SheetHeader>
+    <div className="absolute inset-0 z-50 flex flex-col justify-end">
+      {/* 背景タップで閉じる */}
+      <div
+        className="absolute inset-0 bg-black/60"
+        onPointerDown={onClose}
+      />
+
+      {/* シート本体 */}
+      <div className="relative bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe px-4 pt-4">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-white font-bold text-base">{c.shareTitle}</h2>
+          <button
+            type="button"
+            onPointerDown={onClose}
+            className="p-1 text-white/40 active:text-white/80"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <p className="text-white/40 text-xs mb-4">{c.shareHint}</p>
 
         <div className="flex flex-col gap-2 mb-4">
           {ROLES.map((role) => (
@@ -95,9 +101,7 @@ export function CollabShareSheet({
                 onPointerDown={() => copyUrl(role)}
                 className="flex items-center gap-1 text-xs font-medium shrink-0 ml-2 opacity-80 active:opacity-100"
               >
-                {copiedRole === role
-                  ? <Check size={13} />
-                  : <Copy size={13} />}
+                {copiedRole === role ? <Check size={13} /> : <Copy size={13} />}
                 <span>{copiedRole === role ? c.copied : c.copyUrl}</span>
               </button>
             </div>
@@ -117,15 +121,7 @@ export function CollabShareSheet({
             ? c.refreshing
             : c.refreshButton}
         </button>
-
-        <button
-          type="button"
-          onPointerDown={onClose}
-          className="w-full mt-2 py-2.5 rounded-xl text-white/30 text-sm active:text-white/60 transition-colors"
-        >
-          閉じる
-        </button>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </div>
   );
 }
