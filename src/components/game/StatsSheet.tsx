@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { StatsLog, Player, Team } from '@/types';
+import { StatsLog, Player, Team, TovReason } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { BarChart2, ChevronLeft, MapPin } from 'lucide-react';
 import { CourtHeatmap } from '@/components/game/CourtMap';
 import { useDictionary } from '@/i18n/DictionaryProvider';
+import { isGoodDefenseReason } from '@/lib/tovGdf';
 
 // ────────── 型 ──────────
 interface PlayerStatRow {
@@ -79,12 +80,51 @@ function cellValue(row: PlayerStatRow, key: typeof COLS[number]['key']): CellRes
   }
 }
 
+// ────────── GDF / TOV内訳ヘルパー ──────────
+function computeTeamGdf(logs: StatsLog[], defenseTeamId: string): number {
+  return logs.filter(
+    (l) => l.action_type === 'TOV' && l.good_defense === true && l.defense_team_id === defenseTeamId,
+  ).length;
+}
+
+function computeTovBreakdown(logs: StatsLog[], teamId: string): [TovReason, number][] {
+  const map: Partial<Record<TovReason, number>> = {};
+  logs
+    .filter((l) => l.action_type === 'TOV' && l.team_id === teamId && l.tov_reason)
+    .forEach((l) => {
+      const r = l.tov_reason!;
+      map[r] = (map[r] ?? 0) + 1;
+    });
+  return Object.entries(map) as [TovReason, number][];
+}
+
 // ────────── チームテーブル ──────────
 function TeamTable({
-  team, rows, teamTov, logs,
-}: { team: Team; rows: PlayerStatRow[]; teamTov: number; logs: StatsLog[] }) {
+  team, rows, teamTov, teamGdf, logs,
+}: { team: Team; rows: PlayerStatRow[]; teamTov: number; teamGdf: number; logs: StatsLog[] }) {
   const ss = useDictionary().statsSheet;
+  const t  = useDictionary().tov;
   const cfg = getColorConfig(team.color);
+
+  const tovBreakdown = useMemo(() => computeTovBreakdown(logs, team.id), [logs, team.id]);
+
+  const reasonLabel = (reason: TovReason): string => {
+    const map: Partial<Record<TovReason, string>> = {
+      'steal':          t.steal,
+      'bad-pass':       t.badPass,
+      'traveling':      t.traveling,
+      'offensive-foul': t.offensiveFoul,
+      'violation':      t.violation,
+      'lost-ball':      t.lostBall,
+      'double-dribble': t.doubleDribble,
+      'out-of-bounds':  t.outOfBounds,
+      '5sec':           t.sec5,
+      'backcourt':      t.backcourt,
+      '3sec':           t.sec3,
+      'other':          t.other,
+    };
+    return map[reason] ?? reason;
+  };
 
   // チーム合計行
   const total = rows.reduce(
@@ -133,7 +173,12 @@ function TeamTable({
           <div className={cn('w-1.5 h-4 rounded-full', cfg.accentDot)} />
           <span className={cn('text-sm font-bold', cfg.nameText)}>{team.team_name}</span>
         </div>
-        <span className="text-orange-400 text-xs font-semibold">TOV {teamTov}</span>
+        <div className="flex items-center gap-3">
+          {teamGdf > 0 && (
+            <span className="text-emerald-400 text-xs font-semibold">{ss.gdf} {teamGdf}</span>
+          )}
+          <span className="text-orange-400 text-xs font-semibold">TOV {teamTov}</span>
+        </div>
       </div>
 
       {/* 横スクロールテーブル */}
@@ -210,6 +255,27 @@ function TeamTable({
           </tbody>
         </table>
       </div>
+
+      {/* TOV 理由内訳 */}
+      {tovBreakdown.length > 0 && (
+        <div className="mt-3 px-1 pb-1">
+          <div className="text-[10px] text-white/30 mb-1.5 font-semibold tracking-wide uppercase">{ss.tovBreakdown}</div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {tovBreakdown.map(([reason, count]) => (
+              <span key={reason} className="flex items-center gap-1 text-[11px]">
+                <span className={cn(
+                  'font-semibold',
+                  isGoodDefenseReason(reason) ? 'text-emerald-400' : 'text-orange-300/80',
+                )}>
+                  {reasonLabel(reason)}
+                </span>
+                <span className="text-white/40">{count}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* シュートマップ */}
       {shotPlayers.length > 0 && (
         <div className="mt-4 rounded-2xl bg-white/3 border border-white/6 p-3">
@@ -263,6 +329,8 @@ export function StatsSheet({
   const c = dict.common;
   const ourRows   = useMemo(() => computeRows(logs, allPlayers, ourTeam.id),   [logs, allPlayers, ourTeam.id]);
   const theirRows = useMemo(() => computeRows(logs, allPlayers, theirTeam.id), [logs, allPlayers, theirTeam.id]);
+  const ourGdf    = useMemo(() => computeTeamGdf(logs, ourTeam.id),   [logs, ourTeam.id]);
+  const theirGdf  = useMemo(() => computeTeamGdf(logs, theirTeam.id), [logs, theirTeam.id]);
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
@@ -292,8 +360,8 @@ export function StatsSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto sheet-scroll">
-          <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov}   logs={logs} />
-          <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} logs={logs} />
+          <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov}   teamGdf={ourGdf}   logs={logs} />
+          <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} teamGdf={theirGdf} logs={logs} />
 
           {/* 凡例 */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 pb-4">

@@ -56,27 +56,14 @@ interface InternalState {
 // TOV 理由マッピング（モード切替時）
 // ============================================================
 
-// 6カテゴリーから12カテゴリーへ
+// simple → 12-grid 切替時のマッピング（後方互換：旧violation/stealを詳細に変換）
 const MAP_TO_12: Partial<Record<TovReason, TovReason>> = {
   steal:     'lost-ball',  // 被スティール → ロストボール
   violation: 'other',      // 時間・違反（総称）→ 特定不能なため other
 };
 
-// 12カテゴリーから6カテゴリーへ
-const MAP_TO_6: Partial<Record<TovReason, TovReason>> = {
-  'lost-ball':      'other',     // ハンドリングミス → 6では直接対応なし
-  'double-dribble': 'violation', // ダブルドリブル → 違反系
-  'out-of-bounds':  'bad-pass',  // OOB → パスミス系
-  '24sec':          'violation',
-  '8sec':           'violation',
-  '5sec':           'violation',
-  backcourt:        'violation',
-  '3sec':           'violation',
-};
-
-function remapReason(reason: TovReason, newMode: Exclude<TovMode, 'simple'>): TovReason {
-  const map = newMode === '6-grid' ? MAP_TO_6 : MAP_TO_12;
-  return map[reason] ?? reason;
+function remapReason(reason: TovReason, _newMode: Exclude<TovMode, 'simple'>): TovReason {
+  return MAP_TO_12[reason] ?? reason;
 }
 
 // ============================================================
@@ -228,6 +215,8 @@ function reducer(state: InternalState, action: GameAction): InternalState {
         timestamp: ts, action_type: 'TOV',
         points: 0, is_deleted: false,
         created_at: ts,
+        defense_team_id: defenseTeamId,
+        good_defense: true,
         ...(tovReason ? { tov_reason: tovReason } : {}),
       };
 

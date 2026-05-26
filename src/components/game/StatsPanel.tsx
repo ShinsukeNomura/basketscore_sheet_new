@@ -298,8 +298,8 @@ export function StatsPanel({
     <div className="h-full flex flex-col justify-center gap-1 px-2 py-0.5 bg-neutral-950 overflow-hidden">
 
       {isPremium && (
-        <div className="grid grid-cols-3 gap-1 shrink-0">
-          {([['simple', st.tovSimple, false], ['6-grid', st.tovDetail6, true], ['12-grid', st.tovDetail12, true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
+        <div className="grid grid-cols-2 gap-1 shrink-0">
+          {([['simple', st.tovSimple, false], ['12-grid', st.tovDetail, true]] as [TovMode, string, boolean][]).map(([mode, label, isPro]) => (
             <button
               key={mode}
               type="button"
@@ -309,8 +309,6 @@ export function StatsPanel({
                 tovMode === mode
                   ? mode === 'simple'
                     ? 'bg-neutral-700 border-neutral-500 text-neutral-100'
-                    : mode === '6-grid'
-                    ? 'bg-sky-900/70 border-sky-600/60 text-sky-200'
                     : 'bg-amber-900/70 border-amber-600/60 text-amber-200'
                   : 'bg-neutral-900/60 border-neutral-700/40 text-neutral-500 active:bg-neutral-800/60',
               )}
@@ -320,7 +318,7 @@ export function StatsPanel({
                 <span className={cn(
                   'text-[7px] font-black leading-none px-0.5 py-0.5 rounded',
                   tovMode === mode
-                    ? mode === '6-grid' ? 'bg-sky-500/30 text-sky-300' : 'bg-amber-500/30 text-amber-300'
+                    ? 'bg-amber-500/30 text-amber-300'
                     : 'bg-amber-500/15 text-amber-500/70',
                 )}>{sp.pro}</span>
               )}

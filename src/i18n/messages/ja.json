@@ -279,8 +279,7 @@
     "tov": "TOV",
     "pts": "PTS",
     "tovSimple": "簡略",
-    "tovDetail6": "厳選6",
-    "tovDetail12": "公式12",
+    "tovDetail": "詳細記録",
     "tovModeLabel": "TOVモード"
   },
 
@@ -396,7 +395,11 @@
     "legendStl": "スティール",
     "legendBlk": "ブロック",
     "legendFoul": "ファウル",
-    "legendTov": "ターンオーバー"
+    "legendTov": "ターンオーバー",
+    "gdf": "GDF",
+    "tovBreakdown": "TOV内訳",
+    "forcedTov": "GDF誘発",
+    "unforcedTov": "自滅"
   },
 
   "court": {
@@ -784,19 +787,11 @@
     "step5NextVal": "すぐに次の試合を開始",
     "premiumTitle": "プレミアム機能",
     "premiumTovTitle": "TOV詳細分類モード（PRO）",
-    "premiumTovDesc": "スタッツパネルの TOV ボタン上部に 簡略 / 厳選6 PRO / 公式12 PRO の切替ボタンが表示されます。",
+    "premiumTovDesc": "スタッツパネルの TOV ボタン上部に 簡略 / 詳細記録 PRO の切替ボタンが表示されます。",
     "premiumTovModeSimple": "簡略",
     "premiumTovModeSimpleDesc": "TOVボタンを押すと即座に記録（従来通り）",
-    "premiumTovMode6": "厳選6 PRO",
-    "premiumTovMode6Desc": "スチール・パスミス・トラベリング・オフェンスファウル・時間違反・その他 の6分類",
-    "premiumTovMode12": "公式12 PRO",
-    "premiumTovMode12Desc": "バッドパス・ハンドリング・OOB・ダブドリ・24秒など JBA公式12分類。プレミアムは試合画面で公式12がデフォルト選択されます",
-    "premiumTovAutoConvert": "モード切替時の自動変換",
-    "premiumTovAutoConvertDesc": "試合中にモードを切り替えると、記録済みのTOV理由が自動的に変換されます。",
-    "premiumTov6to12": "厳選6 → 公式12",
-    "premiumTov6to12Val": "スチール→ロストボール、時間違反→その他",
-    "premiumTov12to6": "公式12 → 厳選6",
-    "premiumTov12to6Val": "24秒/8秒/5秒/バックコート/3秒→時間違反、OOB→パスミス",
+    "premiumTovModeDetail": "詳細記録 PRO",
+    "premiumTovModeDetailDesc": "バッドパス・ハンドリング・OOB・ダブドリ・24秒など12分類で詳細に記録。プレミアムは試合画面で詳細記録がデフォルト選択されます",
     "cloudTitle": "クラウド連携",
     "cloudUploadTitle": "試合を終了してクラウドへ送る（スマホ操作）",
     "cloudUploadAuto": "スタッツ記録画面を離れるとき（ホームへ戻る・ランニングスコアへ移動など）に、ログイン中であればクラウドへ保存されます。試合終了時も自動で送信されます。",

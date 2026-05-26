@@ -279,8 +279,7 @@
     "tov": "失误",
     "pts": "得分",
     "tovSimple": "简单",
-    "tovDetail6": "精选6类",
-    "tovDetail12": "官方12类",
+    "tovDetail": "详细记录",
     "tovModeLabel": "失误模式"
   },
 
@@ -396,7 +395,11 @@
     "legendStl": "抢断",
     "legendBlk": "盖帽",
     "legendFoul": "犯规",
-    "legendTov": "失误"
+    "legendTov": "失误",
+    "gdf": "GDF",
+    "tovBreakdown": "失误分类",
+    "forcedTov": "强迫",
+    "unforcedTov": "自失"
   },
 
   "court": {
@@ -784,19 +787,11 @@
     "step5NextVal": "立即开始下一场比赛",
     "premiumTitle": "高级版功能",
     "premiumTovTitle": "失误详细分类模式（PRO）",
-    "premiumTovDesc": "数据面板TOV按钮上方将显示 简单 / 精选6类 PRO / 官方12类 PRO 切换按钮。",
+    "premiumTovDesc": "数据面板TOV按钮上方将显示 简单 / 详细记录 PRO 切换按钮。",
     "premiumTovModeSimple": "简单",
     "premiumTovModeSimpleDesc": "点击TOV按钮立即记录（默认方式）",
-    "premiumTovMode6": "精选6类 PRO",
-    "premiumTovMode6Desc": "被抢断・传球失误・走步・进攻犯规・时间违规・其他，共6类",
-    "premiumTovMode12": "官方12类 PRO",
-    "premiumTovMode12Desc": "传球失误・运球失误・出界・二次运球・24秒等官方12类。PRO用户默认选中官方12类",
-    "premiumTovAutoConvert": "切换模式时自动转换",
-    "premiumTovAutoConvertDesc": "比赛中切换模式时，已记录的失误原因将自动转换。",
-    "premiumTov6to12": "精选6类 → 官方12类",
-    "premiumTov6to12Val": "被抢断→运球失误，时间违规→其他",
-    "premiumTov12to6": "官方12类 → 精选6类",
-    "premiumTov12to6Val": "24秒/8秒/5秒/回场/3秒→时间违规，出界→传球失误",
+    "premiumTovModeDetail": "详细记录 PRO",
+    "premiumTovModeDetailDesc": "传球失误・运球失误・出界・二次运球・24秒等12类详细记录。PRO用户默认选中详细记录",
     "cloudTitle": "云端联动",
     "cloudUploadTitle": "结束比赛并发送到云端（手机操作）",
     "cloudUploadAuto": "登录后，离开统计记录画面时（返回首页、打开跑分表等）会保存到云端。结束比赛时也会自动上传。",

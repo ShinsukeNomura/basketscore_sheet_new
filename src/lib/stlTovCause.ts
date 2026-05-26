@@ -14,14 +14,14 @@ export type TeamTovCause =
 
 export type StlCausePick = StlTovCause | TeamTovCause;
 
-/** パス奪い/カット → バッドパス、ドリブル奪い → 公式12はロストボール・厳選6はスチールされた */
+/** パス奪い/カット → バッドパス、ドリブル奪い → ロストボール */
 export function tovReasonFromStlCause(
   cause: StlTovCause,
   mode: TovMode,
 ): TovReason | undefined {
   if (mode === 'simple') return undefined;
   if (cause === 'pass') return 'bad-pass';
-  return mode === '6-grid' ? 'steal' : 'lost-ball';
+  return 'lost-ball';
 }
 
 export function tovReasonFromTeamDefCause(
@@ -34,7 +34,7 @@ export function tovReasonFromTeamDefCause(
   if (cause === '5s_violation') return '5sec';
   if (cause === 'pass_pressure') return 'bad-pass';
   if (cause === 'backcourt_violation') return 'backcourt';
-  return mode === '6-grid' ? 'violation' : 'other';
+  return 'other';
 }
 
 export function tovReasonFromCausePick(

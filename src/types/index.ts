@@ -13,24 +13,24 @@ export type ActionType =
   | 'FT_MADE'  | 'FT_MISS'
   | 'ORBD' | 'DRBD' | 'AST' | 'STL' | 'BLK' | 'TOV' | 'FOUL';
 
-// TOV モード（簡略=従来通り / 6-grid=厳選6カテゴリー / 12-grid=公式12カテゴリー）
-export type TovMode = 'simple' | '6-grid' | '12-grid';
+// TOV モード（簡略=従来通り / 12-grid=詳細記録12分類）
+export type TovMode = 'simple' | '12-grid';
 
-// TOV 詳細理由（6カテゴリー＋12カテゴリーの合体型）
+// TOV 詳細理由（12分類）
 export type TovReason =
-  | 'steal'           // スチールされた（6のみ）
-  | 'bad-pass'        // パスミス / バッドパス
+  | 'steal'           // スチールされた（GDF）
+  | 'bad-pass'        // パスミス / バッドパス（GDF）
   | 'traveling'       // トラベリング
-  | 'offensive-foul'  // オフェンスファウル
-  | 'violation'       // 時間・その他違反（6のみ）
-  | 'lost-ball'       // ハンドリングミス（12のみ）
-  | 'double-dribble'  // ダブルドリブル（12のみ）
-  | 'out-of-bounds'   // アウトオブバウンズ（12のみ）
-  | '24sec'           // 24秒違反（12のみ）
-  | '8sec'            // 8秒違反（12のみ）
-  | '5sec'            // 5秒違反（12のみ）
-  | 'backcourt'       // バックコート（12のみ）
-  | '3sec'            // 3秒違反（12のみ）
+  | 'offensive-foul'  // オフェンスファウル（GDF）
+  | 'violation'       // 時間・その他違反（後方互換用）
+  | 'lost-ball'       // ハンドリングミス
+  | 'double-dribble'  // ダブルドリブル
+  | 'out-of-bounds'   // アウトオブバウンズ
+  | '24sec'           // 24秒違反
+  | '8sec'            // 8秒違反
+  | '5sec'            // 5秒違反（GDF）
+  | 'backcourt'       // バックコート
+  | '3sec'            // 3秒違反
   | 'other';          // その他
 
 /** ファウルペナルティ（P / P1 / P2） */

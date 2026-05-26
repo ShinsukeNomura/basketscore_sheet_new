@@ -353,26 +353,12 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
               <p className="text-white/55 text-xs leading-relaxed">{g.premiumTovDesc}</p>
               <div className="flex flex-col gap-2">
                 {[
-                  [g.premiumTovModeSimple, 'bg-neutral-700',  g.premiumTovModeSimpleDesc],
-                  [g.premiumTovMode6,      'bg-sky-900/70',   g.premiumTovMode6Desc],
-                  [g.premiumTovMode12,     'bg-amber-900/70', g.premiumTovMode12Desc],
+                  [g.premiumTovModeSimple,  'bg-neutral-700',  g.premiumTovModeSimpleDesc],
+                  [g.premiumTovModeDetail,   'bg-amber-900/70', g.premiumTovModeDetailDesc],
                 ].map(([label, color, desc]) => (
                   <div key={label} className="flex items-start gap-2">
                     <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded shrink-0 text-white/90', color)}>{label}</span>
                     <span className="text-white/35 text-xs leading-relaxed">{desc}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-xl bg-white/4 border border-white/6 p-3 flex flex-col gap-1.5">
-                <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider">{g.premiumTovAutoConvert}</p>
-                <p className="text-white/40 text-xs leading-relaxed">{g.premiumTovAutoConvertDesc}</p>
-                {[
-                  [g.premiumTov6to12, g.premiumTov6to12Val],
-                  [g.premiumTov12to6, g.premiumTov12to6Val],
-                ].map(([dir, rule]) => (
-                  <div key={dir} className="flex items-start gap-2 mt-0.5">
-                    <span className="text-amber-400/70 text-[10px] font-bold shrink-0 min-w-[90px]">{dir}</span>
-                    <span className="text-white/30 text-[10px] leading-relaxed">{rule}</span>
                   </div>
                 ))}
               </div>

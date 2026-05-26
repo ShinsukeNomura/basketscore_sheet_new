@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { StlCauseSheet } from '@/components/game/StlCauseSheet';
 import { tovReasonFromCausePick, type StlCausePick } from '@/lib/stlTovCause';
+import { isGoodDefenseReason } from '@/lib/tovGdf';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
 import type { GameSummary } from '@/types';
@@ -433,7 +434,7 @@ export default function GamePage() {
         forceTeamTov: true,
         responsiblePlayerId: null,
         defenseTeamId,
-        goodDefense: reason !== 'other',
+        goodDefense: isGoodDefenseReason(reason),
       });
     } else if (isHybridTeamReason) {
       const defenseTeamId = tovPending.teamId === ourTeam.id ? theirTeam.id : ourTeam.id;
@@ -442,7 +443,7 @@ export default function GamePage() {
         forceTeamTov: true,
         responsiblePlayerId: pid ?? null,
         defenseTeamId,
-        goodDefense: true,
+        goodDefense: isGoodDefenseReason(reason),
       });
     } else {
       // 個人TOV

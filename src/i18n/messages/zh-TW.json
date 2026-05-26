@@ -279,8 +279,7 @@
     "tov": "失誤",
     "pts": "得分",
     "tovSimple": "簡單",
-    "tovDetail6": "精選6類",
-    "tovDetail12": "官方12類",
+    "tovDetail": "詳細記錄",
     "tovModeLabel": "失誤模式"
   },
 
@@ -396,7 +395,11 @@
     "legendStl": "抄截",
     "legendBlk": "阻攻",
     "legendFoul": "犯規",
-    "legendTov": "失誤"
+    "legendTov": "失誤",
+    "gdf": "GDF",
+    "tovBreakdown": "失誤分類",
+    "forcedTov": "強迫",
+    "unforcedTov": "自失"
   },
 
   "court": {
@@ -784,19 +787,11 @@
     "step5NextVal": "立即開始下一場比賽",
     "premiumTitle": "進階版功能",
     "premiumTovTitle": "失誤詳細分類模式（PRO）",
-    "premiumTovDesc": "數據面板TOV按鈕上方將顯示 簡單 / 精選6類 PRO / 官方12類 PRO 切換按鈕。",
+    "premiumTovDesc": "數據面板TOV按鈕上方將顯示 簡單 / 詳細記錄 PRO 切換按鈕。",
     "premiumTovModeSimple": "簡單",
     "premiumTovModeSimpleDesc": "點擊TOV按鈕立即記錄（預設方式）",
-    "premiumTovMode6": "精選6類 PRO",
-    "premiumTovMode6Desc": "被抄截・傳球失誤・走步・進攻犯規・時間違規・其他，共6類",
-    "premiumTovMode12": "官方12類 PRO",
-    "premiumTovMode12Desc": "傳球失誤・運球失誤・出界・二次運球・24秒等官方12類。PRO用戶預設選中官方12類",
-    "premiumTovAutoConvert": "切換模式時自動轉換",
-    "premiumTovAutoConvertDesc": "比賽中切換模式時，已記錄的失誤原因將自動轉換。",
-    "premiumTov6to12": "精選6類 → 官方12類",
-    "premiumTov6to12Val": "被抄截→運球失誤，時間違規→其他",
-    "premiumTov12to6": "官方12類 → 精選6類",
-    "premiumTov12to6Val": "24秒/8秒/5秒/回場/3秒→時間違規，出界→傳球失誤",
+    "premiumTovModeDetail": "詳細記錄 PRO",
+    "premiumTovModeDetailDesc": "傳球失誤・運球失誤・出界・二次運球・24秒等12類詳細記錄。PRO用戶預設選中詳細記錄",
     "cloudTitle": "雲端連動",
     "cloudUploadTitle": "結束比賽並傳送至雲端（手機操作）",
     "cloudUploadAuto": "登入後，離開統計記錄畫面時（返回首頁、開啟跑分表等）會儲存至雲端。結束比賽時也會自動上傳。",

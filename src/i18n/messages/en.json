@@ -279,8 +279,7 @@
     "tov": "TOV",
     "pts": "PTS",
     "tovSimple": "Simple",
-    "tovDetail6": "6-Cat",
-    "tovDetail12": "Official",
+    "tovDetail": "Detailed",
     "tovModeLabel": "TOV Mode"
   },
 
@@ -396,7 +395,11 @@
     "legendStl": "Steals",
     "legendBlk": "Blocks",
     "legendFoul": "Fouls",
-    "legendTov": "Turnovers"
+    "legendTov": "Turnovers",
+    "gdf": "GDF",
+    "tovBreakdown": "TOV Breakdown",
+    "forcedTov": "Forced",
+    "unforcedTov": "Unforced"
   },
 
   "court": {
@@ -784,19 +787,11 @@
     "step5NextVal": "Start the next game immediately",
     "premiumTitle": "Premium Features",
     "premiumTovTitle": "TOV Detail Category Mode (PRO)",
-    "premiumTovDesc": "A mode toggle (Simple / 6-Cat PRO / Official PRO) appears above the TOV buttons in the stats panel.",
+    "premiumTovDesc": "A mode toggle (Simple / Detailed PRO) appears above the TOV buttons in the stats panel.",
     "premiumTovModeSimple": "Simple",
     "premiumTovModeSimpleDesc": "Logs TOV immediately on button tap (default behavior)",
-    "premiumTovMode6": "6-Cat PRO",
-    "premiumTovMode6Desc": "Stolen, Bad Pass, Traveling, Offensive Foul, Time Violation, Other",
-    "premiumTovMode12": "Official PRO",
-    "premiumTovMode12Desc": "Bad Pass, Lost Ball, OOB, Double Dribble, 24-sec, etc. — 12 official categories. PRO users start with Official 12-grid selected",
-    "premiumTovAutoConvert": "Auto-conversion on mode switch",
-    "premiumTovAutoConvertDesc": "Switching modes automatically converts existing TOV reasons.",
-    "premiumTov6to12": "6-Cat → Official",
-    "premiumTov6to12Val": "Stolen→Lost Ball, Time Violation→Other",
-    "premiumTov12to6": "Official → 6-Cat",
-    "premiumTov12to6Val": "24s/8s/5s/Backcourt/3s→Time Violation, OOB→Bad Pass",
+    "premiumTovModeDetail": "Detailed PRO",
+    "premiumTovModeDetailDesc": "Bad Pass, Lost Ball, OOB, Double Dribble, 24-sec, etc. — 12 categories for detailed recording. PRO users start with Detailed selected",
     "cloudTitle": "Cloud Link",
     "cloudUploadTitle": "Finish a game and send to cloud (phone)",
     "cloudUploadAuto": "While logged in, your game is saved to the cloud when you leave the stats screen (e.g. go home or open the running score sheet) and when you end the game.",

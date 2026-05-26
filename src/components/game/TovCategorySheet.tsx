@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { ArrowLeft, X, Hand, Route, AlertTriangle, Clock, HelpCircle, Footprints } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { TovReason, TovMode, Player } from '@/types';
 import { cn } from '@/lib/utils';
 import { sortPlayersByBackNumber } from '@/lib/playerSort';
@@ -38,24 +38,15 @@ export function TovCategorySheet({
 
   const playerLocked = Boolean(lockedPlayerId);
 
-  const sixReasons = useMemo(() => [
-    { id: 'steal' as TovReason,          label: t.steal,          sub: t.stealSub,          icon: <Hand size={22} />,          color: 'bg-rose-900/60 border-rose-700/60 text-rose-200 active:bg-rose-800' },
-    { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub,        icon: <Route size={22} />,         color: 'bg-amber-900/60 border-amber-700/60 text-amber-200 active:bg-amber-800' },
-    { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub,      icon: <Footprints size={22} />,    color: 'bg-orange-900/60 border-orange-700/60 text-orange-200 active:bg-orange-800' },
-    { id: 'offensive-foul' as TovReason, label: t.offensiveFoul,  sub: t.offensiveFoulSub,  icon: <AlertTriangle size={22} />, color: 'bg-red-900/60 border-red-700/60 text-red-200 active:bg-red-800' },
-    ...(context === 'personal'
-      ? []
-      : [{ id: 'violation' as TovReason, label: t.violation, sub: t.violationSub, icon: <Clock size={22} />, color: 'bg-sky-900/60 border-sky-700/60 text-sky-200 active:bg-sky-800' }]),
-    { id: 'other' as TovReason,         label: t.other,          sub: t.otherSub,          icon: <HelpCircle size={22} />,    color: 'bg-neutral-700/60 border-neutral-600/60 text-neutral-200 active:bg-neutral-600' },
-  ], [t, context]);
-
-  const twelveReasons = useMemo(() => [
+  const detailReasons = useMemo(() => [
     { id: 'bad-pass' as TovReason,       label: t.badPass,        sub: t.badPassSub },
     { id: 'lost-ball' as TovReason,      label: t.lostBall,       sub: t.lostBallSub },
     { id: 'offensive-foul' as TovReason, label: t.offensiveFoul,  sub: t.offensiveFoulSub },
     { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub },
     { id: 'double-dribble' as TovReason, label: t.doubleDribble,  sub: t.doubleDribbleSub },
     { id: 'out-of-bounds' as TovReason,  label: t.outOfBounds,    sub: t.outOfBoundsSub },
+    { id: '24sec' as TovReason,          label: t.sec24,          sub: t.sec24Sub },
+    { id: '8sec' as TovReason,           label: t.sec8,           sub: t.sec8Sub },
     { id: '5sec' as TovReason,           label: t.sec5,           sub: t.sec5Sub },
     { id: 'backcourt' as TovReason,      label: t.backcourt,      sub: t.backcourtSub },
     { id: '3sec' as TovReason,           label: t.sec3,           sub: t.sec3Sub },
@@ -110,30 +101,9 @@ export function TovCategorySheet({
     }
   }, [playerLocked, step, onCancel]);
 
-  const reasonGrid = mode === '6-grid' ? (
-    <div className="grid grid-cols-2 gap-3">
-      {sixReasons.map((r) => (
-        <button
-          key={r.id}
-          type="button"
-          onPointerDown={() => handleReasonSelect(r.id)}
-          className={cn(
-            'flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 min-h-[96px]',
-            'transition-transform active:scale-95',
-            flash === r.id ? 'ring-2 ring-white scale-95' : r.color,
-          )}
-        >
-          {r.icon}
-          <div className="text-center">
-            <div className="text-sm font-bold leading-tight">{r.label}</div>
-            <div className="text-[10px] opacity-65 leading-tight mt-0.5">{r.sub}</div>
-          </div>
-        </button>
-      ))}
-    </div>
-  ) : (
+  const reasonGrid = (
     <div className="grid grid-cols-3 gap-2">
-      {twelveReasons.map((r) => (
+      {detailReasons.map((r) => (
         <button
           key={r.id}
           type="button"
