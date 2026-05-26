@@ -66,10 +66,13 @@ export default function GamePage() {
   const [stlAwaitingVictim, setStlAwaitingVictim] = useState(false);
   const [stlPressureAwaitingVictim, setStlPressureAwaitingVictim] = useState(false);
   const [teamTovAwaitingVictim, setTeamTovAwaitingVictim] = useState(false);
+  const [stlLongPressAwaitingVictim, setStlLongPressAwaitingVictim] = useState(false);
+  const [stlLongPressStealer, setStlLongPressStealer] = useState<Player | null>(null);
   const [stlCausePending, setStlCausePending] = useState<
     | { mode: 'stl'; stealer: Player; victim: Player }
     | { mode: 'stl-pressure'; victim: Player }
     | { mode: 'teamTov'; victim: Player }
+    | { mode: 'stl-longpress'; stealer: Player; victim: Player }
     | null
   >(null);
   const [highlightStat,    setHighlightStat]    = useState<ActionType | null>(null);
@@ -121,6 +124,8 @@ export default function GamePage() {
     setStlAwaitingVictim(false);
     setStlPressureAwaitingVictim(false);
     setTeamTovAwaitingVictim(false);
+    setStlLongPressAwaitingVictim(false);
+    setStlLongPressStealer(null);
     setStlCausePending(null);
     setHighlightStat(null);
   }, []);
@@ -135,14 +140,50 @@ export default function GamePage() {
         ? ourTeam.id
         : theirTeam.id;
       logTeamDefense(defenseTeamId, stlCausePending.victim, reason);
+    } else if (stlCausePending.mode === 'stl-longpress') {
+      // パスカット（STL）: 守備は個人STL+1、オフェンスはチームTOV（player_id=null）
+      const defenseTeamId = stlCausePending.stealer.team_id;
+      const offenseTeamId = stlCausePending.victim.team_id;
+
+      // 個人STL
+      logPlayerStat(stlCausePending.stealer, 'STL');
+
+      // チームTOV（責任番号は responsible_player_id に保存）
+      logTeamTov(offenseTeamId, reason, undefined, {
+        responsiblePlayerId: stlCausePending.victim.id,
+        forceTeamTov: true,
+        defenseTeamId,
+        goodDefense: false,
+      });
     } else {
-      logTeamTov(stlCausePending.victim.team_id, reason, stlCausePending.victim.id);
+      const defenseTeamId = stlCausePending.victim.team_id === theirTeam.id
+        ? ourTeam.id
+        : theirTeam.id;
+      const goodDefense = cause !== 'other_violation';
+      logTeamTov(stlCausePending.victim.team_id, reason, undefined, {
+        responsiblePlayerId: stlCausePending.victim.id,
+        forceTeamTov: true,
+        defenseTeamId,
+        goodDefense,
+      });
     }
     setStlCausePending(null);
     clearInputState();
-  }, [stlCausePending, tovMode, logStlWithVictim, logTeamDefense, logTeamTov, ourTeam.id, theirTeam.id, clearInputState]);
+  }, [stlCausePending, tovMode, logStlWithVictim, logTeamDefense, logTeamTov, logPlayerStat, ourTeam.id, theirTeam.id, clearInputState]);
 
   const handleStlPressureSwipe = useCallback(() => {
+    if (pendingPlayer) {
+      const defenseTeamId = pendingPlayer.team_id === theirTeam.id ? ourTeam.id : theirTeam.id;
+      if (tovMode === 'simple') {
+        logTeamDefense(defenseTeamId, pendingPlayer);
+        clearInputState();
+        return;
+      }
+      setStlCausePending({ mode: 'stl-pressure', victim: pendingPlayer });
+      setStlPressureAwaitingVictim(false);
+      setTeamTovAwaitingVictim(false);
+      return;
+    }
     setStlPressureAwaitingVictim(true);
     setTeamTovAwaitingVictim(false);
     setPendingPlayer(null);
@@ -151,9 +192,41 @@ export default function GamePage() {
     setHighlightStat(null);
     setShotPhase(null);
     setPendingShotType(null);
-  }, []);
+  }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamDefense, clearInputState]);
+
+  const handleStlLongPressSwipe = useCallback(() => {
+    if (!pendingPlayer) return;
+    // まず失策者（相手#）を選ぶステップへ
+    setStlLongPressStealer(pendingPlayer);
+    setStlLongPressAwaitingVictim(true);
+    setPendingPlayer(null);
+    setStlAwaitingVictim(false);
+    setStlPressureAwaitingVictim(false);
+    setTeamTovAwaitingVictim(false);
+    setFoulAwaitingSwipe(false);
+    setHighlightStat(null);
+    setShotPhase(null);
+    setPendingShotType(null);
+  }, [pendingPlayer]);
 
   const handleTeamTovSwipe = useCallback(() => {
+    if (pendingPlayer) {
+      const defenseTeamId = pendingPlayer.team_id === theirTeam.id ? ourTeam.id : theirTeam.id;
+      if (tovMode === 'simple') {
+        logTeamTov(pendingPlayer.team_id, undefined, undefined, {
+          responsiblePlayerId: pendingPlayer.id,
+          forceTeamTov: true,
+          defenseTeamId,
+          goodDefense: true,
+        });
+        clearInputState();
+        return;
+      }
+      setStlCausePending({ mode: 'teamTov', victim: pendingPlayer });
+      setTeamTovAwaitingVictim(false);
+      setStlPressureAwaitingVictim(false);
+      return;
+    }
     setTeamTovAwaitingVictim(true);
     setStlPressureAwaitingVictim(false);
     setPendingPlayer(null);
@@ -162,7 +235,7 @@ export default function GamePage() {
     setHighlightStat(null);
     setShotPhase(null);
     setPendingShotType(null);
-  }, []);
+  }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamTov, clearInputState]);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
     for (const { outId, inId } of pairs) substitute(outId, inId);
@@ -198,7 +271,13 @@ export default function GamePage() {
 
     if (teamTovAwaitingVictim) {
       if (tovMode === 'simple') {
-        logTeamTov(player.team_id, undefined, player.id);
+        const defenseTeamId = player.team_id === theirTeam.id ? ourTeam.id : theirTeam.id;
+        logTeamTov(player.team_id, undefined, undefined, {
+          responsiblePlayerId: player.id,
+          forceTeamTov: true,
+          defenseTeamId,
+          goodDefense: true,
+        });
         clearInputState();
         return;
       }
@@ -225,6 +304,14 @@ export default function GamePage() {
       setStlCausePending({ mode: 'stl', stealer: pendingPlayer, victim: player });
       setStlAwaitingVictim(false);
       setHighlightStat(null);
+      return;
+    }
+
+    // STL長押し（パスカット）: 失策者を選んだ後にモーダルを出す
+    if (stlLongPressAwaitingVictim && stlLongPressStealer) {
+      setStlCausePending({ mode: 'stl-longpress', stealer: stlLongPressStealer, victim: player });
+      setStlLongPressAwaitingVictim(false);
+      setStlLongPressStealer(null);
       return;
     }
 
@@ -259,6 +346,7 @@ export default function GamePage() {
     setHighlightStat(null);
   }, [
     pendingPlayer, shotPhase, stlAwaitingVictim, stlPressureAwaitingVictim, teamTovAwaitingVictim,
+    stlLongPressAwaitingVictim, stlLongPressStealer,
     tovMode, logStlWithVictim, logTeamDefense, logTeamTov, ourTeam.id, clearInputState,
   ]);
 
@@ -417,12 +505,14 @@ export default function GamePage() {
             foulAwaitingSwipe={foulAwaitingSwipe}
             stlAwaitingVictim={stlAwaitingVictim}
             stlPressureAwaitingVictim={stlPressureAwaitingVictim}
+            stlLongPressAwaitingVictim={stlLongPressAwaitingVictim}
             teamTovAwaitingVictim={teamTovAwaitingVictim}
             shotPhase={shotPhase}
             highlightStat={highlightStat}
             onSelectStat={handleStatSelect}
             onFoulPenalty={handleFoulPenalty}
             onStlPressureSwipe={handleStlPressureSwipe}
+            onStlLongPressSwipe={handleStlLongPressSwipe}
             onTeamTovSwipe={handleTeamTovSwipe}
             isPremium={isPremium}
             tovMode={tovMode}

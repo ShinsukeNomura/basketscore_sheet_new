@@ -100,6 +100,12 @@ export interface StatsLog {
   foul_penalty?: FoulPenalty;
   /** 個人STLなしのチーム守備成功（右スワイプ） */
   team_defense?: boolean;
+  /** チームTOV時の責任選手（分析用） */
+  responsible_player_id?: string | null;
+  /** チームTOVを生んだ守備側チーム（分析用） */
+  defense_team_id?: string | null;
+  /** 守備貢献イベント（good defense） */
+  good_defense?: boolean;
 }
 
 /** タイムライン表示用エントリ（primary + 連動ログを1セットに束ねる） */

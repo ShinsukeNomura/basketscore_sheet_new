@@ -22,11 +22,13 @@ interface StatsPanelProps {
   stlAwaitingVictim:   boolean;
   stlPressureAwaitingVictim: boolean;
   teamTovAwaitingVictim: boolean;
+  stlLongPressAwaitingVictim: boolean;
   shotPhase:           'type' | 'result' | null;
   highlightStat:       ActionType | null;
   onSelectStat:        (action: ActionType) => void;
   onFoulPenalty:       (penalty: FoulPenalty) => void;
   onStlPressureSwipe:  () => void;
+  onStlLongPressSwipe: () => void;
   onTeamTovSwipe:      () => void;
   isPremium?:          boolean;
   tovMode?:            TovMode;
@@ -226,11 +228,13 @@ export function StatsPanel({
   stlAwaitingVictim,
   stlPressureAwaitingVictim,
   teamTovAwaitingVictim,
+  stlLongPressAwaitingVictim,
   shotPhase,
   highlightStat,
   onSelectStat,
   onFoulPenalty,
   onStlPressureSwipe,
+  onStlLongPressSwipe,
   onTeamTovSwipe,
   isPremium = false,
   tovMode = 'simple',
@@ -252,6 +256,8 @@ export function StatsPanel({
   let hint = g.selectPlayerFirst;
   if (stlPressureAwaitingVictim) {
     hint = g.stlPressureVictimHint;
+  } else if (stlLongPressAwaitingVictim) {
+    hint = g.stlLongPressVictimHint;
   } else if (teamTovAwaitingVictim) {
     hint = g.teamTovVictimHint;
   } else if (pendingPlayer) {
@@ -303,6 +309,8 @@ export function StatsPanel({
           'flex items-center gap-1.5 rounded-full px-2.5 py-1 max-w-full',
           stlPressureAwaitingVictim
             ? 'bg-cyan-950/50 border border-cyan-500/40'
+            : stlLongPressAwaitingVictim
+            ? 'bg-cyan-950/50 border border-cyan-500/40'
             : teamTovAwaitingVictim
             ? 'bg-sky-950/50 border border-sky-500/40'
             : pendingPlayer
@@ -311,15 +319,21 @@ export function StatsPanel({
               : 'bg-sky-950/60 border border-sky-600/40'
             : 'bg-neutral-900/40 border border-neutral-800/50',
         )}>
-          {(pendingPlayer || stlPressureAwaitingVictim || teamTovAwaitingVictim) && (
+          {(pendingPlayer || stlPressureAwaitingVictim || stlLongPressAwaitingVictim || teamTovAwaitingVictim) && (
             <span className={cn(
               'w-1.5 h-1.5 rounded-full animate-pulse shrink-0',
-              stlPressureAwaitingVictim ? 'bg-cyan-400' : teamTovAwaitingVictim ? 'bg-sky-400' : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
+              stlPressureAwaitingVictim ? 'bg-cyan-400'
+              : stlLongPressAwaitingVictim ? 'bg-cyan-400'
+              : teamTovAwaitingVictim ? 'bg-sky-400'
+              : shotPhase ? 'bg-emerald-400' : 'bg-sky-400',
             )} />
           )}
           <span className={cn(
             'text-[11px] font-semibold truncate',
-            stlPressureAwaitingVictim ? 'text-cyan-100' : teamTovAwaitingVictim ? 'text-sky-100' : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
+            stlPressureAwaitingVictim ? 'text-cyan-100'
+            : stlLongPressAwaitingVictim ? 'text-cyan-100'
+            : teamTovAwaitingVictim ? 'text-sky-100'
+            : pendingPlayer ? shotPhase ? 'text-emerald-100' : 'text-sky-100' : 'text-neutral-500',
           )}>
             {hint}
           </span>
@@ -365,7 +379,10 @@ export function StatsPanel({
           longPressBadge={g.stlPressureSwipeBadge}
           tapDisabled={!pendingPlayer}
           onTap={() => tap('STL')}
-          onLongPressSwipe={onStlPressureSwipe}
+          onLongPressSwipe={() => {
+            // STL長押しは「パスカット（STL）」へ移行
+            onStlLongPressSwipe();
+          }}
         />
         <FoulSwipeBtn
           active={foulAwaitingSwipe}

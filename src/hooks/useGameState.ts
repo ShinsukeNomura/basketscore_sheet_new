@@ -90,7 +90,18 @@ type GameAction =
   | { type: 'LOG_PLAYER_STAT'; payload: { player: Player; actionType: ActionType; courtLocation?: CourtLocation; foulPenalty?: FoulPenalty } }
   | { type: 'LOG_STL_WITH_VICTIM'; payload: { stealer: Player; victim: Player; tovReason?: TovReason } }
   | { type: 'LOG_TEAM_DEFENSE'; payload: { defenseTeamId: string; victim: Player; tovReason?: TovReason } }
-  | { type: 'LOG_TEAM_TOV';   payload: { teamId: string; tovReason?: TovReason; playerId?: string } }  // チーム単位 TOV
+  | {
+      type: 'LOG_TEAM_TOV';
+      payload: {
+        teamId: string;
+        tovReason?: TovReason;
+        playerId?: string;
+        responsiblePlayerId?: string | null;
+        forceTeamTov?: boolean;
+        defenseTeamId?: string | null;
+        goodDefense?: boolean;
+      };
+    }  // チーム単位 TOV
   | { type: 'UNDO_LOG';        payload: string }              // link_id があれば連動して削除
   | { type: 'CHANGE_PERIOD';   payload: Period }
   | { type: 'END_GAME' }
@@ -277,12 +288,16 @@ function reducer(state: InternalState, action: GameAction): InternalState {
       const tovLog: StatsLog = {
         id: makeId(), is_auto: false,
         game_id: state.game.id, team_id: action.payload.teamId,
-        player_id: action.payload.playerId ?? null,
+        // 公式スタッツ整合のため、チームTOVは常に player_id=null
+        player_id: action.payload.forceTeamTov ? null : (action.payload.playerId ?? null),
         period: state.game.current_period,
         timestamp: ts, action_type: 'TOV',
         points: 0, is_deleted: false,
         created_at: ts,
         ...(action.payload.tovReason ? { tov_reason: action.payload.tovReason } : {}),
+        ...(action.payload.responsiblePlayerId !== undefined ? { responsible_player_id: action.payload.responsiblePlayerId } : {}),
+        ...(action.payload.defenseTeamId !== undefined ? { defense_team_id: action.payload.defenseTeamId } : {}),
+        ...(action.payload.goodDefense !== undefined ? { good_defense: action.payload.goodDefense } : {}),
       };
       return { ...state, logs: [...state.logs, tovLog] };
     }
@@ -633,6 +648,17 @@ export function useGameState(gameId: string) {
     return map;
   }, [activeLogs]);
 
+  const goodDefenseCounts = useMemo(() => {
+    const map: Record<string, number> = {};
+    activeLogs
+      .filter((l) => l.action_type === 'TOV' && l.good_defense && l.defense_team_id)
+      .forEach((l) => {
+        const defenseTeamId = l.defense_team_id!;
+        map[defenseTeamId] = (map[defenseTeamId] ?? 0) + 1;
+      });
+    return map;
+  }, [activeLogs]);
+
   const allTimelineEntries = useMemo(
     () => buildTimelineEntries(activeLogs),
     [activeLogs],
@@ -684,8 +710,29 @@ export function useGameState(gameId: string) {
   const renameTeam   = useCallback((teamId: string, name: string)  => dispatch({ type: 'RENAME_TEAM',  payload: { teamId, name } }),  []);
   const renameGame   = useCallback((name: string)                  => dispatch({ type: 'RENAME_GAME',  payload: name }),              []);
   const recolorTeam  = useCallback((teamId: string, color: string) => dispatch({ type: 'RECOLOR_TEAM', payload: { teamId, color } }), []);
-  const logTeamTov      = useCallback((teamId: string, tovReason?: TovReason, playerId?: string) => {
-    dispatch({ type: 'LOG_TEAM_TOV', payload: { teamId, tovReason, playerId } });
+  const logTeamTov      = useCallback((
+    teamId: string,
+    tovReason?: TovReason,
+    playerId?: string,
+    options?: {
+      responsiblePlayerId?: string | null;
+      forceTeamTov?: boolean;
+      defenseTeamId?: string | null;
+      goodDefense?: boolean;
+    },
+  ) => {
+    dispatch({
+      type: 'LOG_TEAM_TOV',
+      payload: {
+        teamId,
+        tovReason,
+        playerId,
+        responsiblePlayerId: options?.responsiblePlayerId,
+        forceTeamTov: options?.forceTeamTov,
+        defenseTeamId: options?.defenseTeamId,
+        goodDefense: options?.goodDefense,
+      },
+    });
     if (navigator.vibrate) navigator.vibrate(30);
   }, []);
   const remapTovReasons = useCallback((newMode: Exclude<TovMode, 'simple'>) => {
@@ -713,7 +760,7 @@ export function useGameState(gameId: string) {
     game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
     allPlayers: state.allPlayers, selectedStat: state.selectedStat,
     flashPlayerId: state.flashPlayerId, isLoaded: state.isLoaded,
-    ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts,
+    ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, goodDefenseCounts,
     activeLogs,
     recentEntries,
     allTimelineEntries,

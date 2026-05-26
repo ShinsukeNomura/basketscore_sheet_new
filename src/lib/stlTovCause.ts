@@ -3,10 +3,19 @@ import type { TovMode, TovReason } from '@/types';
 /** 個人STL連動で相手の失策種別を選ぶ */
 export type StlTovCause = 'pass' | 'dribble';
 
-/** チーム守備後のTOV理由（主に24/8/5秒・プレッシャー下の失策） */
-export type TeamDefCause = '24sec' | '8sec' | '5sec' | 'pass-pressure' | 'violation';
+/** TOV長押しモーダル（チームTOV）の6択 */
+export type TeamTovCause =
+  | '24s_violation'
+  | '8s_violation'
+  | '5s_violation'
+  | 'pass_pressure'
+  | 'backcourt_violation'
+  | 'other_violation';
 
-export type StlCausePick = StlTovCause | TeamDefCause;
+/** STL長押しモーダル（パスカットSTL） */
+export type StlLongPressCause = 'pass_cut_steal';
+
+export type StlCausePick = StlTovCause | TeamTovCause | StlLongPressCause;
 
 /** パス奪い/カット → バッドパス、ドリブル奪い → 公式12はロストボール・厳選6はスチールされた */
 export function tovReasonFromStlCause(
@@ -19,24 +28,29 @@ export function tovReasonFromStlCause(
 }
 
 export function tovReasonFromTeamDefCause(
-  cause: TeamDefCause,
+  cause: TeamTovCause,
   mode: TovMode,
 ): TovReason | undefined {
   if (mode === 'simple') return undefined;
-  if (cause === '24sec') return '24sec';
-  if (cause === '8sec') return '8sec';
-  if (cause === '5sec') return '5sec';
-  if (cause === 'pass-pressure') return 'bad-pass';
+  if (cause === '24s_violation') return '24sec';
+  if (cause === '8s_violation') return '8sec';
+  if (cause === '5s_violation') return '5sec';
+  if (cause === 'pass_pressure') return 'bad-pass';
+  if (cause === 'backcourt_violation') return 'backcourt';
   return mode === '6-grid' ? 'violation' : 'other';
 }
 
 export function tovReasonFromCausePick(
   pick: StlCausePick,
   mode: TovMode,
-  context: 'stl' | 'stl-pressure' | 'teamTov',
+  context: 'stl' | 'stl-pressure' | 'teamTov' | 'stl-longpress',
 ): TovReason | undefined {
   if (context === 'teamTov') {
-    return tovReasonFromTeamDefCause(pick as TeamDefCause, mode);
+    return tovReasonFromTeamDefCause(pick as TeamTovCause, mode);
+  }
+  if (context === 'stl-longpress') {
+    // パスカット（STL）= オフェンス側はチームTOV扱いだが理由はバッドパス相当
+    return mode === 'simple' ? undefined : 'bad-pass';
   }
   return tovReasonFromStlCause(pick as StlTovCause, mode);
 }

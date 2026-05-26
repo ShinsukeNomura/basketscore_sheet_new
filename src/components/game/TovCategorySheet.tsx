@@ -52,8 +52,6 @@ export function TovCategorySheet({
     { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub },
     { id: 'double-dribble' as TovReason, label: t.doubleDribble,  sub: t.doubleDribbleSub },
     { id: 'out-of-bounds' as TovReason,  label: t.outOfBounds,    sub: t.outOfBoundsSub },
-    { id: '24sec' as TovReason,          label: t.sec24,          sub: t.sec24Sub },
-    { id: '8sec' as TovReason,           label: t.sec8,           sub: t.sec8Sub },
     { id: '5sec' as TovReason,           label: t.sec5,           sub: t.sec5Sub },
     { id: 'backcourt' as TovReason,      label: t.backcourt,      sub: t.backcourtSub },
     { id: '3sec' as TovReason,           label: t.sec3,           sub: t.sec3Sub },
