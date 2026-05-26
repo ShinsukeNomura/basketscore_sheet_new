@@ -177,7 +177,7 @@
     "teamTovSwipeBadge": "時間",
     "stlPressureLabel": "プレッシャーカット",
     "teamDefenseLabel": "チーム守備",
-    "stlCauseTitle": "失策の種類（パスカット）",
+    "stlCauseTitle": "スチールの種類",
     "stlCauseVictim": "{team} #{num}",
     "stlCausePass": "パス",
     "stlCausePassSub": "ロングパス・パスカット",

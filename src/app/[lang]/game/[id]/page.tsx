@@ -59,8 +59,6 @@ export default function GamePage() {
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [statsOpen,      setStatsOpen]      = useState(false);
-  const [neutralPick, setNeutralPick] = useState<null | { mode: 'teamTov' | 'teamStl' }>(null);
-
   const [pendingPlayer,    setPendingPlayer]    = useState<Player | null>(null);
   const [shotPhase,        setShotPhase]        = useState<'type' | 'result' | null>(null);
   const [pendingShotType,  setPendingShotType]  = useState<ShotType | null>(null);

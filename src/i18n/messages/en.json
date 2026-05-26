@@ -177,7 +177,7 @@
     "teamTovSwipeBadge": "Time",
     "stlPressureLabel": "Pressure cut",
     "teamDefenseLabel": "Team DEF",
-    "stlCauseTitle": "Turnover type (pass cut)",
+    "stlCauseTitle": "Type of steal",
     "stlCauseVictim": "{team} #{num}",
     "stlCausePass": "Pass",
     "stlCausePassSub": "Long pass / cut",

@@ -97,8 +97,6 @@ type GameAction =
   | { type: 'SUBSTITUTE';      payload: { outId: string; inId: string } }
   | { type: 'CLEAR_FLASH' }
   | { type: 'ADD_PLAYER';      payload: { teamId: string; backNumber: string } }
-  | { type: 'REMOVE_PLAYER';   payload: string }
-  | { type: 'TOGGLE_COURT';    payload: string }
   | { type: 'RENAME_TEAM';     payload: { teamId: string; name: string } }
   | { type: 'RENAME_GAME';     payload: string }
   | { type: 'RECOLOR_TEAM';    payload: { teamId: string; color: string } }
@@ -353,23 +351,6 @@ function reducer(state: InternalState, action: GameAction): InternalState {
       return { ...state, allPlayers: [...state.allPlayers, newPlayer] };
     }
 
-    case 'REMOVE_PLAYER':
-      return { ...state, allPlayers: state.allPlayers.filter((p) => p.id !== action.payload) };
-
-    case 'TOGGLE_COURT': {
-      const target = state.allPlayers.find((p) => p.id === action.payload);
-      if (!target) return state;
-      if (!target.is_on_court) {
-        const cnt = state.allPlayers.filter((p) => p.team_id === target.team_id && p.is_on_court).length;
-        if (cnt >= 5) return state;
-      }
-      return {
-        ...state,
-        allPlayers: state.allPlayers.map((p) =>
-          p.id === action.payload ? { ...p, is_on_court: !p.is_on_court } : p
-        ),
-      };
-    }
 
     case 'RENAME_TEAM': {
       const { teamId, name } = action.payload;
@@ -712,8 +693,6 @@ export function useGameState(gameId: string) {
   const resumeGame   = useCallback(()              => dispatch({ type: 'RESUME_GAME' }),                           []);
   const substitute   = useCallback((o: string, i: string) => dispatch({ type: 'SUBSTITUTE',  payload: { outId: o, inId: i } }), []);
   const addPlayer    = useCallback((teamId: string, num: string) => dispatch({ type: 'ADD_PLAYER',  payload: { teamId, backNumber: num } }), []);
-  const removePlayer = useCallback((id: string)   => dispatch({ type: 'REMOVE_PLAYER',  payload: id }),            []);
-  const toggleCourt  = useCallback((id: string)   => dispatch({ type: 'TOGGLE_COURT',   payload: id }),            []);
   const renameTeam   = useCallback((teamId: string, name: string)  => dispatch({ type: 'RENAME_TEAM',  payload: { teamId, name } }),  []);
   const renameGame   = useCallback((name: string)                  => dispatch({ type: 'RENAME_GAME',  payload: name }),              []);
   const recolorTeam  = useCallback((teamId: string, color: string) => dispatch({ type: 'RECOLOR_TEAM', payload: { teamId, color } }), []);
@@ -774,7 +753,7 @@ export function useGameState(gameId: string) {
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
     selectStat, logStat, logPlayerStat, logStlWithVictim, logTeamDefense, undoLog, changePeriod, endGame, resumeGame, substitute,
     logTeamStl,
-    addPlayer, removePlayer, toggleCourt, renameTeam, renameGame, recolorTeam,
+    addPlayer, renameTeam, renameGame, recolorTeam,
     logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
     cloudSyncStatus, saveToCloud,
   };

@@ -151,8 +151,6 @@ function Field({
 // ────────────────────────────────────
 // ペイウォール
 // ────────────────────────────────────
-const PAYWALL_ICONS = [Zap, Users, BarChart2, Cloud, FileText] as const;
-
 function GuestPaywall({ onClose, locale }: { onClose: () => void; locale: string }) {
   const p = useDictionary().premium;
   const router = useRouter();
