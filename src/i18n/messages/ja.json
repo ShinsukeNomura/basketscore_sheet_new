@@ -148,8 +148,11 @@
     "selectStat": "スタッツを選択してください",
     "selectPlayer": "→ 選手をタップ",
     "selectPlayerFirst": "先に背番号をタップ",
-    "tovStlLongPressHint": "TOV←チーム違反 / STL→パスカット（番号選択後TOV→右で個人）",
-    "pendingPlayerTovHint": "#{num} → TOV右:個人 / TOV左:チーム違反",
+    "tovStlNeutralHint": "TOV←チーム違反 / STL→右でチームGDF",
+    "pendingPlayerStatHint": "#{num} → TOVタップ:個人理由 / STLタップ:相手#",
+    "statTapBadge": "tap",
+    "stlGdfVictimHint": "STL→右済 · 失策#をタップ（チームGDF）",
+    "stlGdfSwipeBadge": "GDF",
     "neutralTeamTovTitle": "チームTOV（背番号なし）",
     "neutralTeamTovHint": "どちらのチームのTOVですか？（選択後、失策#と理由を記録）",
     "neutralTeamStlTitle": "チームSTL（背番号なし）",
@@ -810,11 +813,11 @@
     "statBtnMiss": "（得点はスワイプで成功/ミスを記録）",
     "statBtnRbd": "背番号→ORbd / DRbd",
     "statBtnAst": "背番号→Ast / Blk",
-    "statBtnStl": "STL長押し→右→奪った#→失策#（パスカット・チームGDF）",
-    "statBtnStlTeam": "STL長押し→右→奪った#→失策#（パスカット・チームGDF）",
+    "statBtnStl": "奪った#→STLタップ→失策#（個人）",
+    "statBtnStlTeam": "STL→右→失策#（チームGDF）",
     "statBtnFoul": "背番号→Foul→スワイプ（P/P1/P2/U/T）",
-    "statBtnTov": "背番号→TOV右:個人TOV / TOV左:チーム違反",
-    "statBtnTovTeam": "TOV左→失策#（24/8/5秒など・チームGDF）"
+    "statBtnTov": "背番号→TOVタップ（個人理由10項目）",
+    "statBtnTovTeam": "TOV←→失策#（24/8/5秒など・チームGDF）"
   },
 
   "privacy": {
