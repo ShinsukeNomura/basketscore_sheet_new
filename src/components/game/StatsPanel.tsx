@@ -413,7 +413,7 @@ export function StatsPanel({
           />
         )}
         <FoulSwipeBtn
-          active={foulAwaitingSwipe}
+          active={!!pendingPlayer}
           disabled={!pendingPlayer}
           onActivate={() => tap('FOUL')}
           onPenalty={onFoulPenalty}
