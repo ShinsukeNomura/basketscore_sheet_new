@@ -62,7 +62,7 @@ export function CollabShareSheet({
   if (!open) return null;
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 z-[200] flex flex-col justify-end">
       {/* 背景タップで閉じる */}
       <div
         className="absolute inset-0 bg-black/60"

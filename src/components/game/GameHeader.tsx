@@ -127,7 +127,8 @@ export function GameHeader({
         {/* マスター: 協力記録シェアボタン */}
         {onShareCollab && !collabRole && (
           <button
-            onPointerDown={onShareCollab}
+            type="button"
+            onClick={onShareCollab}
             className="p-1.5 rounded-lg text-white/35 active:text-sky-300 active:bg-white/10 transition-colors shrink-0"
             aria-label={dict.collab.masterButton}
           >
