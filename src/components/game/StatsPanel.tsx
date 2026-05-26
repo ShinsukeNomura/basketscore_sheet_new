@@ -229,6 +229,14 @@ function StatSwipeBtn({
     if (!tryLongPressSwipe(clientX, clientY)) {
       const start = startRef.current;
       if (start) {
+        const held = Date.now() - start.t;
+        if (armedRef.current || held >= TEAM_DEF_LONG_PRESS_MS) {
+          firedRef.current = true;
+          if (navigator.vibrate) navigator.vibrate(28);
+          onLongPressSwipe();
+          resetGesture();
+          return;
+        }
         const dx = clientX - start.x;
         const dy = clientY - start.y;
         const gesture = classifyPointerGesture(dx, dy);
@@ -264,7 +272,7 @@ function StatSwipeBtn({
       onPointerCancel={resetGesture}
       className={cn(
         'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
-        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none touch-manipulation',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         btnClass,
         tapDisabled && !longPressActive && 'opacity-35',
