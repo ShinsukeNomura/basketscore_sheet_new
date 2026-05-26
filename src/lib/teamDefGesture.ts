@@ -137,3 +137,96 @@ export function attachTeamDefGesture(
     fired = false;
   };
 }
+
+export interface DualHorizontalSwipeOptions {
+  onSwipeLeft: () => void;
+  onSwipeRight: () => void;
+  /** 右スワイプを許可するか（背番号選択済みなど） */
+  canSwipeRight?: () => boolean;
+  minX?: number;
+}
+
+/** 短い左右スワイプ（window追跡） */
+export function attachDualHorizontalSwipe(
+  target: HTMLElement,
+  options: DualHorizontalSwipeOptions,
+): () => void {
+  const minX = options.minX ?? 18;
+  const canSwipeRight = options.canSwipeRight ?? (() => true);
+  let start: { x: number; y: number } | null = null;
+  let activePointerId = -1;
+  let fired = false;
+
+  const detachWindow = () => {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onCancel);
+  };
+
+  const reset = () => {
+    detachWindow();
+    start = null;
+    activePointerId = -1;
+  };
+
+  const tryFire = (clientX: number, clientY: number) => {
+    if (!start || fired) return;
+    const dx = clientX - start.x;
+    const dy = clientY - start.y;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
+    if (adx < minX && ady < minX) return;
+    if (adx < ady * 0.4 && ady < adx * 0.4) return;
+
+    if (dx > 0 && adx >= minX && adx >= ady * 0.4) {
+      if (!canSwipeRight()) return;
+      fired = true;
+      if (navigator.vibrate) navigator.vibrate(18);
+      options.onSwipeRight();
+      reset();
+      return;
+    }
+    if (dx < 0 && adx >= minX && adx >= ady * 0.4) {
+      fired = true;
+      if (navigator.vibrate) navigator.vibrate(18);
+      options.onSwipeLeft();
+      reset();
+    }
+  };
+
+  const onMove = (e: PointerEvent) => {
+    if (e.pointerId !== activePointerId) return;
+    tryFire(e.clientX, e.clientY);
+  };
+
+  const onUp = (e: PointerEvent) => {
+    if (e.pointerId !== activePointerId) return;
+    tryFire(e.clientX, e.clientY);
+    if (!fired) reset();
+  };
+
+  const onCancel = (e: PointerEvent) => {
+    if (e.pointerId !== activePointerId) return;
+    reset();
+  };
+
+  const onDown = (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    fired = false;
+    start = { x: e.clientX, y: e.clientY };
+    activePointerId = e.pointerId;
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+  };
+
+  target.addEventListener('pointerdown', onDown, { passive: false });
+
+  return () => {
+    target.removeEventListener('pointerdown', onDown);
+    reset();
+    fired = false;
+  };
+}

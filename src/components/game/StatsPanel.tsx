@@ -5,6 +5,7 @@ import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { classifyPointerGesture, foulPenaltyFromGesture, type TeamDefSwipeDirection } from '@/lib/playerGesture';
+import { attachDualHorizontalSwipe } from '@/lib/teamDefGesture';
 import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
@@ -167,73 +168,13 @@ function StatSwipeBtn({
   useEffect(() => {
     const el = btnRef.current;
     if (!el) return;
-
-    const SWIPE_MIN_X = 30;
-    let start: { x: number; y: number } | null = null;
-    let activePointerId = -1;
-    let fired = false;
-
-    const cleanupWindow = () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onCancel);
-    };
-
-    const reset = () => {
-      cleanupWindow();
-      start = null;
-      activePointerId = -1;
-    };
-
-    const tryFire = (clientX: number, clientY: number) => {
-      if (!start || fired) return;
-      const dx = clientX - start.x;
-      const dy = clientY - start.y;
-      const adx = Math.abs(dx);
-      const ady = Math.abs(dy);
-      if (adx < SWIPE_MIN_X) return;
-      if (adx < ady * 0.5) return;
-      const okDir = swipeDirection === 'left' ? dx < 0 : dx > 0;
-      if (!okDir) return;
-      fired = true;
-      if (navigator.vibrate) navigator.vibrate(18);
-      onSwipeRef.current();
-      reset();
-    };
-
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      tryFire(e.clientX, e.clientY);
-    };
-
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      tryFire(e.clientX, e.clientY);
-      if (!fired) reset();
-    };
-
-    const onCancel = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      reset();
-    };
-
-    const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      fired = false;
-      start = { x: e.clientX, y: e.clientY };
-      activePointerId = e.pointerId;
-      window.addEventListener('pointermove', onMove, { passive: true });
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onCancel);
-    };
-
-    el.addEventListener('pointerdown', onDown, { passive: false });
-    return () => {
-      el.removeEventListener('pointerdown', onDown);
-      cleanupWindow();
-    };
+    const fire = () => onSwipeRef.current();
+    return attachDualHorizontalSwipe(el, {
+      onSwipeLeft: swipeDirection === 'left' ? fire : () => {},
+      onSwipeRight: swipeDirection === 'right' ? fire : () => {},
+      canSwipeRight: () => swipeDirection === 'right',
+      minX: 18,
+    });
   }, [swipeDirection]);
 
   const armed = active || longPressActive;
@@ -292,88 +233,21 @@ function TovDualSwipeBtn({
   const btnRef = useRef<HTMLButtonElement>(null);
   const onLeftRef = useRef(onSwipeLeft);
   const onRightRef = useRef(onSwipeRight);
+  const personalEnabledRef = useRef(personalEnabled);
   useEffect(() => { onLeftRef.current = onSwipeLeft; }, [onSwipeLeft]);
   useEffect(() => { onRightRef.current = onSwipeRight; }, [onSwipeRight]);
+  useEffect(() => { personalEnabledRef.current = personalEnabled; }, [personalEnabled]);
 
   useEffect(() => {
     const el = btnRef.current;
     if (!el) return;
-
-    const SWIPE_MIN_X = 24;
-    let start: { x: number; y: number } | null = null;
-    let activePointerId = -1;
-    let fired = false;
-
-    const cleanupWindow = () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onCancel);
-    };
-
-    const reset = () => {
-      cleanupWindow();
-      start = null;
-      activePointerId = -1;
-    };
-
-    const tryFire = (clientX: number, clientY: number) => {
-      if (!start || fired) return;
-      const dx = clientX - start.x;
-      const dy = clientY - start.y;
-      const adx = Math.abs(dx);
-      const ady = Math.abs(dy);
-      if (adx < SWIPE_MIN_X) return;
-      if (adx < ady * 0.5) return;
-
-      if (dx < 0) {
-        fired = true;
-        if (navigator.vibrate) navigator.vibrate(18);
-        onLeftRef.current();
-        reset();
-        return;
-      }
-      if (dx > 0 && personalEnabled) {
-        fired = true;
-        if (navigator.vibrate) navigator.vibrate(18);
-        onRightRef.current();
-        reset();
-      }
-    };
-
-    const onMove = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      tryFire(e.clientX, e.clientY);
-    };
-
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      tryFire(e.clientX, e.clientY);
-      if (!fired) reset();
-    };
-
-    const onCancel = (e: PointerEvent) => {
-      if (e.pointerId !== activePointerId) return;
-      reset();
-    };
-
-    const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      fired = false;
-      start = { x: e.clientX, y: e.clientY };
-      activePointerId = e.pointerId;
-      window.addEventListener('pointermove', onMove, { passive: true });
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onCancel);
-    };
-
-    el.addEventListener('pointerdown', onDown, { passive: false });
-    return () => {
-      el.removeEventListener('pointerdown', onDown);
-      cleanupWindow();
-    };
-  }, [personalEnabled]);
+    return attachDualHorizontalSwipe(el, {
+      onSwipeLeft: () => onLeftRef.current(),
+      onSwipeRight: () => onRightRef.current(),
+      canSwipeRight: () => personalEnabledRef.current,
+      minX: 18,
+    });
+  }, []);
 
   const armed = active || teamPickActive;
   const btnClass = getStatButtonClasses(teamPickActive ? 'teamTov' : 'linked', armed);
