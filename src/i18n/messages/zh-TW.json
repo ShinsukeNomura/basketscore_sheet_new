@@ -163,6 +163,7 @@
     "setAsMyTeam": "設為我的球隊",
     "myTeamLocked": "開始記錄後無法變更我的球隊",
     "stlPressureVictimHint": "長按→右滑 · 失誤# → 傳球/運球（夾擊下斷球）",
+    "stlLongPressStealerHint": "STL長按：先點抄截者背號",
     "stlLongPressVictimHint": "STL長按：點對方失誤# → 傳球抄截（STL）",
     "teamTovVictimHint": "長按→右滑 · 失誤# → 24/8/5秒等",
     "stlPressureSwipeLegend": "STL長按→右: 夾擊下斷球（無需抄截者#）",

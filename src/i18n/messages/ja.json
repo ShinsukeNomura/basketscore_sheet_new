@@ -163,6 +163,7 @@
     "setAsMyTeam": "マイチームにする",
     "myTeamLocked": "記録開始後はマイチームを変更できません",
     "stlPressureVictimHint": "長押し→右済 · 失策# → パス/ドリブル（トラップ下カット）",
+    "stlLongPressStealerHint": "STL長押し: まず奪った#をタップ",
     "stlLongPressVictimHint": "STL長押し: 相手の失策#をタップ → 「パスカット（STL）」",
     "teamTovVictimHint": "長押し→右済 · 失策# → 24秒/8秒/5秒など",
     "stlPressureSwipeLegend": "STL長押し→右: トラップ下のパスカット（奪った#不要）",

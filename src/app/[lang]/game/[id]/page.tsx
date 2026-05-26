@@ -200,24 +200,28 @@ export default function GamePage() {
   }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamDefense, clearInputState]);
 
   const handleStlLongPressSwipe = useCallback(() => {
-    if (!pendingPlayer) return;
-    // まず失策者（相手#）を選ぶステップへ
-    setStlLongPressStealer(pendingPlayer);
-    setStlLongPressAwaitingVictim(true);
-    setPendingPlayer(null);
+    if (pendingPlayer) {
+      setStlLongPressStealer(pendingPlayer);
+      setStlLongPressAwaitingVictim(true);
+      setPendingPlayer(null);
+    } else {
+      setStlLongPressStealer(null);
+      setStlLongPressAwaitingVictim(true);
+      setHighlightStat('STL');
+    }
     setStlAwaitingVictim(false);
     setStlPressureAwaitingVictim(false);
     setTeamTovAwaitingVictim(false);
     setFoulAwaitingSwipe(false);
-    setHighlightStat(null);
     setShotPhase(null);
     setPendingShotType(null);
   }, [pendingPlayer]);
 
   const handleTeamTovSwipe = useCallback(() => {
     if (pendingPlayer) {
-      const defenseTeamId = pendingPlayer.team_id === theirTeam.id ? ourTeam.id : theirTeam.id;
+      const isOurs = pendingPlayer.team_id === ourTeam.id;
       if (tovMode === 'simple') {
+        const defenseTeamId = pendingPlayer.team_id === theirTeam.id ? ourTeam.id : theirTeam.id;
         logTeamTov(pendingPlayer.team_id, undefined, undefined, {
           responsiblePlayerId: pendingPlayer.id,
           forceTeamTov: true,
@@ -227,13 +231,11 @@ export default function GamePage() {
         clearInputState();
         return;
       }
-      setStlCausePending({ mode: 'teamTov', victim: pendingPlayer });
-      setTeamTovAwaitingVictim(false);
-      setStlPressureAwaitingVictim(false);
+      openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer, 'team');
       return;
     }
     setNeutralPick({ mode: 'teamTov' });
-  }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamTov, clearInputState]);
+  }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamTov, clearInputState, openTovDetail]);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
     for (const { outId, inId } of pairs) substitute(outId, inId);
@@ -305,8 +307,14 @@ export default function GamePage() {
       return;
     }
 
-    // STL長押し（パスカット）: 失策者を選んだ後にモーダルを出す
-    if (stlLongPressAwaitingVictim && stlLongPressStealer) {
+    // STL長押し（パスカット）: 奪った選手→失策者の順で選択
+    if (stlLongPressAwaitingVictim) {
+      if (!stlLongPressStealer) {
+        setStlLongPressStealer(player);
+        setPendingPlayer(null);
+        return;
+      }
+      if (player.team_id === stlLongPressStealer.team_id) return;
       setStlCausePending({ mode: 'stl-longpress', stealer: stlLongPressStealer, victim: player });
       setStlLongPressAwaitingVictim(false);
       setStlLongPressStealer(null);
@@ -515,7 +523,11 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            opponentPickActive={stlPressureAwaitingVictim || teamTovAwaitingVictim}
+            opponentPickActive={
+              stlPressureAwaitingVictim
+              || teamTovAwaitingVictim
+              || (stlLongPressAwaitingVictim && !!stlLongPressStealer)
+            }
             isMyTeam={false}
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}
@@ -531,6 +543,7 @@ export default function GamePage() {
             stlAwaitingVictim={stlAwaitingVictim}
             stlPressureAwaitingVictim={stlPressureAwaitingVictim}
             stlLongPressAwaitingVictim={stlLongPressAwaitingVictim}
+            stlLongPressStealer={stlLongPressStealer}
             teamTovAwaitingVictim={teamTovAwaitingVictim}
             shotPhase={shotPhase}
             highlightStat={highlightStat}
@@ -558,7 +571,11 @@ export default function GamePage() {
             pendingPlayerId={pendingPlayerId}
             shotPhase={shotPhase}
             flashPlayerId={flashPlayerId}
-            opponentPickActive={stlPressureAwaitingVictim || teamTovAwaitingVictim}
+            opponentPickActive={
+              stlPressureAwaitingVictim
+              || teamTovAwaitingVictim
+              || (stlLongPressAwaitingVictim && !!stlLongPressStealer)
+            }
             isMyTeam
             onPlayerTap={handlePlayerTap}
             onPlayerGesture={handlePlayerGesture}

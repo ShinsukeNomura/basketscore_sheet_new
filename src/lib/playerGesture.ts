@@ -7,7 +7,19 @@ const MIN_SWIPE = 36;
 const MAX_TAP = 14;
 
 /** STL/TOV のチーム守備：長押ししてから右スワイプ */
-export const TEAM_DEF_LONG_PRESS_MS = 320;
+export const TEAM_DEF_LONG_PRESS_MS = 280;
+/** 長押しスワイプの最小水平移動（タップ判定より緩い） */
+export const TEAM_DEF_SWIPE_MIN_X = 18;
+
+/** 長押し後の右スワイプ（縦ブレ・短距離でも拾う） */
+export function isTeamDefLongPressSwipe(dx: number, dy: number, heldMs: number): boolean {
+  if (heldMs < TEAM_DEF_LONG_PRESS_MS) return false;
+  if (dx <= 0) return false;
+  const adx = Math.abs(dx);
+  const ady = Math.abs(dy);
+  if (adx < TEAM_DEF_SWIPE_MIN_X) return false;
+  return adx >= ady * 0.45;
+}
 
 export function classifyPointerGesture(dx: number, dy: number): PlayerGesture {
   const adx = Math.abs(dx);

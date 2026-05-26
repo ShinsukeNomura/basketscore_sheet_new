@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react';
 import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
-import { classifyPointerGesture, foulPenaltyFromGesture, TEAM_DEF_LONG_PRESS_MS } from '@/lib/playerGesture';
+import { classifyPointerGesture, foulPenaltyFromGesture, isTeamDefLongPressSwipe } from '@/lib/playerGesture';
 import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +23,7 @@ interface StatsPanelProps {
   stlPressureAwaitingVictim: boolean;
   teamTovAwaitingVictim: boolean;
   stlLongPressAwaitingVictim: boolean;
+  stlLongPressStealer:       Player | null;
   shotPhase:           'type' | 'result' | null;
   highlightStat:       ActionType | null;
   onSelectStat:        (action: ActionType) => void;
@@ -169,25 +170,34 @@ function StatSwipeBtn({
     e.currentTarget.setPointerCapture(e.pointerId);
   }, []);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+  const finishPointer = useCallback((clientX: number, clientY: number) => {
     const start = startRef.current;
     startRef.current = null;
     if (!start) return;
-    const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    const gesture = classifyPointerGesture(dx, dy);
+    const dx = clientX - start.x;
+    const dy = clientY - start.y;
     const held = Date.now() - start.t;
 
-    if (gesture === 'right' && held >= TEAM_DEF_LONG_PRESS_MS) {
+    if (isTeamDefLongPressSwipe(dx, dy, held)) {
       if (navigator.vibrate) navigator.vibrate(28);
       onLongPressSwipe();
       return;
     }
+    const gesture = classifyPointerGesture(dx, dy);
     if (gesture === 'tap' && !tapDisabled) {
       if (navigator.vibrate) navigator.vibrate(18);
       onTap();
     }
   }, [tapDisabled, onTap, onLongPressSwipe]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    finishPointer(e.clientX, e.clientY);
+  }, [finishPointer]);
+
+  const handleLostPointerCapture = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!startRef.current) return;
+    finishPointer(e.clientX, e.clientY);
+  }, [finishPointer]);
 
   const armed = active || longPressActive;
   const tier: StatUiTier = longPressActive ? longPressTier : 'linked';
@@ -198,10 +208,11 @@ function StatSwipeBtn({
       type="button"
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      onLostPointerCapture={handleLostPointerCapture}
       onPointerCancel={() => { startRef.current = null; }}
       className={cn(
         'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
-        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none touch-manipulation',
         'shadow-sm shadow-black/20',
         btnClass,
         tapDisabled && !longPressActive && 'opacity-35',
@@ -229,6 +240,7 @@ export function StatsPanel({
   stlPressureAwaitingVictim,
   teamTovAwaitingVictim,
   stlLongPressAwaitingVictim,
+  stlLongPressStealer,
   shotPhase,
   highlightStat,
   onSelectStat,
@@ -257,7 +269,7 @@ export function StatsPanel({
   if (stlPressureAwaitingVictim) {
     hint = g.stlPressureVictimHint;
   } else if (stlLongPressAwaitingVictim) {
-    hint = g.stlLongPressVictimHint;
+    hint = stlLongPressStealer ? g.stlLongPressVictimHint : g.stlLongPressStealerHint;
   } else if (teamTovAwaitingVictim) {
     hint = g.teamTovVictimHint;
   } else if (pendingPlayer) {
