@@ -6,7 +6,7 @@ import type { StlCausePick } from '@/lib/stlTovCause';
 import { cn } from '@/lib/utils';
 import { Route, Footprints, X, Timer, ShieldAlert } from 'lucide-react';
 
-export type StlCauseSheetMode = 'stl' | 'stl-pressure' | 'teamTov' | 'stl-longpress';
+export type StlCauseSheetMode = 'stl' | 'stl-pressure' | 'teamTov';
 
 interface StlCauseSheetProps {
   mode: StlCauseSheetMode;
@@ -33,16 +33,6 @@ export function StlCauseSheet({
       sub: g.stlCauseDribbleSub,
       icon: <Footprints size={22} />,
       color: 'bg-violet-900/70 border-violet-600/50 text-violet-100 active:bg-violet-800',
-    },
-  ];
-
-  const stlLongPressItems: { id: StlCausePick; label: string; sub: string; icon: ReactNode; color: string }[] = [
-    {
-      id: 'pass_cut_steal',
-      label: g.stlLongPressPassCut,
-      sub: g.stlLongPressPassCutSub,
-      icon: <Route size={22} />,
-      color: 'bg-cyan-900/70 border-cyan-600/50 text-cyan-100 active:bg-cyan-800',
     },
   ];
 
@@ -92,17 +82,14 @@ export function StlCauseSheet({
   ];
 
   const isTeamTov = mode === 'teamTov';
-  const isStlLongPress = mode === 'stl-longpress';
-  const items = isTeamTov ? teamTovItems : isStlLongPress ? stlLongPressItems : stlItems;
+  const items = isTeamTov ? teamTovItems : stlItems;
   const title =
     mode === 'teamTov' ? g.teamDefCauseTitle
     : mode === 'stl-pressure' ? g.stlPressureCauseTitle
-    : mode === 'stl-longpress' ? g.stlLongPressTitle
     : g.stlCauseTitle;
   const hint =
     mode === 'teamTov' ? g.teamDefCauseHint
     : mode === 'stl-pressure' ? g.stlPressureCauseHint
-    : mode === 'stl-longpress' ? g.stlLongPressHint
     : null;
 
   return (

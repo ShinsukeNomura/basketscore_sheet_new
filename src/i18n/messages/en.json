@@ -164,7 +164,7 @@
     "myTeamLocked": "Cannot change my team after stats are logged",
     "stlPressureVictimHint": "Hold→right done · turnover # → pass/dribble (trap cut)",
     "stlLongPressStealerHint": "STL hold: tap stealer # first",
-    "stlLongPressVictimHint": "STL hold: tap opponent turnover # → Pass cut (STL)",
+    "stlLongPressVictimHint": "STL hold: tap opponent turnover # (personal STL + team GDF)",
     "teamTovVictimHint": "Hold→left done · turnover # → 24/8/5 sec etc.",
     "stlPressureSwipeLegend": "Hold STL→right: trap pass cut (no stealer #)",
     "teamTovSwipeLegend": "Hold TOV→left: time violations (no STL)",

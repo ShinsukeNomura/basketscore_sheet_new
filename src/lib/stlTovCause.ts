@@ -12,10 +12,7 @@ export type TeamTovCause =
   | 'backcourt_violation'
   | 'other_violation';
 
-/** STL長押しモーダル（パスカットSTL） */
-export type StlLongPressCause = 'pass_cut_steal';
-
-export type StlCausePick = StlTovCause | TeamTovCause | StlLongPressCause;
+export type StlCausePick = StlTovCause | TeamTovCause;
 
 /** パス奪い/カット → バッドパス、ドリブル奪い → 公式12はロストボール・厳選6はスチールされた */
 export function tovReasonFromStlCause(
@@ -43,14 +40,10 @@ export function tovReasonFromTeamDefCause(
 export function tovReasonFromCausePick(
   pick: StlCausePick,
   mode: TovMode,
-  context: 'stl' | 'stl-pressure' | 'teamTov' | 'stl-longpress',
+  context: 'stl' | 'stl-pressure' | 'teamTov',
 ): TovReason | undefined {
   if (context === 'teamTov') {
     return tovReasonFromTeamDefCause(pick as TeamTovCause, mode);
-  }
-  if (context === 'stl-longpress') {
-    // パスカット（STL）= オフェンス側はチームTOV扱いだが理由はバッドパス相当
-    return mode === 'simple' ? undefined : 'bad-pass';
   }
   return tovReasonFromStlCause(pick as StlTovCause, mode);
 }
