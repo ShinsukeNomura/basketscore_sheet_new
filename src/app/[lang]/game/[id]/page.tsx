@@ -97,18 +97,21 @@ export default function GamePage() {
     isOurs: boolean;
     lockedPlayerId: string | null;
     lockedBackNumber: string | null;
+    context: 'personal' | 'team';
   } | null>(null);
 
   const openTovDetail = useCallback((
     teamId: string,
     isOurs: boolean,
     player: Player | null,
+    context: 'personal' | 'team' = 'personal',
   ) => {
     setTovPending({
       teamId,
       isOurs,
       lockedPlayerId: player?.id ?? null,
       lockedBackNumber: player?.back_number ?? null,
+      context,
     });
   }, []);
 
@@ -229,14 +232,7 @@ export default function GamePage() {
       setStlPressureAwaitingVictim(false);
       return;
     }
-    setTeamTovAwaitingVictim(true);
-    setStlPressureAwaitingVictim(false);
-    setPendingPlayer(null);
-    setStlAwaitingVictim(false);
-    setFoulAwaitingSwipe(false);
-    setHighlightStat(null);
-    setShotPhase(null);
-    setPendingShotType(null);
+    setNeutralPick({ mode: 'teamTov' });
   }, [pendingPlayer, tovMode, ourTeam.id, theirTeam.id, logTeamTov, clearInputState]);
 
   const handleSubstitute = useCallback((pairs: { outId: string; inId: string }[]) => {
@@ -402,7 +398,7 @@ export default function GamePage() {
     if (action === 'TOV') {
       const isOurs = pendingPlayer.team_id === ourTeam.id;
       if (isPremium && tovMode !== 'simple') {
-        openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer);
+        openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer, 'personal');
       } else {
         // 個人TOV（理由なし）でも responsible_player_id は引き継ぐ
         logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id, { responsiblePlayerId: pendingPlayer.id });
@@ -453,8 +449,28 @@ export default function GamePage() {
   function handleTovConfirm(reason: TovReason, playerId: string | null) {
     if (!tovPending) return;
     const pid = playerId ?? tovPending.lockedPlayerId ?? undefined;
-    // 個人TOV: player_id=pid、responsible_player_id=pid（lockedがあればそれ）
-    logTeamTov(tovPending.teamId, reason, pid, { responsiblePlayerId: pid ?? null });
+    const isHybridTeamReason = reason === '5sec' || reason === 'backcourt';
+    if (tovPending.context === 'team') {
+      const defenseTeamId = tovPending.teamId === ourTeam.id ? theirTeam.id : ourTeam.id;
+      logTeamTov(tovPending.teamId, reason, undefined, {
+        forceTeamTov: true,
+        responsiblePlayerId: null,
+        defenseTeamId,
+        goodDefense: reason !== 'other',
+      });
+    } else if (isHybridTeamReason) {
+      const defenseTeamId = tovPending.teamId === ourTeam.id ? theirTeam.id : ourTeam.id;
+      // 個人モーダル選択でも公式集計はチームTOV
+      logTeamTov(tovPending.teamId, reason, undefined, {
+        forceTeamTov: true,
+        responsiblePlayerId: pid ?? null,
+        defenseTeamId,
+        goodDefense: true,
+      });
+    } else {
+      // 個人TOV
+      logTeamTov(tovPending.teamId, reason, pid, { responsiblePlayerId: pid ?? null });
+    }
     setTovPending(null);
     clearInputState();
   }
@@ -592,7 +608,7 @@ export default function GamePage() {
           players={allPlayers.filter((p) => p.team_id === tovPending.teamId && p.is_on_court)}
           lockedPlayerId={tovPending.lockedPlayerId}
           lockedBackNumber={tovPending.lockedBackNumber}
-          context="personal"
+          context={tovPending.context}
           onConfirm={handleTovConfirm}
           onCancel={() => { setTovPending(null); clearInputState(); }}
         />
@@ -610,18 +626,9 @@ export default function GamePage() {
               clearInputState();
               return;
             }
-            // ニュートラルTOV: まずチームを確定し、その後は従来の「TOV長押し」フローで失策#を選ぶ
+            // ニュートラルTOV: まずチームを確定し、理由1タップでチームTOV記録
             setNeutralPick(null);
-            setTeamTovAwaitingVictim(true);
-            setStlPressureAwaitingVictim(false);
-            setStlLongPressAwaitingVictim(false);
-            setStlLongPressStealer(null);
-            setPendingPlayer(null);
-            setStlAwaitingVictim(false);
-            setFoulAwaitingSwipe(false);
-            setHighlightStat(null);
-            setShotPhase(null);
-            setPendingShotType(null);
+            openTovDetail(teamId, teamId === ourTeam.id, null, 'team');
           }}
           onCancel={() => { setNeutralPick(null); }}
         />

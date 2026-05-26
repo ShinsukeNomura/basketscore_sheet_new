@@ -56,7 +56,8 @@ export function TovCategorySheet({
     { id: 'traveling' as TovReason,      label: t.traveling,      sub: t.travelingSub },
     { id: 'double-dribble' as TovReason, label: t.doubleDribble,  sub: t.doubleDribbleSub },
     { id: 'out-of-bounds' as TovReason,  label: t.outOfBounds,    sub: t.outOfBoundsSub },
-    // チームTOVへ移行したバイオレーションは個人TOVモーダルから除外
+    { id: '5sec' as TovReason,           label: t.sec5,           sub: t.sec5Sub },
+    { id: 'backcourt' as TovReason,      label: t.backcourt,      sub: t.backcourtSub },
     { id: '3sec' as TovReason,           label: t.sec3,           sub: t.sec3Sub },
     { id: 'other' as TovReason,          label: t.other,          sub: t.otherSub },
   ], [t]);
@@ -77,13 +78,18 @@ export function TovCategorySheet({
       onConfirm(reason, lockedPlayerId);
       return;
     }
+    if (context === 'team') {
+      if (navigator.vibrate) navigator.vibrate(30);
+      onConfirm(reason, null);
+      return;
+    }
     setSelectedReason(reason);
     setFlash(reason);
     setTimeout(() => {
       setFlash(null);
       setStep('player');
     }, 160);
-  }, [playerLocked, lockedPlayerId, onConfirm]);
+  }, [playerLocked, lockedPlayerId, onConfirm, context]);
 
   const handlePlayerSelect = useCallback((playerId: string) => {
     if (!selectedReason) return;
