@@ -911,5 +911,24 @@
     "deliveryVal": "付款完成後即可立即使用",
     "returns": "退款・取消",
     "returnsVal": "數位內容不支援退款。訂閱取消可在帳號設定中操作。取消後仍可使用至當前計費週期結束，不支援按日退款。"
+  },
+  "collab": {
+    "shareTitle": "協作記錄",
+    "shareHint": "複製連結發給各負責人，在他們的裝置上開啟",
+    "rolePts": "得分",
+    "rolePtsDesc": "2分/3分/罰球 命中與未命中",
+    "roleReb": "籃板",
+    "roleRebDesc": "進攻與防守籃板",
+    "roleTov": "失誤 / 抄截",
+    "roleTovDesc": "失誤與抄截",
+    "roleDef": "防守",
+    "roleDefDesc": "阻攻、抄截與犯規",
+    "copyUrl": "複製連結",
+    "copied": "已複製",
+    "refreshButton": "取得最新記錄",
+    "refreshing": "取得中...",
+    "refreshDone": "已更新",
+    "badgeLabel": "負責: {role}",
+    "masterButton": "協作記錄"
   }
 }

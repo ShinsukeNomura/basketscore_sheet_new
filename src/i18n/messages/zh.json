@@ -911,5 +911,24 @@
     "deliveryVal": "支付完成后即可立即使用",
     "returns": "退款・取消",
     "returnsVal": "数字内容不支持退款。订阅取消可在账户设置中操作。取消后仍可使用至当前计费周期结束，不支持按日退款。"
+  },
+  "collab": {
+    "shareTitle": "协作记录",
+    "shareHint": "复制链接发给各负责人，在他们的设备上打开",
+    "rolePts": "得分",
+    "rolePtsDesc": "2分/3分/罚球 命中与未命中",
+    "roleReb": "篮板",
+    "roleRebDesc": "进攻与防守篮板",
+    "roleTov": "失误 / 断球",
+    "roleTovDesc": "失误与断球",
+    "roleDef": "防守",
+    "roleDefDesc": "盖帽、断球与犯规",
+    "copyUrl": "复制链接",
+    "copied": "已复制",
+    "refreshButton": "获取最新记录",
+    "refreshing": "获取中...",
+    "refreshDone": "已更新",
+    "badgeLabel": "负责: {role}",
+    "masterButton": "协作记录"
   }
 }

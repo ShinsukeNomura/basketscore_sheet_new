@@ -911,5 +911,24 @@
     "deliveryVal": "決済完了後、直ちにご利用いただけます",
     "returns": "返品・キャンセル",
     "returnsVal": "デジタルコンテンツのため返品・返金不可。サブスクリプション解約はアカウント設定から可能。解約後も当該請求期間終了まで利用可。日割り計算による返金なし"
+  },
+  "collab": {
+    "shareTitle": "協力記録",
+    "shareHint": "URLをコピーして担当者のデバイスで開いてもらってください",
+    "rolePts": "得点",
+    "rolePtsDesc": "2PT・3PT・FT の成功/失敗",
+    "roleReb": "リバウンド",
+    "roleRebDesc": "OR・DR リバウンド",
+    "roleTov": "TOV / STL",
+    "roleTovDesc": "ターンオーバー・スティール",
+    "roleDef": "ディフェンス",
+    "roleDefDesc": "ブロック・スティール・ファウル",
+    "copyUrl": "URLをコピー",
+    "copied": "コピーしました",
+    "refreshButton": "最新ログを取得",
+    "refreshing": "取得中...",
+    "refreshDone": "更新しました",
+    "badgeLabel": "担当: {role}",
+    "masterButton": "協力記録"
   }
 }

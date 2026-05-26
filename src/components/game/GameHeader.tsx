@@ -3,8 +3,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { Game, Period, Team } from '@/types';
 import { cn } from '@/lib/utils';
-import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList, Settings2, Cloud } from 'lucide-react';
+import { Check, Pencil, ChevronLeft, BarChart2, ClipboardList, Settings2, Cloud, Users } from 'lucide-react';
 import type { CloudSyncStatus } from '@/hooks/useGameState';
+import type { CollabRole } from '@/types';
 import { periodLabel, isOT } from '@/lib/period';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -25,14 +26,23 @@ interface GameHeaderProps {
   onShowRunning:  () => void;
   onEditSetup?:      () => void;
   cloudSyncStatus?:  CloudSyncStatus;
+  onShareCollab?:    () => void;
+  collabRole?:       CollabRole;
 }
 
 const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
 
+const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
+  pts: { label: '得点',        cls: 'bg-emerald-900/70 text-emerald-200 border-emerald-700/50' },
+  reb: { label: 'リバウンド',  cls: 'bg-blue-900/70    text-blue-200    border-blue-700/50' },
+  tov: { label: 'TOV/STL',    cls: 'bg-orange-900/70  text-orange-200  border-orange-700/50' },
+  def: { label: 'ディフェンス', cls: 'bg-red-900/70    text-red-200     border-red-700/50' },
+};
+
 export function GameHeader({
   game, ourTeam, theirTeam, ourScore, theirScore,
   onChangePeriod, onEndGame, onRenameGame, onGoHome, onShowStats, onShowRunning, onEditSetup,
-  cloudSyncStatus,
+  cloudSyncStatus, onShareCollab, collabRole,
 }: GameHeaderProps) {
   const dict = useDictionary();
   const g = dict.game;
@@ -112,6 +122,27 @@ export function GameHeader({
           >
             <Settings2 size={16} />
           </button>
+        )}
+
+        {/* マスター: 協力記録シェアボタン */}
+        {onShareCollab && !collabRole && (
+          <button
+            onPointerDown={onShareCollab}
+            className="p-1.5 rounded-lg text-white/35 active:text-sky-300 active:bg-white/10 transition-colors shrink-0"
+            aria-label={dict.collab.masterButton}
+          >
+            <Users size={16} />
+          </button>
+        )}
+
+        {/* 作業員: 担当ロールバッジ */}
+        {collabRole && ROLE_BADGE[collabRole] && (
+          <span className={cn(
+            'text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0',
+            ROLE_BADGE[collabRole].cls,
+          )}>
+            {ROLE_BADGE[collabRole].label}
+          </span>
         )}
 
         {/* ランニングスコアボタン */}

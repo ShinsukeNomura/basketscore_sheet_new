@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useCallback, useEffect } from 'react';
-import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
+import { ActionType, StatDef, TovMode, Player, FoulPenalty, CollabRole } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { classifyPointerGesture, foulPenaltyFromGesture, type TeamDefSwipeDirection } from '@/lib/playerGesture';
@@ -16,6 +16,14 @@ const NEG = STAT_DEFS.filter(
 const STL_DEF = STAT_DEFS.find((s) => s.action === 'STL')!;
 
 const BTN_ROW = 'shrink-0 flex gap-1.5 min-h-[46px] h-[46px]';
+
+/** ロール別に表示するスタッツボタン (null = 制限なし) */
+const COLLAB_ALLOWED: Record<CollabRole, ActionType[] | null> = {
+  pts: [],
+  reb: ['ORBD', 'DRBD'],
+  tov: ['STL', 'TOV'],
+  def: ['BLK', 'STL', 'FOUL'],
+};
 
 interface StatsPanelProps {
   pendingPlayer:       Player | null;
@@ -33,6 +41,7 @@ interface StatsPanelProps {
   isPremium?:          boolean;
   tovMode?:            TovMode;
   onTovModeChange?:    (mode: TovMode) => void;
+  collabRole?:         CollabRole;
 }
 
 function Btn({
@@ -264,12 +273,16 @@ export function StatsPanel({
   isPremium = false,
   tovMode = 'simple',
   onTovModeChange,
+  collabRole,
 }: StatsPanelProps) {
   const dict = useDictionary();
   const g = dict.game;
   const st = dict.stats;
   const sp = dict.statsPanel;
   const actions = dict.actions as Record<ActionType, string>;
+
+  const allowedActions = collabRole ? COLLAB_ALLOWED[collabRole] : null;
+  const isAllowed = (a: ActionType) => !allowedActions || allowedActions.includes(a);
 
   function tap(action: ActionType) {
     if (navigator.vibrate) navigator.vibrate(18);
@@ -363,80 +376,88 @@ export function StatsPanel({
         </div>
       </div>
 
-      <div className={BTN_ROW}>
-        {NEUTRAL.map((def) => (
-          <Btn
-            key={def.action}
-            def={def}
-            isSelected={isSelected(def.action)}
-            disabled={!pendingPlayer}
-            useViolet={def.action === 'AST'}
-            onClick={() => tap(def.action)}
-          />
-        ))}
-      </div>
+      {/* Row 1: ORbd / DRbd / Ast (ロールで非表示の場合は行ごと省略) */}
+      {NEUTRAL.some((def) => isAllowed(def.action)) && (
+        <div className={BTN_ROW}>
+          {NEUTRAL.filter((def) => isAllowed(def.action)).map((def) => (
+            <Btn
+              key={def.action}
+              def={def}
+              isSelected={isSelected(def.action)}
+              disabled={!pendingPlayer}
+              useViolet={def.action === 'AST'}
+              onClick={() => tap(def.action)}
+            />
+          ))}
+        </div>
+      )}
 
-      <div className={BTN_ROW}>
-        {NEG.map((def) => (
-          <button
-            key={def.action}
-            type="button"
-            disabled={!pendingPlayer}
-            onPointerDown={() => { if (pendingPlayer) tap(def.action); }}
-            className={cn(
-              'flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
-              'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
-              'shadow-sm shadow-black/20',
-              getNegativeStatButtonClasses(isSelected(def.action)),
-              !pendingPlayer && 'opacity-35 pointer-events-none',
-            )}
-          >
-            <span className="leading-none">{def.label}</span>
-          </button>
-        ))}
-        {pendingPlayer ? (
-          <StatTapBtn
-            label={STL_DEF.label}
-            active={isSelected('STL') || stlAwaitingVictim}
-            onTap={() => tap('STL')}
-            tier="linked"
-          />
-        ) : (
-          <StatSwipeBtn
-            label={STL_DEF.label}
-            active={isSelected('STL')}
-            longPressActive={stlGdfAwaitingVictim}
-            longPressTier="signature"
-            swipeDirection="right"
-            longPressBadge={g.stlGdfSwipeBadge}
-            onSwipe={onStlGdfSwipe}
-          />
-        )}
-        <FoulSwipeBtn
-          active={!!pendingPlayer}
-          disabled={!pendingPlayer}
-          onActivate={() => tap('FOUL')}
-          onPenalty={onFoulPenalty}
-        />
-        {pendingPlayer ? (
-          <StatTapBtn
-            label={actions.TOV ?? 'TOV'}
-            active={isSelected('TOV')}
-            onTap={() => tap('TOV')}
-            tier="linked"
-          />
-        ) : (
-          <StatSwipeBtn
-            label={actions.TOV ?? 'TOV'}
-            active={isSelected('TOV')}
-            longPressActive={teamTovAwaitingVictim}
-            longPressTier="teamTov"
-            swipeDirection="left"
-            longPressBadge={g.teamTovSwipeBadge}
-            onSwipe={onTeamTovSwipe}
-          />
-        )}
-      </div>
+      {/* Row 2: Blk / Stl / Foul / Tov (ロールで非表示の場合は行ごと省略) */}
+      {(NEG.some((def) => isAllowed(def.action)) || isAllowed('STL') || isAllowed('FOUL') || isAllowed('TOV')) && (
+        <div className={BTN_ROW}>
+          {NEG.filter((def) => isAllowed(def.action)).map((def) => (
+            <button
+              key={def.action}
+              type="button"
+              disabled={!pendingPlayer}
+              onPointerDown={() => { if (pendingPlayer) tap(def.action); }}
+              className={cn(
+                'flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+                'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+                'shadow-sm shadow-black/20',
+                getNegativeStatButtonClasses(isSelected(def.action)),
+                !pendingPlayer && 'opacity-35 pointer-events-none',
+              )}
+            >
+              <span className="leading-none">{def.label}</span>
+            </button>
+          ))}
+          {isAllowed('STL') && (pendingPlayer ? (
+            <StatTapBtn
+              label={STL_DEF.label}
+              active={isSelected('STL') || stlAwaitingVictim}
+              onTap={() => tap('STL')}
+              tier="linked"
+            />
+          ) : (
+            <StatSwipeBtn
+              label={STL_DEF.label}
+              active={isSelected('STL')}
+              longPressActive={stlGdfAwaitingVictim}
+              longPressTier="signature"
+              swipeDirection="right"
+              longPressBadge={g.stlGdfSwipeBadge}
+              onSwipe={onStlGdfSwipe}
+            />
+          ))}
+          {isAllowed('FOUL') && (
+            <FoulSwipeBtn
+              active={!!pendingPlayer}
+              disabled={!pendingPlayer}
+              onActivate={() => tap('FOUL')}
+              onPenalty={onFoulPenalty}
+            />
+          )}
+          {isAllowed('TOV') && (pendingPlayer ? (
+            <StatTapBtn
+              label={actions.TOV ?? 'TOV'}
+              active={isSelected('TOV')}
+              onTap={() => tap('TOV')}
+              tier="linked"
+            />
+          ) : (
+            <StatSwipeBtn
+              label={actions.TOV ?? 'TOV'}
+              active={isSelected('TOV')}
+              longPressActive={teamTovAwaitingVictim}
+              longPressTier="teamTov"
+              swipeDirection="left"
+              longPressBadge={g.teamTovSwipeBadge}
+              onSwipe={onTeamTovSwipe}
+            />
+          ))}
+        </div>
+      )}
 
       <p className="hidden sm:block shrink-0 text-center text-[10px] text-neutral-600 leading-tight px-1">
         {g.shotSwipeLegend}

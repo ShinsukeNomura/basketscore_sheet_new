@@ -171,6 +171,13 @@ export interface PersistedGameState {
 // Supabase Database 型 (generated types の簡易版)
 // ============================================================
 
+// ============================================================
+// 協力記録モード
+// ============================================================
+
+/** 作業員の担当スタッツ役割 */
+export type CollabRole = 'pts' | 'reb' | 'tov' | 'def';
+
 export type Database = {
   public: {
     Tables: {

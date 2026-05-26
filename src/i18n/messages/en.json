@@ -911,5 +911,24 @@
     "deliveryVal": "Access granted immediately after payment completion",
     "returns": "Returns / Cancellations",
     "returnsVal": "No refunds on digital content. Subscriptions can be cancelled from account settings. Service continues until end of current billing period. No pro-rata refunds."
+  },
+  "collab": {
+    "shareTitle": "Team Recording",
+    "shareHint": "Copy the URL and have each person open it on their device",
+    "rolePts": "Scoring",
+    "rolePtsDesc": "2PT / 3PT / FT made & missed",
+    "roleReb": "Rebounds",
+    "roleRebDesc": "Offensive & defensive rebounds",
+    "roleTov": "TOV / STL",
+    "roleTovDesc": "Turnovers & steals",
+    "roleDef": "Defense",
+    "roleDefDesc": "Blocks, steals & fouls",
+    "copyUrl": "Copy URL",
+    "copied": "Copied!",
+    "refreshButton": "Fetch Latest Logs",
+    "refreshing": "Fetching...",
+    "refreshDone": "Updated",
+    "badgeLabel": "Role: {role}",
+    "masterButton": "Team Recording"
   }
 }

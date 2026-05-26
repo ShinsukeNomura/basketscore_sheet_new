@@ -742,6 +742,26 @@ export function useGameState(gameId: string) {
     }
   }, [gameId]);
 
+  const refreshFromCloud = useCallback(async (): Promise<boolean> => {
+    if (!userId) return false;
+    setCloudSyncStatus('syncing');
+    try {
+      const cloud = await loadGameForUser(gameId, userId);
+      if (!cloud) { setCloudSyncStatus('error'); return false; }
+      const active = cloud.logs.filter((l) => !l.is_deleted);
+      const ourScore   = active.filter((l) => l.team_id === cloud.ourTeam.id).reduce((s, l) => s + l.points, 0);
+      const theirScore = active.filter((l) => l.team_id === cloud.theirTeam.id).reduce((s, l) => s + l.points, 0);
+      savePersistedGame(cloud, ourScore, theirScore, userId);
+      setLiveGameCache(cloud, gameId);
+      dispatch({ type: 'LOAD_PERSISTED', payload: cloud });
+      setCloudSyncStatus('saved');
+      return true;
+    } catch {
+      setCloudSyncStatus('error');
+      return false;
+    }
+  }, [gameId, userId]);
+
   return {
     game: state.game, ourTeam: state.ourTeam, theirTeam: state.theirTeam,
     allPlayers: state.allPlayers, selectedStat: state.selectedStat,
@@ -754,7 +774,7 @@ export function useGameState(gameId: string) {
     selectStat, logStat, logPlayerStat, logStlWithVictim, logTeamDefense, undoLog, changePeriod, endGame, resumeGame, substitute,
     logTeamStl,
     addPlayer, renameTeam, renameGame, recolorTeam,
-    logTeamTov, remapTovReasons, saveGame, reloadFromStorage,
+    logTeamTov, remapTovReasons, saveGame, reloadFromStorage, refreshFromCloud,
     cloudSyncStatus, saveToCloud,
   };
 }

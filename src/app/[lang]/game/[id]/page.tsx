@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useGameState }          from '@/hooks/useGameState';
 import { GameHeader }            from '@/components/game/GameHeader';
 import { TeamSection }           from '@/components/game/TeamSection';
@@ -12,7 +12,7 @@ import { EndGameOverlay }        from '@/components/game/EndGameOverlay';
 import { StatsSheet }            from '@/components/game/StatsSheet';
 import { CreateGameSheet }       from '@/components/CreateGameSheet';
 import { CourtMap }              from '@/components/game/CourtMap';
-import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalty } from '@/types';
+import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalty, CollabRole } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { StlCauseSheet } from '@/components/game/StlCauseSheet';
@@ -22,6 +22,7 @@ import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
 import type { GameSummary } from '@/types';
 import { UnsavedCloudSaveDialog } from '@/components/UnsavedCloudSaveDialog';
+import { CollabShareSheet } from '@/components/game/CollabShareSheet';
 import {
   type PlayerGesture,
   type ShotType,
@@ -34,6 +35,12 @@ export default function GamePage() {
   const gameId = typeof params.id === 'string' ? params.id : (params.id?.[0] ?? 'demo');
   const lang   = typeof params.lang === 'string' ? params.lang : 'ja';
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawRole = searchParams.get('role');
+  const collabRole: CollabRole | undefined =
+    rawRole === 'pts' || rawRole === 'reb' || rawRole === 'tov' || rawRole === 'def'
+      ? rawRole
+      : undefined;
 
   const {
     game, ourTeam, theirTeam, allPlayers, isLoaded,
@@ -43,7 +50,7 @@ export default function GamePage() {
     logPlayerStat, logStlWithVictim, logTeamDefense, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
-    renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
+    renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage, refreshFromCloud,
     cloudSyncStatus, saveToCloud,
   } = useGameState(gameId);
 
@@ -56,6 +63,7 @@ export default function GamePage() {
   const [subTeam,        setSubTeam]        = useState<Team | null>(null);
   const [subOpen,        setSubOpen]        = useState(false);
   const [createOpen,     setCreateOpen]     = useState(false);
+  const [collabOpen,     setCollabOpen]     = useState(false);
   const [unsavedDialogOpen, setUnsavedDialogOpen] = useState(false);
   const [pendingUnsavedGames, setPendingUnsavedGames] = useState<GameSummary[]>([]);
   const [statsOpen,      setStatsOpen]      = useState(false);
@@ -478,6 +486,8 @@ export default function GamePage() {
         cloudSyncStatus={cloudSyncStatus}
         onShowStats={() => setStatsOpen(true)}
         onShowRunning={() => { leaveAndSave(); router.push(`/${lang}/game/${gameId}/running`); }}
+        onShareCollab={!collabRole ? () => setCollabOpen(true) : undefined}
+        collabRole={collabRole}
       />
 
       <div className="flex-1 min-h-0 flex flex-col gap-1.5">
@@ -525,6 +535,7 @@ export default function GamePage() {
               setTovMode(newMode);
               if (newMode !== 'simple') remapTovReasons(newMode);
             }}
+            collabRole={collabRole}
           />
         </div>
 
@@ -671,6 +682,14 @@ export default function GamePage() {
         logs={activeLogs}
         ourTov={teamTovCounts[ourTeam.id] ?? 0}
         theirTov={teamTovCounts[theirTeam.id] ?? 0}
+      />
+
+      <CollabShareSheet
+        open={collabOpen}
+        onClose={() => setCollabOpen(false)}
+        gameId={gameId}
+        lang={lang}
+        onRefreshFromCloud={refreshFromCloud}
       />
     </div>
   );
