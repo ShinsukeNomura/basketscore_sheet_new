@@ -214,6 +214,19 @@ export default function GamePage() {
     setPendingShotType(null);
   }, [pendingPlayer]);
 
+  const handlePersonalTovSwipe = useCallback(() => {
+    if (!pendingPlayer) return;
+    const isOurs = pendingPlayer.team_id === ourTeam.id;
+    if (isPremium && tovMode !== 'simple') {
+      openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer, 'personal');
+      return;
+    }
+    logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id, {
+      responsiblePlayerId: pendingPlayer.id,
+    });
+    clearInputState();
+  }, [pendingPlayer, isPremium, tovMode, logTeamTov, clearInputState, openTovDetail]);
+
   const handleTeamTovSwipe = useCallback(() => {
     if (pendingPlayer) {
       const isOurs = pendingPlayer.team_id === ourTeam.id;
@@ -525,9 +538,9 @@ export default function GamePage() {
             highlightStat={highlightStat}
             onSelectStat={handleStatSelect}
             onFoulPenalty={handleFoulPenalty}
-            onStlPressureSwipe={handleStlPressureSwipe}
             onStlLongPressSwipe={handleStlLongPressSwipe}
             onTeamTovSwipe={handleTeamTovSwipe}
+            onPersonalTovSwipe={handlePersonalTovSwipe}
             isPremium={isPremium}
             tovMode={tovMode}
             onTovModeChange={(newMode) => {

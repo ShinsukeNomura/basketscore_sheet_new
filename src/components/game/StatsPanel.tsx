@@ -5,7 +5,6 @@ import { ActionType, StatDef, TovMode, Player, FoulPenalty } from '@/types';
 import { STAT_DEFS } from '@/lib/stats';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { classifyPointerGesture, foulPenaltyFromGesture, type TeamDefSwipeDirection } from '@/lib/playerGesture';
-import { attachTeamDefGesture } from '@/lib/teamDefGesture';
 import { getStatButtonClasses, getNegativeStatButtonClasses, type StatUiTier } from '@/lib/statUiTier';
 import { cn } from '@/lib/utils';
 
@@ -29,9 +28,9 @@ interface StatsPanelProps {
   highlightStat:       ActionType | null;
   onSelectStat:        (action: ActionType) => void;
   onFoulPenalty:       (penalty: FoulPenalty) => void;
-  onStlPressureSwipe:  () => void;
   onStlLongPressSwipe: () => void;
   onTeamTovSwipe:      () => void;
+  onPersonalTovSwipe:  () => void;
   isPremium?:          boolean;
   tovMode?:            TovMode;
   onTovModeChange?:    (mode: TovMode) => void;
@@ -150,9 +149,7 @@ function StatSwipeBtn({
   longPressActive,
   longPressTier,
   swipeDirection,
-  tapDisabled,
-  onTap,
-  onLongPressSwipe,
+  onSwipe,
   longPressBadge,
 }: {
   label: string;
@@ -160,23 +157,84 @@ function StatSwipeBtn({
   longPressActive: boolean;
   longPressTier: 'signature' | 'teamTov';
   swipeDirection: TeamDefSwipeDirection;
-  tapDisabled: boolean;
-  onTap: () => void;
-  onLongPressSwipe: () => void;
+  onSwipe: () => void;
   longPressBadge?: string;
 }) {
   const btnRef = useRef<HTMLButtonElement>(null);
+  const onSwipeRef = useRef(onSwipe);
+  useEffect(() => { onSwipeRef.current = onSwipe; }, [onSwipe]);
 
   useEffect(() => {
     const el = btnRef.current;
     if (!el) return;
-    return attachTeamDefGesture(el, {
-      direction: swipeDirection,
-      onLongPressSwipe,
-      onTap,
-      tapDisabled,
-    });
-  }, [swipeDirection, onLongPressSwipe, onTap, tapDisabled]);
+
+    const SWIPE_MIN_X = 30;
+    let start: { x: number; y: number } | null = null;
+    let activePointerId = -1;
+    let fired = false;
+
+    const cleanupWindow = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+    };
+
+    const reset = () => {
+      cleanupWindow();
+      start = null;
+      activePointerId = -1;
+    };
+
+    const tryFire = (clientX: number, clientY: number) => {
+      if (!start || fired) return;
+      const dx = clientX - start.x;
+      const dy = clientY - start.y;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+      if (adx < SWIPE_MIN_X) return;
+      if (adx < ady * 0.5) return;
+      const okDir = swipeDirection === 'left' ? dx < 0 : dx > 0;
+      if (!okDir) return;
+      fired = true;
+      if (navigator.vibrate) navigator.vibrate(18);
+      onSwipeRef.current();
+      reset();
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      tryFire(e.clientX, e.clientY);
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      tryFire(e.clientX, e.clientY);
+      if (!fired) reset();
+    };
+
+    const onCancel = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      reset();
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      fired = false;
+      start = { x: e.clientX, y: e.clientY };
+      activePointerId = e.pointerId;
+      window.addEventListener('pointermove', onMove, { passive: true });
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    };
+
+    el.addEventListener('pointerdown', onDown, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      cleanupWindow();
+    };
+  }, [swipeDirection]);
 
   const armed = active || longPressActive;
   const tier: StatUiTier = longPressActive ? longPressTier : 'linked';
@@ -191,7 +249,6 @@ function StatSwipeBtn({
         'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
         'shadow-sm shadow-black/20',
         btnClass,
-        tapDisabled && !longPressActive && 'opacity-35',
       )}
     >
       {longPressActive && longPressBadge && (
@@ -202,13 +259,153 @@ function StatSwipeBtn({
           {longPressBadge}
         </span>
       )}
-      {active && !longPressActive && (
+      {!longPressActive && (
         <span className={cn(
-          'absolute top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none',
+          'absolute top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/50 pointer-events-none leading-none',
           swipeDirection === 'left' ? 'left-0.5' : 'right-0.5',
         )}>
           {swipeDirection === 'left' ? '←' : '→'}
         </span>
+      )}
+      <span className="leading-none">{label}</span>
+    </button>
+  );
+}
+
+function TovDualSwipeBtn({
+  label,
+  active,
+  teamPickActive,
+  personalEnabled,
+  onSwipeLeft,
+  onSwipeRight,
+  teamBadge,
+}: {
+  label: string;
+  active: boolean;
+  teamPickActive: boolean;
+  personalEnabled: boolean;
+  onSwipeLeft: () => void;
+  onSwipeRight: () => void;
+  teamBadge?: string;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const onLeftRef = useRef(onSwipeLeft);
+  const onRightRef = useRef(onSwipeRight);
+  useEffect(() => { onLeftRef.current = onSwipeLeft; }, [onSwipeLeft]);
+  useEffect(() => { onRightRef.current = onSwipeRight; }, [onSwipeRight]);
+
+  useEffect(() => {
+    const el = btnRef.current;
+    if (!el) return;
+
+    const SWIPE_MIN_X = 24;
+    let start: { x: number; y: number } | null = null;
+    let activePointerId = -1;
+    let fired = false;
+
+    const cleanupWindow = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+    };
+
+    const reset = () => {
+      cleanupWindow();
+      start = null;
+      activePointerId = -1;
+    };
+
+    const tryFire = (clientX: number, clientY: number) => {
+      if (!start || fired) return;
+      const dx = clientX - start.x;
+      const dy = clientY - start.y;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+      if (adx < SWIPE_MIN_X) return;
+      if (adx < ady * 0.5) return;
+
+      if (dx < 0) {
+        fired = true;
+        if (navigator.vibrate) navigator.vibrate(18);
+        onLeftRef.current();
+        reset();
+        return;
+      }
+      if (dx > 0 && personalEnabled) {
+        fired = true;
+        if (navigator.vibrate) navigator.vibrate(18);
+        onRightRef.current();
+        reset();
+      }
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      tryFire(e.clientX, e.clientY);
+    };
+
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      tryFire(e.clientX, e.clientY);
+      if (!fired) reset();
+    };
+
+    const onCancel = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      reset();
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      fired = false;
+      start = { x: e.clientX, y: e.clientY };
+      activePointerId = e.pointerId;
+      window.addEventListener('pointermove', onMove, { passive: true });
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onCancel);
+    };
+
+    el.addEventListener('pointerdown', onDown, { passive: false });
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      cleanupWindow();
+    };
+  }, [personalEnabled]);
+
+  const armed = active || teamPickActive;
+  const btnClass = getStatButtonClasses(teamPickActive ? 'teamTov' : 'linked', armed);
+
+  return (
+    <button
+      ref={btnRef}
+      type="button"
+      className={cn(
+        'relative flex flex-1 min-w-0 h-full flex-col items-center justify-center rounded-xl',
+        'text-sm font-bold transition-all duration-75 active:scale-[0.97] select-none touch-none',
+        'shadow-sm shadow-black/20',
+        btnClass,
+        !personalEnabled && 'opacity-95',
+      )}
+    >
+      {teamPickActive && teamBadge && (
+        <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/70 pointer-events-none leading-none">
+          {teamBadge}
+        </span>
+      )}
+      {!teamPickActive && (
+        <>
+          <span className="absolute left-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-sky-300/80 pointer-events-none leading-none">
+            ←
+          </span>
+          {personalEnabled && (
+            <span className="absolute right-0.5 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white/50 pointer-events-none leading-none">
+              →
+            </span>
+          )}
+        </>
       )}
       <span className="leading-none">{label}</span>
     </button>
@@ -227,9 +424,9 @@ export function StatsPanel({
   highlightStat,
   onSelectStat,
   onFoulPenalty,
-  onStlPressureSwipe,
   onStlLongPressSwipe,
   onTeamTovSwipe,
+  onPersonalTovSwipe,
   isPremium = false,
   tovMode = 'simple',
   onTovModeChange,
@@ -260,7 +457,7 @@ export function StatsPanel({
     else if (stlAwaitingVictim) hint = g.stlVictimHint.replace('{num}', num);
     else if (shotPhase === 'type') hint = g.shotTypeHint.replace('{num}', num);
     else if (shotPhase === 'result') hint = g.shotResultHint.replace('{num}', num);
-    else hint = g.pendingPlayerHint.replace('{num}', num);
+    else hint = g.pendingPlayerTovHint.replace('{num}', num);
   }
 
   return (
@@ -372,9 +569,7 @@ export function StatsPanel({
           longPressTier="signature"
           swipeDirection="right"
           longPressBadge={g.stlPressureSwipeBadge}
-          tapDisabled
-          onTap={() => {}}
-          onLongPressSwipe={onStlLongPressSwipe}
+          onSwipe={onStlLongPressSwipe}
         />
         <FoulSwipeBtn
           active={foulAwaitingSwipe}
@@ -382,16 +577,14 @@ export function StatsPanel({
           onActivate={() => tap('FOUL')}
           onPenalty={onFoulPenalty}
         />
-        <StatSwipeBtn
+        <TovDualSwipeBtn
           label={actions.TOV ?? 'TOV'}
           active={isSelected('TOV')}
-          longPressActive={teamTovAwaitingVictim}
-          longPressTier="teamTov"
-          swipeDirection="left"
-          longPressBadge={g.teamTovSwipeBadge}
-          tapDisabled
-          onTap={() => {}}
-          onLongPressSwipe={onTeamTovSwipe}
+          teamPickActive={teamTovAwaitingVictim}
+          personalEnabled={!!pendingPlayer}
+          teamBadge={g.teamTovSwipeBadge}
+          onSwipeLeft={onTeamTovSwipe}
+          onSwipeRight={onPersonalTovSwipe}
         />
       </div>
 
