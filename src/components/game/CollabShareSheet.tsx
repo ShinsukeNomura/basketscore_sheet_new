@@ -62,20 +62,20 @@ export function CollabShareSheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col justify-end">
-      {/* 背景タップで閉じる */}
+    <div
+      className="fixed inset-0 z-[200] flex flex-col justify-end bg-black/60"
+      onPointerDown={onClose}
+    >
+      {/* シート本体: stopPropagation でバックドロップ閉じを防ぐ */}
       <div
-        className="absolute inset-0 bg-black/60"
-        onPointerDown={onClose}
-      />
-
-      {/* シート本体 */}
-      <div className="relative bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe px-4 pt-4">
+        className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe px-4 pt-4"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-white font-bold text-base">{c.shareTitle}</h2>
           <button
             type="button"
-            onPointerDown={onClose}
+            onClick={onClose}
             className="p-1 text-white/40 active:text-white/80"
           >
             <X size={18} />
@@ -98,7 +98,7 @@ export function CollabShareSheet({
               </div>
               <button
                 type="button"
-                onPointerDown={() => copyUrl(role)}
+                onClick={() => copyUrl(role)}
                 className="flex items-center gap-1 text-xs font-medium shrink-0 ml-2 opacity-80 active:opacity-100"
               >
                 {copiedRole === role ? <Check size={13} /> : <Copy size={13} />}
@@ -110,7 +110,7 @@ export function CollabShareSheet({
 
         <button
           type="button"
-          onPointerDown={() => void handleRefresh()}
+          onClick={() => void handleRefresh()}
           disabled={refreshState === 'loading'}
           className="w-full py-3 rounded-xl bg-sky-950/60 border border-sky-700/40 text-sky-100 font-semibold text-sm flex items-center justify-center gap-2 active:bg-sky-900/70 transition-colors disabled:opacity-50"
         >
