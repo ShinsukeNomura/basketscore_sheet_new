@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { Team, StatsLog, Player, Game } from '@/types';
 import { periodLabel } from '@/lib/period';
 import { cn } from '@/lib/utils';
@@ -236,6 +236,7 @@ export function EndGameOverlay({
   const [aiLoading,   setAiLoading]   = useState(false);
   const [showReport,  setShowReport]  = useState(false);
   const [scoreSheetPreview, setScoreSheetPreview] = useState<GameScoreSheetDocument | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   // キャッシュから読み込み（キャッシュがあれば自動表示）
   useEffect(() => {
@@ -267,6 +268,7 @@ export function EndGameOverlay({
       game, ourTeam, theirTeam, allPlayers, logs, ourScore, theirScore,
       dict.pdf.scoreSheet, locale, buildAiForScoreSheet(),
     );
+    overlayRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     setScoreSheetPreview(doc);
   };
 
@@ -325,7 +327,7 @@ export function EndGameOverlay({
   };
 
   return (
-    <div className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
+    <div ref={overlayRef} className="absolute inset-0 z-50 bg-neutral-950/95 backdrop-blur-sm flex flex-col overflow-y-auto">
       {scoreSheetPreview && (
         <ScoreSheetPreviewSheet
           document={scoreSheetPreview}
