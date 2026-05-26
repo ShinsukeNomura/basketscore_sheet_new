@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StatsLog, Player, Team, TovReason } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
@@ -332,6 +332,57 @@ export function StatsSheet({
   const ourGdf    = useMemo(() => computeTeamGdf(logs, ourTeam.id),   [logs, ourTeam.id]);
   const theirGdf  = useMemo(() => computeTeamGdf(logs, theirTeam.id), [logs, theirTeam.id]);
 
+  const scaleRef  = useRef(1);
+  const [scale, setScale] = useState(1);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      scaleRef.current = 1;
+      setScale(1);
+      return;
+    }
+    const el = scrollRef.current;
+    if (!el) return;
+
+    function pinchDist(t: TouchList) {
+      const dx = t[0].clientX - t[1].clientX;
+      const dy = t[0].clientY - t[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    let pinchState: { dist: number; baseScale: number } | null = null;
+
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length === 2) {
+        pinchState = { dist: pinchDist(e.touches), baseScale: scaleRef.current };
+      }
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (e.touches.length !== 2 || !pinchState) return;
+      e.preventDefault();
+      const ratio = pinchDist(e.touches) / pinchState.dist;
+      const next = Math.min(3, Math.max(0.5, pinchState.baseScale * ratio));
+      scaleRef.current = next;
+      setScale(next);
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (e.touches.length < 2) pinchState = null;
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    el.addEventListener('touchend',   onTouchEnd);
+
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove',  onTouchMove);
+      el.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, [open]);
+
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <SheetContent
@@ -359,21 +410,23 @@ export function StatsSheet({
           )}
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto sheet-scroll">
-          <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov}   teamGdf={ourGdf}   logs={logs} />
-          <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} teamGdf={theirGdf} logs={logs} />
+        <div ref={scrollRef} className="flex-1 overflow-y-auto sheet-scroll">
+          <div style={{ zoom: scale }}>
+            <TeamTable team={ourTeam}   rows={ourRows}   teamTov={ourTov}   teamGdf={ourGdf}   logs={logs} />
+            <TeamTable team={theirTeam} rows={theirRows} teamTov={theirTov} teamGdf={theirGdf} logs={logs} />
 
-          {/* 凡例 */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 pb-4">
-            {[
-              ['PTS', ss.legendPts], ['2PT', ss.legend2pt], ['3PT', ss.legend3pt],
-              ['FT', ss.legendFt], ['RBD', ss.legendRbd], ['AST', ss.legendAst],
-              ['STL', ss.legendStl], ['BLK', ss.legendBlk], ['F', ss.legendFoul], ['TOV', ss.legendTov],
-            ].map(([k, v]) => (
-              <span key={k} className="text-[10px] text-white/25">
-                <span className="text-white/40 font-bold">{k}</span> = {v}
-              </span>
-            ))}
+            {/* 凡例 */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 pb-4">
+              {[
+                ['PTS', ss.legendPts], ['2PT', ss.legend2pt], ['3PT', ss.legend3pt],
+                ['FT', ss.legendFt], ['RBD', ss.legendRbd], ['AST', ss.legendAst],
+                ['STL', ss.legendStl], ['BLK', ss.legendBlk], ['F', ss.legendFoul], ['TOV', ss.legendTov],
+              ].map(([k, v]) => (
+                <span key={k} className="text-[10px] text-white/25">
+                  <span className="text-white/40 font-bold">{k}</span> = {v}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </SheetContent>
