@@ -16,7 +16,6 @@ import { Team, Player, CourtLocation, TovMode, TovReason, ActionType, FoulPenalt
 import { useAuth } from '@/hooks/useAuth';
 import { TovCategorySheet } from '@/components/game/TovCategorySheet';
 import { StlCauseSheet } from '@/components/game/StlCauseSheet';
-import { NeutralTeamPickSheet } from '@/components/game/NeutralTeamPickSheet';
 import { tovReasonFromCausePick, type StlCausePick } from '@/lib/stlTovCause';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { getFinishedGamesPendingCloudSave } from '@/lib/storage';
@@ -40,7 +39,7 @@ export default function GamePage() {
     flashPlayerId,
     ourScore, theirScore, playerFouls, teamFoulCounts, teamTovCounts, activeLogs, recentEntries, allTimelineEntries,
     ourCourtPlayers, theirCourtPlayers, ourBenchPlayers, theirBenchPlayers,
-    logPlayerStat, logStlWithVictim, logTeamDefense, logTeamStl, undoLog,
+    logPlayerStat, logStlWithVictim, logTeamDefense, undoLog,
     changePeriod, endGame, resumeGame, saveGame, substitute,
     addPlayer,
     renameTeam, renameGame, logTeamTov, remapTovReasons, reloadFromStorage,
@@ -397,28 +396,7 @@ export default function GamePage() {
   }, [pendingPlayer, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
 
   const handleStatSelect = useCallback((action: ActionType) => {
-    // --- ニュートラル: 背番号未選択 ---
-    if (!pendingPlayer) {
-      if (action === 'TOV') {
-        setNeutralPick({ mode: 'teamTov' });
-      } else if (action === 'STL') {
-        setNeutralPick({ mode: 'teamStl' });
-      }
-      return;
-    }
-
-    // --- アクティブ: 背番号選択中 ---
-    if (action === 'TOV') {
-      const isOurs = pendingPlayer.team_id === ourTeam.id;
-      if (isPremium && tovMode !== 'simple') {
-        openTovDetail(pendingPlayer.team_id, isOurs, pendingPlayer, 'personal');
-      } else {
-        // 個人TOV（理由なし）でも responsible_player_id は引き継ぐ
-        logTeamTov(pendingPlayer.team_id, undefined, pendingPlayer.id, { responsiblePlayerId: pendingPlayer.id });
-        clearInputState();
-      }
-      return;
-    }
+    if (!pendingPlayer) return;
 
     if (action === 'FOUL') {
       setFoulAwaitingSwipe(true);
@@ -431,16 +409,9 @@ export default function GamePage() {
       return;
     }
 
-    if (action === 'STL') {
-      // 選択中は個人STLを即確定してニュートラルへ戻す
-      logPlayerStat(pendingPlayer, 'STL');
-      clearInputState();
-      return;
-    }
-
     logPlayerStat(pendingPlayer, action);
     clearInputState();
-  }, [pendingPlayer, isPremium, tovMode, logTeamTov, logPlayerStat, clearInputState, openTovDetail]);
+  }, [pendingPlayer, logPlayerStat, clearInputState]);
 
   function handleCourtSelect(location: CourtLocation) {
     if (!courtMapPlayer || !courtMapAction) return;
@@ -633,26 +604,6 @@ export default function GamePage() {
           context={tovPending.context}
           onConfirm={handleTovConfirm}
           onCancel={() => { setTovPending(null); clearInputState(); }}
-        />
-      )}
-
-      {neutralPick && (
-        <NeutralTeamPickSheet
-          mode={neutralPick.mode}
-          ourTeam={ourTeam}
-          theirTeam={theirTeam}
-          onPick={(teamId) => {
-            if (neutralPick.mode === 'teamStl') {
-              logTeamStl(teamId);
-              setNeutralPick(null);
-              clearInputState();
-              return;
-            }
-            // ニュートラルTOV: まずチームを確定し、理由1タップでチームTOV記録
-            setNeutralPick(null);
-            openTovDetail(teamId, teamId === ourTeam.id, null, 'team');
-          }}
-          onCancel={() => { setNeutralPick(null); }}
         />
       )}
 

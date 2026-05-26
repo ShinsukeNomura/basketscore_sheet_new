@@ -247,7 +247,7 @@ export function StatsPanel({
 
   const isSelected = (a: ActionType) => highlightStat === a;
 
-  let hint = g.selectPlayerFirst;
+  let hint = g.tovStlLongPressHint;
   if (stlPressureAwaitingVictim) {
     hint = g.stlPressureVictimHint;
   } else if (stlLongPressAwaitingVictim) {
@@ -372,12 +372,9 @@ export function StatsPanel({
           longPressTier="signature"
           swipeDirection="right"
           longPressBadge={g.stlPressureSwipeBadge}
-          tapDisabled={false}
-          onTap={() => tap('STL')}
-          onLongPressSwipe={() => {
-            // STL長押しは「パスカット（STL）」へ移行
-            onStlLongPressSwipe();
-          }}
+          tapDisabled
+          onTap={() => {}}
+          onLongPressSwipe={onStlLongPressSwipe}
         />
         <FoulSwipeBtn
           active={foulAwaitingSwipe}
@@ -392,8 +389,8 @@ export function StatsPanel({
           longPressTier="teamTov"
           swipeDirection="left"
           longPressBadge={g.teamTovSwipeBadge}
-          tapDisabled={false}
-          onTap={() => tap('TOV')}
+          tapDisabled
+          onTap={() => {}}
           onLongPressSwipe={onTeamTovSwipe}
         />
       </div>

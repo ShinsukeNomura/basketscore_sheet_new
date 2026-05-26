@@ -148,6 +148,7 @@
     "selectStat": "Select a stat",
     "selectPlayer": "→ Tap a player",
     "selectPlayerFirst": "Tap jersey # first",
+    "tovStlLongPressHint": "TOV: hold→left · STL: hold→right (no tap)",
     "neutralTeamTovTitle": "Team TOV (no player)",
     "neutralTeamTovHint": "Which team committed the turnover? (then pick player # + reason)",
     "neutralTeamStlTitle": "Team STL (no player)",
@@ -808,11 +809,11 @@
     "statBtnMiss": "(scoring uses swipe for made/miss)",
     "statBtnRbd": "# → ORbd / DRbd",
     "statBtnAst": "# → Ast / Blk",
-    "statBtnStl": "# → STL → opponent # → pass/dribble",
-    "statBtnStlTeam": "STL swipe right → opponent # (team DEF)",
+    "statBtnStl": "STL hold→right→stealer#→turnover# (pass cut, team GDF)",
+    "statBtnStlTeam": "STL hold→right→stealer#→turnover# (pass cut, team GDF)",
     "statBtnFoul": "# → Foul → swipe (P/P1/P2/U/T)",
-    "statBtnTov": "# → TOV (PRO: detail categories)",
-    "statBtnTovTeam": "TOV swipe right → opponent # (team DEF)"
+    "statBtnTov": "TOV hold→left→turnover# (24/8/5 sec, no STL)",
+    "statBtnTovTeam": "TOV hold→left→turnover# (24/8/5 sec, no STL)"
   },
 
   "privacy": {

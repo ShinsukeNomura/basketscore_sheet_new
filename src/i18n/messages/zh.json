@@ -148,6 +148,7 @@
     "selectStat": "请选择统计项目",
     "selectPlayer": "→ 点击球员",
     "selectPlayerFirst": "请先点击背号",
+    "tovStlLongPressHint": "TOV长按→左，STL长按→右（不可点击）",
     "neutralTeamTovTitle": "团队失误（未选背号）",
     "neutralTeamTovHint": "是哪一队的失误？（随后选择失误球员#与原因）",
     "neutralTeamStlTitle": "团队抢断（未选背号）",

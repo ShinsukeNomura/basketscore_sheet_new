@@ -148,6 +148,7 @@
     "selectStat": "スタッツを選択してください",
     "selectPlayer": "→ 選手をタップ",
     "selectPlayerFirst": "先に背番号をタップ",
+    "tovStlLongPressHint": "TOVは長押し→左、STLは長押し→右（タップ不可）",
     "neutralTeamTovTitle": "チームTOV（背番号なし）",
     "neutralTeamTovHint": "どちらのチームのTOVですか？（選択後、失策#と理由を記録）",
     "neutralTeamStlTitle": "チームSTL（背番号なし）",
@@ -808,10 +809,10 @@
     "statBtnMiss": "（得点はスワイプで成功/ミスを記録）",
     "statBtnRbd": "背番号→ORbd / DRbd",
     "statBtnAst": "背番号→Ast / Blk",
-    "statBtnStl": "背番号→STL→相手#（ロングパス・パスカット）",
-    "statBtnStlTeam": "STL長押し→右→失策#（トラップ下カット）",
+    "statBtnStl": "STL長押し→右→奪った#→失策#（パスカット・チームGDF）",
+    "statBtnStlTeam": "STL長押し→右→奪った#→失策#（パスカット・チームGDF）",
     "statBtnFoul": "背番号→Foul→スワイプ（P/P1/P2/U/T）",
-    "statBtnTov": "背番号→TOV（プレミアムは詳細分類）",
+    "statBtnTov": "TOV長押し→左→失策#（24/8/5秒など・STLなし）",
     "statBtnTovTeam": "TOV長押し→左→失策#（24/8/5秒など・STLなし）"
   },
 
