@@ -422,14 +422,14 @@ export default function HomePage() {
           {!isGuest && (
           <button
             onClick={() => setMyTeamsOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300/80 text-xs font-semibold active:bg-emerald-500/20 transition-colors"
           >
             <Users size={12} />{h.myTeams}
           </button>
           )}
           <Link
             href={`/${locale}/guide`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-white/50 text-xs font-semibold active:bg-white/10 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300/80 text-xs font-semibold active:bg-sky-500/20 transition-colors"
           >
             <BookOpen size={12} />{h.guide}
           </Link>

@@ -25,8 +25,14 @@ export function StlCauseSheet({
 }: StlCauseSheetProps) {
   const g = useDictionary().game;
 
-  // 通常STL理由から「パスカット」を外し、ドリブル奪いのみ残す（パスカットは長押しへ移行）
   const stlItems: { id: StlCausePick; label: string; sub: string; icon: ReactNode; color: string }[] = [
+    {
+      id: 'pass',
+      label: g.stlCausePass,
+      sub: g.stlCausePassSub,
+      icon: <Route size={22} />,
+      color: 'bg-amber-900/70 border-amber-600/50 text-amber-100 active:bg-amber-800',
+    },
     {
       id: 'dribble',
       label: g.stlCauseDribble,
