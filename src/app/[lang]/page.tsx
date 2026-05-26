@@ -284,6 +284,7 @@ export default function HomePage() {
 
   async function handleDelete(id: string) {
     if (!confirm(h.deleteConfirm)) return;
+    setGames(prev => prev.filter(g => g.id !== id));
     deleteGame(id);
     if (user?.id) await deleteGameFromCloud(id);
     loadGames();
