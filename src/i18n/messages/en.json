@@ -1,6 +1,9 @@
 {
-  "locale": { "name": "English", "code": "en", "flag": "🇺🇸" },
-
+  "locale": {
+    "name": "English",
+    "code": "en",
+    "flag": "🇺🇸"
+  },
   "common": {
     "back": "Back",
     "cancel": "Cancel",
@@ -21,7 +24,6 @@
     "submit": "Submit",
     "required": "Required"
   },
-
   "nav": {
     "home": "Home",
     "guide": "Guide",
@@ -30,7 +32,6 @@
     "terms": "Terms of Service",
     "legal": "Specified Commercial Transactions"
   },
-
   "transfer": {
     "incomingTitle": "Game data received",
     "incomingBody": "{from} sent you \"{game}\". Accept it?",
@@ -51,7 +52,6 @@
     "gameNotFound": "Game not found (save to cloud before sending)",
     "sendToAccount": "Send"
   },
-
   "home": {
     "subtitle": "Real-time basketball stats, one hand",
     "cloudSync": "Fetch Latest from Cloud",
@@ -96,7 +96,6 @@
     "errorTitle": "Something went wrong",
     "errorHint": "Please try reloading the app.\nContact support if the issue persists."
   },
-
   "login": {
     "subtitleSignIn": "Sign in to continue",
     "subtitleSignUp": "Create a free account",
@@ -120,7 +119,6 @@
     "privacy": "Privacy Policy",
     "agreementText": "By signing up, you agree to our {terms} and {privacy}."
   },
-
   "game": {
     "createTitle": "Create New Game",
     "editGameTitle": "Game Setup",
@@ -262,7 +260,6 @@
     "errorWhiteRequired": "Please enter the light team name",
     "errorDarkRequired": "Please enter the dark team name"
   },
-
   "stats": {
     "made2pt": "2PT",
     "made3pt": "3PT",
@@ -282,7 +279,6 @@
     "tovDetail": "Detailed",
     "tovModeLabel": "TOV Mode"
   },
-
   "tov": {
     "title": "Log Turnover",
     "stepReason": "Select Reason",
@@ -318,7 +314,6 @@
     "sec3": "3-Sec Violation",
     "sec3Sub": "3-Sec Violation"
   },
-
   "running": {
     "title": "Running Score Sheet",
     "legendOddQ": "Red",
@@ -332,7 +327,6 @@
     "legendFtScore": "FT score (odd/even Q)",
     "rangeLabel": "{start} – {end}"
   },
-
   "endGame": {
     "title": "Game Over",
     "winner": "{team} wins!",
@@ -364,7 +358,6 @@
     "aiErrorPrefix": "Error: {error}",
     "mvp": "MVP"
   },
-
   "sync": {
     "loading": "Loading...",
     "notReady": "Game data is not ready. Reopen the game and try again.",
@@ -379,7 +372,6 @@
     "errorShort": "Sync failed",
     "offlineShort": "Not signed in"
   },
-
   "statsSheet": {
     "title": "Stats Detail",
     "noStats": "No stats recorded",
@@ -401,7 +393,6 @@
     "forcedTov": "Forced",
     "unforcedTov": "Unforced"
   },
-
   "court": {
     "noShotData": "No shot data",
     "selectArea": "Select area",
@@ -430,7 +421,6 @@
       "threeRightCorner": "3PT right corner"
     }
   },
-
   "teamSection": {
     "roster": "Roster",
     "substitute": "Sub",
@@ -439,7 +429,6 @@
     "noMembers": "No players registered",
     "noMembersHint": "Add players via the Substitution button"
   },
-
   "timeline": {
     "empty": "No entries yet",
     "team": "Team",
@@ -452,7 +441,6 @@
     "pageTitle": "Timeline",
     "entryCount": "{count} entries"
   },
-
   "actions": {
     "2PT_MADE": "2PT made",
     "2PT_MISS": "2PT miss",
@@ -468,7 +456,6 @@
     "TOV": "Tov",
     "FOUL": "Foul"
   },
-
   "statsPanel": {
     "categorySuccess": "made",
     "categoryMiss": "miss",
@@ -487,7 +474,6 @@
     "colorGesture": "Amber: Foul + swipe",
     "colorShot": "Green: score swipe on #"
   },
-
   "substitution": {
     "title": "Substitution",
     "step1": "① Tap bench players (multi-select)",
@@ -502,7 +488,6 @@
     "backToStats": "Back to stats",
     "doneAddingHint": "Tap here when finished adding"
   },
-
   "myTeamsSheet": {
     "back": "Back",
     "teamList": "Team list",
@@ -532,7 +517,6 @@
     "featureCloud": "Cloud sync across devices",
     "featurePdf": "PDF score sheet export"
   },
-
   "premiumSuccess": {
     "activating": "Activating Premium...",
     "verifying": "Verifying your payment.\nPlease wait a moment.",
@@ -543,7 +527,6 @@
     "delayedHint": "Your payment was successful.\nPlease check the home screen in a few minutes.",
     "createGame": "Create a game"
   },
-
   "jersey": {
     "white": "White",
     "black": "Black",
@@ -554,14 +537,12 @@
     "purple": "Purple",
     "orange": "Orange"
   },
-
   "languages": {
     "ja": "日本語",
     "en": "English",
     "zh": "简体中文",
     "zh-TW": "繁體中文"
   },
-
   "analysis": {
     "title": "Stats Analytics",
     "teamTab": "Team",
@@ -617,7 +598,6 @@
       "footerPlayer": "Basketball Score App — AI Player Report ／ {date}"
     }
   },
-
   "premium": {
     "title": "Premium",
     "subtitle": "Unlock all Basketball Score features",
@@ -655,7 +635,6 @@
     "networkError": "Network error. Please check your connection.",
     "processing": "Processing..."
   },
-
   "pdf": {
     "confirmTitle": "Export PDF",
     "confirmBody": "Generate and export this PDF?",
@@ -688,7 +667,6 @@
       "runningRange": "{start} – {end}"
     }
   },
-
   "labels": {
     "editTitle": "Edit Labels",
     "addCustom": "Add custom label...",
@@ -704,7 +682,6 @@
       "winter": "Winter Tournament"
     }
   },
-
   "guide": {
     "title": "User Guide",
     "step1Title": "Create a Game",
@@ -821,9 +798,31 @@
     "statBtnStlTeam": "STL hold→right→stealer#→turnover# (pass cut, team GDF)",
     "statBtnFoul": "# → Foul → swipe (P/P1/P2/U/T)",
     "statBtnTov": "TOV hold→left→turnover# (24/8/5 sec, no STL)",
-    "statBtnTovTeam": "TOV hold→left→turnover# (24/8/5 sec, no STL)"
+    "statBtnTovTeam": "TOV hold→left→turnover# (24/8/5 sec, no STL)",
+    "collabTitle": "Team Recording Mode (Split Roles)",
+    "collabDesc": "Multiple people share recording roles using the same account and merge data after the game. Requires Wi-Fi.",
+    "collab1Title": "① Master Setup",
+    "collab1Desc": "Tap the 👥 button in the game header → Copy the URL for each role → Share with teammates (via message, AirDrop, etc.)",
+    "collab2Title": "② Workers Join",
+    "collab2Desc": "Open the shared URL in Safari or a browser (must be logged in with the same account). A dedicated UI shows only the buttons for your assigned role",
+    "collabRolesTitle": "Role Assignments",
+    "collabRolePts": "Points",
+    "collabRolePtsDesc": "2PT · 3PT · FT (swipe gestures)",
+    "collabRoleReb": "Rebounds",
+    "collabRoleRebDesc": "ORbd · DRbd",
+    "collabRoleTov": "TOV / STL",
+    "collabRoleTovDesc": "Steals & Turnovers (STL and GDF handled by this role)",
+    "collabRoleDef": "Defense",
+    "collabRoleDefDesc": "BLK · Fouls (STL is handled by the TOV/STL role)",
+    "collab3Title": "③ End Game & Integrate",
+    "collab3Desc": "Master taps 👥 → Get Latest Logs. All workers logs are fetched from Supabase at once and the game can be ended with fully integrated stats",
+    "collabTipTitle": "Tip: When Master Also Records Stats",
+    "collabTipDesc": "Use the PWA (home screen app) for master control, and open ?role=pts etc. in Safari for your assigned role UI. PWA and Safari run as independent windows simultaneously",
+    "collabNoteTitle": "Notes",
+    "collabNote1": "Everyone must be logged in with the same account",
+    "collabNote2": "Each person's input saves to the cloud in real time (Wi-Fi required)",
+    "collabNote3": "Only the master should press the End Game button"
   },
-
   "privacy": {
     "title": "Privacy Policy",
     "updated": "Last updated: {date}",
@@ -859,7 +858,6 @@
     "sec7Title": "7. Contact",
     "sec7Body": "Privacy inquiries: "
   },
-
   "terms": {
     "title": "Terms of Service",
     "updated": "Last updated: {date}",
@@ -886,7 +884,6 @@
     "sec7BodyAfter": ".",
     "sec8Title": "8. Contact"
   },
-
   "legal": {
     "title": "Specified Commercial Transactions",
     "seller": "Seller",

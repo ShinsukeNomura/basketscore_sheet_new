@@ -1,6 +1,9 @@
 {
-  "locale": { "name": "中文", "code": "zh", "flag": "🇨🇳" },
-
+  "locale": {
+    "name": "中文",
+    "code": "zh",
+    "flag": "🇨🇳"
+  },
   "common": {
     "back": "返回",
     "cancel": "取消",
@@ -21,7 +24,6 @@
     "submit": "提交",
     "required": "必填"
   },
-
   "nav": {
     "home": "主页",
     "guide": "使用指南",
@@ -30,7 +32,6 @@
     "terms": "服务条款",
     "legal": "特定商业交易说明"
   },
-
   "transfer": {
     "incomingTitle": "收到比赛数据",
     "incomingBody": "{from} 向您发送了「{game}」。是否接收？",
@@ -51,7 +52,6 @@
     "gameNotFound": "未找到比赛数据（请先保存到云端）",
     "sendToAccount": "发送"
   },
-
   "home": {
     "subtitle": "实时篮球比赛记录，单手操作",
     "cloudSync": "从云端获取最新数据",
@@ -96,7 +96,6 @@
     "errorTitle": "发生错误",
     "errorHint": "请尝试重新加载应用。\n如问题持续，请联系客服。"
   },
-
   "login": {
     "subtitleSignIn": "登录以继续记录",
     "subtitleSignUp": "创建免费账户",
@@ -120,7 +119,6 @@
     "privacy": "隐私政策",
     "agreementText": "注册即表示您同意我们的{terms}和{privacy}。"
   },
-
   "game": {
     "createTitle": "新建比赛",
     "editGameTitle": "比赛设置",
@@ -262,7 +260,6 @@
     "errorWhiteRequired": "请输入浅色队队名",
     "errorDarkRequired": "请输入深色队队名"
   },
-
   "stats": {
     "made2pt": "2分",
     "made3pt": "3分",
@@ -282,7 +279,6 @@
     "tovDetail": "详细记录",
     "tovModeLabel": "失误模式"
   },
-
   "tov": {
     "title": "记录失误",
     "stepReason": "选择原因",
@@ -318,7 +314,6 @@
     "sec3": "3秒违规",
     "sec3Sub": "3-Sec Violation"
   },
-
   "running": {
     "title": "实时得分记录表",
     "legendOddQ": "红",
@@ -332,7 +327,6 @@
     "legendFtScore": "罚球得分（奇/偶节）",
     "rangeLabel": "{start} – {end}"
   },
-
   "endGame": {
     "title": "比赛结束",
     "winner": "{team} 获胜！",
@@ -364,7 +358,6 @@
     "aiErrorPrefix": "错误: {error}",
     "mvp": "MVP"
   },
-
   "sync": {
     "loading": "加载中",
     "notReady": "比赛数据尚未就绪。请重新打开比赛后再试。",
@@ -379,7 +372,6 @@
     "errorShort": "同步失败",
     "offlineShort": "未登录"
   },
-
   "statsSheet": {
     "title": "详细统计",
     "noStats": "暂无统计记录",
@@ -401,7 +393,6 @@
     "forcedTov": "强迫",
     "unforcedTov": "自失"
   },
-
   "court": {
     "noShotData": "暂无投篮数据",
     "selectArea": "选择区域",
@@ -430,7 +421,6 @@
       "threeRightCorner": "三分右底角"
     }
   },
-
   "teamSection": {
     "roster": "队员",
     "substitute": "换人",
@@ -439,7 +429,6 @@
     "noMembers": "尚未登记队员",
     "noMembersHint": "请通过「换人」按钮添加"
   },
-
   "timeline": {
     "empty": "暂无记录",
     "team": "球队",
@@ -452,7 +441,6 @@
     "pageTitle": "时间线",
     "entryCount": "共{count}条记录"
   },
-
   "actions": {
     "2PT_MADE": "2分命中",
     "2PT_MISS": "2分未中",
@@ -468,7 +456,6 @@
     "TOV": "失误",
     "FOUL": "犯规"
   },
-
   "statsPanel": {
     "categorySuccess": "命中",
     "categoryMiss": "未中",
@@ -487,7 +474,6 @@
     "colorGesture": "琥珀: 犯规+滑动",
     "colorShot": "绿: 背号滑动得分"
   },
-
   "substitution": {
     "title": "换人",
     "step1": "① 点击替补（可多选）",
@@ -502,7 +488,6 @@
     "backToStats": "返回数据统计",
     "doneAddingHint": "添加完成后点此返回"
   },
-
   "myTeamsSheet": {
     "back": "返回",
     "teamList": "球队列表",
@@ -532,7 +517,6 @@
     "featureCloud": "云端同步・多设备",
     "featurePdf": "PDF得分表导出"
   },
-
   "premiumSuccess": {
     "activating": "正在激活高级版...",
     "verifying": "正在验证支付。\n请稍候。",
@@ -543,7 +527,6 @@
     "delayedHint": "支付已完成。\n请几分钟后在主页确认。",
     "createGame": "创建比赛"
   },
-
   "jersey": {
     "white": "白",
     "black": "黑",
@@ -554,14 +537,12 @@
     "purple": "紫",
     "orange": "橙"
   },
-
   "languages": {
     "ja": "日本語",
     "en": "English",
     "zh": "简体中文",
     "zh-TW": "繁體中文"
   },
-
   "analysis": {
     "title": "数据统计分析",
     "teamTab": "球队分析",
@@ -617,7 +598,6 @@
       "footerPlayer": "Basketball Score App — AI个人报告 ／ {date}"
     }
   },
-
   "premium": {
     "title": "高级版功能",
     "subtitle": "解锁Basketball Score全部功能",
@@ -655,7 +635,6 @@
     "networkError": "网络错误，请检查连接。",
     "processing": "处理中..."
   },
-
   "pdf": {
     "confirmTitle": "确认PDF导出",
     "confirmBody": "是否生成并导出PDF？",
@@ -688,7 +667,6 @@
       "runningRange": "{start} – {end}"
     }
   },
-
   "labels": {
     "editTitle": "编辑标签",
     "addCustom": "添加自定义标签...",
@@ -704,7 +682,6 @@
       "winter": "冬季联赛"
     }
   },
-
   "guide": {
     "title": "使用指南",
     "step1Title": "创建比赛",
@@ -821,9 +798,31 @@
     "statBtnStlTeam": "STL右滑→对方#（团队防守）",
     "statBtnFoul": "背号→犯规→滑动（P/P1/P2/U/T）",
     "statBtnTov": "背号→TOV（PRO：详细分类）",
-    "statBtnTovTeam": "TOV右滑→对方#（团队防守）"
+    "statBtnTovTeam": "TOV右滑→对方#（团队防守）",
+    "collabTitle": "协作记录模式（多人分工）",
+    "collabDesc": "使用同一账户，多人分担各自角色，赛后整合数据。需要Wi-Fi环境。",
+    "collab1Title": "① 主控端准备",
+    "collab1Desc": "在比赛界面顶部点击 👥 按钮 → 复制各角色URL → 通过消息/AirDrop等分享给队员",
+    "collab2Title": "② 协作员参加",
+    "collab2Desc": "在Safari中打开收到的URL（需用同一账户登录）。仅显示您角色所需按钮的专属界面",
+    "collabRolesTitle": "角色分配",
+    "collabRolePts": "得分",
+    "collabRolePtsDesc": "2分·3分·罚球（滑动操作）",
+    "collabRoleReb": "篮板",
+    "collabRoleRebDesc": "进攻篮板·防守篮板",
+    "collabRoleTov": "TOV / STL",
+    "collabRoleTovDesc": "抢断与失误（STL和GDF由此角色负责）",
+    "collabRoleDef": "防守",
+    "collabRoleDefDesc": "盖帽·犯规（抢断由TOV/STL角色负责）",
+    "collab3Title": "③ 结束比赛·整合数据",
+    "collab3Desc": "主控端点击 👥 →「获取最新记录」。从Supabase一次性获取所有协作员的记录，整合后结束比赛",
+    "collabTipTitle": "技巧：主控也参与记录时",
+    "collabTipDesc": "用PWA（主屏幕应用）进行主控操作，在Safari中打开?role=pts等URL使用角色专属界面。PWA和Safari可同时独立运行",
+    "collabNoteTitle": "注意事项",
+    "collabNote1": "所有人必须用同一账户登录",
+    "collabNote2": "各自输入实时保存至云端（需要Wi-Fi）",
+    "collabNote3": "只有主控才能按结束比赛按钮"
   },
-
   "privacy": {
     "title": "隐私政策",
     "updated": "最后更新：{date}",
@@ -859,7 +858,6 @@
     "sec7Title": "7. 联系方式",
     "sec7Body": "隐私相关咨询："
   },
-
   "terms": {
     "title": "服务条款",
     "updated": "最后更新：{date}",
@@ -886,7 +884,6 @@
     "sec7BodyAfter": "。",
     "sec8Title": "8. 联系方式"
   },
-
   "legal": {
     "title": "特定商业交易说明",
     "seller": "销售方",

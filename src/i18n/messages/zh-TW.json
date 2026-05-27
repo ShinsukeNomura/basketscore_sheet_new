@@ -1,6 +1,9 @@
 {
-  "locale": { "name": "繁體中文", "code": "zh-TW", "flag": "🇹🇼" },
-
+  "locale": {
+    "name": "繁體中文",
+    "code": "zh-TW",
+    "flag": "🇹🇼"
+  },
   "common": {
     "back": "返回",
     "cancel": "取消",
@@ -21,7 +24,6 @@
     "submit": "送出",
     "required": "必填"
   },
-
   "nav": {
     "home": "首頁",
     "guide": "使用說明",
@@ -30,7 +32,6 @@
     "terms": "服務條款",
     "legal": "特定商業交易說明"
   },
-
   "transfer": {
     "incomingTitle": "收到比賽資料",
     "incomingBody": "{from} 向您傳送了「{game}」。是否接收？",
@@ -51,7 +52,6 @@
     "gameNotFound": "找不到比賽資料（請先儲存到雲端）",
     "sendToAccount": "傳送"
   },
-
   "home": {
     "subtitle": "單手即時記錄籃球比賽",
     "cloudSync": "從雲端取得最新資料",
@@ -96,7 +96,6 @@
     "errorTitle": "發生錯誤",
     "errorHint": "請嘗試重新載入應用程式。\n若問題持續發生，請聯絡客服。"
   },
-
   "login": {
     "subtitleSignIn": "登入以繼續記錄",
     "subtitleSignUp": "建立免費帳號",
@@ -120,7 +119,6 @@
     "privacy": "隱私權政策",
     "agreementText": "註冊即表示您同意我們的{terms}和{privacy}。"
   },
-
   "game": {
     "createTitle": "建立新比賽",
     "editGameTitle": "比賽設定",
@@ -262,7 +260,6 @@
     "errorWhiteRequired": "請輸入淺色隊隊名",
     "errorDarkRequired": "請輸入深色隊隊名"
   },
-
   "stats": {
     "made2pt": "2分",
     "made3pt": "3分",
@@ -282,7 +279,6 @@
     "tovDetail": "詳細記錄",
     "tovModeLabel": "失誤模式"
   },
-
   "tov": {
     "title": "記錄失誤",
     "stepReason": "選擇原因",
@@ -318,7 +314,6 @@
     "sec3": "3秒違規",
     "sec3Sub": "3-Sec Violation"
   },
-
   "running": {
     "title": "即時得分記錄表",
     "legendOddQ": "紅",
@@ -332,7 +327,6 @@
     "legendFtScore": "罰球得分（奇/偶節）",
     "rangeLabel": "{start} – {end}"
   },
-
   "endGame": {
     "title": "比賽結束",
     "winner": "{team} 獲勝！",
@@ -364,7 +358,6 @@
     "aiErrorPrefix": "錯誤: {error}",
     "mvp": "MVP"
   },
-
   "sync": {
     "loading": "載入中",
     "notReady": "比賽資料尚未就緒。請重新開啟比賽後再試。",
@@ -379,7 +372,6 @@
     "errorShort": "同步失敗",
     "offlineShort": "未登入"
   },
-
   "statsSheet": {
     "title": "詳細數據",
     "noStats": "尚無數據記錄",
@@ -401,7 +393,6 @@
     "forcedTov": "強迫",
     "unforcedTov": "自失"
   },
-
   "court": {
     "noShotData": "尚無投籃資料",
     "selectArea": "選擇區域",
@@ -430,7 +421,6 @@
       "threeRightCorner": "三分右底角"
     }
   },
-
   "teamSection": {
     "roster": "隊員",
     "substitute": "換人",
@@ -439,7 +429,6 @@
     "noMembers": "尚未登錄隊員",
     "noMembersHint": "請透過「換人」按鈕新增"
   },
-
   "timeline": {
     "empty": "尚無記錄",
     "team": "球隊",
@@ -452,7 +441,6 @@
     "pageTitle": "時間軸",
     "entryCount": "共{count}筆記錄"
   },
-
   "actions": {
     "2PT_MADE": "2分命中",
     "2PT_MISS": "2分未中",
@@ -468,7 +456,6 @@
     "TOV": "失誤",
     "FOUL": "犯規"
   },
-
   "statsPanel": {
     "categorySuccess": "命中",
     "categoryMiss": "未中",
@@ -487,7 +474,6 @@
     "colorGesture": "琥珀: 犯規+滑動",
     "colorShot": "綠: 背號滑動得分"
   },
-
   "substitution": {
     "title": "換人",
     "step1": "① 點擊替補（可多選）",
@@ -502,7 +488,6 @@
     "backToStats": "返回數據統計",
     "doneAddingHint": "新增完成後點此返回"
   },
-
   "myTeamsSheet": {
     "back": "返回",
     "teamList": "球隊列表",
@@ -532,7 +517,6 @@
     "featureCloud": "雲端同步・多裝置",
     "featurePdf": "PDF得分表匯出"
   },
-
   "premiumSuccess": {
     "activating": "正在啟用進階版...",
     "verifying": "正在驗證付款。\n請稍候。",
@@ -543,7 +527,6 @@
     "delayedHint": "付款已完成。\n請幾分鐘後在首頁確認。",
     "createGame": "建立比賽"
   },
-
   "jersey": {
     "white": "白",
     "black": "黑",
@@ -554,14 +537,12 @@
     "purple": "紫",
     "orange": "橙"
   },
-
   "languages": {
     "ja": "日本語",
     "en": "English",
     "zh": "简体中文",
     "zh-TW": "繁體中文"
   },
-
   "analysis": {
     "title": "數據統計分析",
     "teamTab": "球隊分析",
@@ -617,7 +598,6 @@
       "footerPlayer": "Basketball Score App — AI個人報告 ／ {date}"
     }
   },
-
   "premium": {
     "title": "進階版功能",
     "subtitle": "解鎖Basketball Score全部功能",
@@ -655,7 +635,6 @@
     "networkError": "網路錯誤，請確認連線。",
     "processing": "處理中..."
   },
-
   "pdf": {
     "confirmTitle": "確認PDF匯出",
     "confirmBody": "是否產生並匯出PDF？",
@@ -688,7 +667,6 @@
       "runningRange": "{start} – {end}"
     }
   },
-
   "labels": {
     "editTitle": "編輯標籤",
     "addCustom": "新增自訂標籤...",
@@ -704,7 +682,6 @@
       "winter": "冬季聯賽"
     }
   },
-
   "guide": {
     "title": "使用說明",
     "step1Title": "建立比賽",
@@ -821,9 +798,31 @@
     "statBtnStlTeam": "STL右滑→對手#（團隊防守）",
     "statBtnFoul": "背號→犯規→滑動（P/P1/P2/U/T）",
     "statBtnTov": "背號→TOV（PRO：詳細分類）",
-    "statBtnTovTeam": "TOV右滑→對手#（團隊防守）"
+    "statBtnTovTeam": "TOV右滑→對手#（團隊防守）",
+    "collabTitle": "協作記錄模式（多人分工）",
+    "collabDesc": "使用同一帳戶，多人分擔各自角色，賽後整合資料。需要Wi-Fi環境。",
+    "collab1Title": "① 主控端準備",
+    "collab1Desc": "在比賽畫面頂部點擊 👥 按鈕 → 複製各角色URL → 透過訊息/AirDrop等分享給隊員",
+    "collab2Title": "② 協作員參加",
+    "collab2Desc": "在Safari中開啟收到的URL（需用同一帳戶登入）。僅顯示您角色所需按鈕的專屬介面",
+    "collabRolesTitle": "角色分配",
+    "collabRolePts": "得分",
+    "collabRolePtsDesc": "2分·3分·罰球（滑動操作）",
+    "collabRoleReb": "籃板",
+    "collabRoleRebDesc": "進攻籃板·防守籃板",
+    "collabRoleTov": "TOV / STL",
+    "collabRoleTovDesc": "搶斷與失誤（STL和GDF由此角色負責）",
+    "collabRoleDef": "防守",
+    "collabRoleDefDesc": "火鍋·犯規（搶斷由TOV/STL角色負責）",
+    "collab3Title": "③ 結束比賽·整合資料",
+    "collab3Desc": "主控端點擊 👥 →「取得最新記錄」。從Supabase一次取得所有協作員的記錄，整合後結束比賽",
+    "collabTipTitle": "技巧：主控也參與記錄時",
+    "collabTipDesc": "用PWA（主畫面應用程式）進行主控操作，在Safari中開啟?role=pts等URL使用角色專屬介面。PWA和Safari可同時獨立運行",
+    "collabNoteTitle": "注意事項",
+    "collabNote1": "所有人必須用同一帳戶登入",
+    "collabNote2": "各自輸入即時儲存至雲端（需要Wi-Fi）",
+    "collabNote3": "只有主控才能按結束比賽按鈕"
   },
-
   "privacy": {
     "title": "隱私權政策",
     "updated": "最後更新：{date}",
@@ -859,7 +858,6 @@
     "sec7Title": "7. 聯絡方式",
     "sec7Body": "隱私相關諮詢："
   },
-
   "terms": {
     "title": "服務條款",
     "updated": "最後更新：{date}",
@@ -886,7 +884,6 @@
     "sec7BodyAfter": "。",
     "sec8Title": "8. 聯絡方式"
   },
-
   "legal": {
     "title": "特定商業交易說明",
     "seller": "銷售方",

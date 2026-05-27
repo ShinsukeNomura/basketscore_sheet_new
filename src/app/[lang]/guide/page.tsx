@@ -434,6 +434,64 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
             </div>
           </section>
 
+          {/* 協力記録モード */}
+          <section>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
+                <Users size={16} className="text-white" />
+              </div>
+              <h2 className="text-white font-black text-lg">{g.collabTitle}</h2>
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-white/45 text-xs leading-relaxed">{g.collabDesc}</p>
+
+              {/* セットアップ手順 */}
+              <StepCard icon={Users} title={g.collab1Title} desc={g.collab1Desc} color="bg-violet-600/70" />
+              <StepCard icon={Smartphone} title={g.collab2Title} desc={g.collab2Desc} color="bg-sky-700/70" />
+
+              {/* ロール分担 */}
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4 flex flex-col gap-3">
+                <p className="text-white/50 text-xs font-semibold tracking-wider uppercase">{g.collabRolesTitle}</p>
+                <div className="flex flex-col gap-2">
+                  {([
+                    [g.collabRolePts, g.collabRolePtsDesc, 'bg-emerald-950/70 border-emerald-700/50 text-emerald-100'],
+                    [g.collabRoleReb, g.collabRoleRebDesc, 'bg-blue-950/70 border-blue-700/50 text-blue-100'],
+                    [g.collabRoleTov, g.collabRoleTovDesc, 'bg-orange-950/70 border-orange-700/50 text-orange-100'],
+                    [g.collabRoleDef, g.collabRoleDefDesc, 'bg-red-950/70 border-red-700/50 text-red-100'],
+                  ] as [string, string, string][]).map(([label, desc, cls]) => (
+                    <div key={label} className={cn('px-3 py-2.5 rounded-xl border', cls)}>
+                      <p className="font-semibold text-sm leading-none mb-0.5">{label}</p>
+                      <p className="text-[11px] opacity-60 leading-none">{desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 統合 */}
+              <StepCard icon={RefreshCw} title={g.collab3Title} desc={g.collab3Desc} color="bg-emerald-700/70" />
+
+              {/* コツ */}
+              <div className="rounded-2xl bg-sky-950/30 border border-sky-500/25 p-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={13} className="text-sky-400 shrink-0" />
+                  <p className="text-sky-300/90 text-xs font-black tracking-wide">{g.collabTipTitle}</p>
+                </div>
+                <p className="text-white/55 text-xs leading-relaxed">{g.collabTipDesc}</p>
+              </div>
+
+              {/* 注意事項 */}
+              <div className="rounded-2xl bg-amber-950/30 border border-amber-500/25 p-4 flex flex-col gap-2">
+                <p className="text-amber-400/90 text-xs font-black tracking-wide">{g.collabNoteTitle}</p>
+                {[g.collabNote1, g.collabNote2, g.collabNote3].map((note) => (
+                  <div key={note} className="flex items-start gap-2">
+                    <span className="text-amber-400/70 text-xs font-bold shrink-0">·</span>
+                    <p className="text-white/50 text-xs leading-relaxed">{note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
     </>
