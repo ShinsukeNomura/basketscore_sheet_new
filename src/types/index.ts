@@ -176,7 +176,7 @@ export interface PersistedGameState {
 // ============================================================
 
 /** 作業員の担当スタッツ役割 */
-export type CollabRole = 'pts' | 'reb' | 'tov' | 'def';
+export type CollabRole = 'pts' | 'reb' | 'tov' | 'def' | 'offense' | 'defense' | 'rebdef';
 
 export type Database = {
   public: {

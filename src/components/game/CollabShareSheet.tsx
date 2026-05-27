@@ -14,13 +14,23 @@ interface CollabShareSheetProps {
   onRefreshFromCloud: () => Promise<boolean>;
 }
 
-const ROLES: CollabRole[] = ['pts', 'reb', 'tov', 'def'];
+type CollabMode = 2 | 3 | 4;
+
+interface RoleDef {
+  role:  CollabRole;
+  label: string;
+  desc:  string;
+  style: string;
+}
 
 const ROLE_STYLE: Record<CollabRole, string> = {
-  pts: 'bg-emerald-950/70 border-emerald-700/50 text-emerald-100',
-  reb: 'bg-blue-950/70   border-blue-700/50   text-blue-100',
-  tov: 'bg-orange-950/70 border-orange-700/50 text-orange-100',
-  def: 'bg-red-950/70    border-red-700/50    text-red-100',
+  pts:     'bg-emerald-950/70 border-emerald-700/50 text-emerald-100',
+  tov:     'bg-orange-950/70  border-orange-700/50  text-orange-100',
+  reb:     'bg-blue-950/70    border-blue-700/50    text-blue-100',
+  def:     'bg-red-950/70     border-red-700/50     text-red-100',
+  rebdef:  'bg-blue-950/70    border-blue-700/50    text-blue-100',
+  offense: 'bg-violet-950/70  border-violet-700/50  text-violet-100',
+  defense: 'bg-rose-950/70    border-rose-700/50    text-rose-100',
 };
 
 export function CollabShareSheet({
@@ -28,21 +38,27 @@ export function CollabShareSheet({
 }: CollabShareSheetProps) {
   const c = useDictionary().collab;
 
-  const roleLabel: Record<CollabRole, string> = {
-    pts: c.rolePts,
-    reb: c.roleReb,
-    tov: c.roleTov,
-    def: c.roleDef,
-  };
-  const roleDesc: Record<CollabRole, string> = {
-    pts: c.rolePtsDesc,
-    reb: c.roleRebDesc,
-    tov: c.roleTovDesc,
-    def: c.roleDefDesc,
-  };
-
+  const [mode, setMode]           = useState<CollabMode>(4);
   const [copiedRole, setCopiedRole] = useState<CollabRole | null>(null);
   const [refreshState, setRefreshState] = useState<'idle' | 'loading' | 'done'>('idle');
+
+  const modeRoles: Record<CollabMode, RoleDef[]> = {
+    2: [
+      { role: 'offense', label: c.roleOffense, desc: c.roleOffenseDesc, style: ROLE_STYLE.offense },
+      { role: 'defense', label: c.roleDefense, desc: c.roleDefenseDesc, style: ROLE_STYLE.defense },
+    ],
+    3: [
+      { role: 'pts',    label: c.rolePts,    desc: c.rolePtsDesc,    style: ROLE_STYLE.pts },
+      { role: 'tov',    label: c.roleTov,    desc: c.roleTovDesc,    style: ROLE_STYLE.tov },
+      { role: 'rebdef', label: c.roleRebDef, desc: c.roleRebDefDesc, style: ROLE_STYLE.rebdef },
+    ],
+    4: [
+      { role: 'pts', label: c.rolePts, desc: c.rolePtsDesc, style: ROLE_STYLE.pts },
+      { role: 'tov', label: c.roleTov, desc: c.roleTovDesc, style: ROLE_STYLE.tov },
+      { role: 'reb', label: c.roleReb, desc: c.roleRebDesc, style: ROLE_STYLE.reb },
+      { role: 'def', label: c.roleDef, desc: c.roleDefDesc, style: ROLE_STYLE.def },
+    ],
+  };
 
   const copyUrl = useCallback((role: CollabRole) => {
     const url = `${window.location.origin}/${lang}/game/${gameId}?role=${role}`;
@@ -61,17 +77,19 @@ export function CollabShareSheet({
 
   if (!open) return null;
 
+  const roles = modeRoles[mode];
+
   return (
     <div
       className="fixed inset-0 z-[200] flex flex-col justify-end bg-black/60"
       onPointerDown={onClose}
     >
-      {/* シート本体: stopPropagation でバックドロップ閉じを防ぐ */}
       <div
         className="bg-neutral-950 border-t border-white/10 rounded-t-2xl pb-safe px-4 pt-4"
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-1">
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between mb-3">
           <h2 className="text-white font-bold text-base">{c.shareTitle}</h2>
           <button
             type="button"
@@ -81,20 +99,41 @@ export function CollabShareSheet({
             <X size={18} />
           </button>
         </div>
-        <p className="text-white/40 text-xs mb-4">{c.shareHint}</p>
 
+        {/* モード切替タブ */}
+        <div className="flex gap-1.5 mb-3 bg-white/5 p-1 rounded-xl">
+          {([2, 3, 4] as CollabMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => { setMode(m); setCopiedRole(null); }}
+              className={cn(
+                'flex-1 py-1.5 rounded-lg text-xs font-bold transition-colors',
+                mode === m
+                  ? 'bg-white text-neutral-900'
+                  : 'text-white/40 active:text-white/70',
+              )}
+            >
+              {m === 2 ? c.mode2 : m === 3 ? c.mode3 : c.mode4}
+            </button>
+          ))}
+        </div>
+
+        <p className="text-white/40 text-xs mb-3">{c.shareHint}</p>
+
+        {/* ロール一覧 */}
         <div className="flex flex-col gap-2 mb-4">
-          {ROLES.map((role) => (
+          {roles.map(({ role, label, desc, style }) => (
             <div
               key={role}
               className={cn(
                 'flex items-center justify-between px-3 py-2.5 rounded-xl border',
-                ROLE_STYLE[role],
+                style,
               )}
             >
               <div className="min-w-0">
-                <p className="font-semibold text-sm leading-none mb-0.5">{roleLabel[role]}</p>
-                <p className="text-[11px] opacity-60 leading-none">{roleDesc[role]}</p>
+                <p className="font-semibold text-sm leading-none mb-0.5">{label}</p>
+                <p className="text-[11px] opacity-60 leading-none">{desc}</p>
               </div>
               <button
                 type="button"
@@ -108,6 +147,7 @@ export function CollabShareSheet({
           ))}
         </div>
 
+        {/* 最新ログ取得ボタン */}
         <button
           type="button"
           onClick={() => void handleRefresh()}

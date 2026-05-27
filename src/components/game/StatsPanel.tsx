@@ -19,10 +19,16 @@ const BTN_ROW = 'shrink-0 flex gap-1.5 min-h-[46px] h-[46px]';
 
 /** ロール別に表示するスタッツボタン (null = 制限なし) */
 const COLLAB_ALLOWED: Record<CollabRole, ActionType[] | null> = {
-  pts: [],
-  reb: ['ORBD', 'DRBD'],
-  tov: ['AST', 'STL', 'TOV'],
-  def: ['BLK', 'FOUL'],
+  // 4人体制
+  pts:     [],
+  tov:     ['AST', 'STL', 'TOV'],
+  reb:     ['ORBD', 'DRBD'],
+  def:     ['BLK', 'FOUL'],
+  // 3人体制
+  rebdef:  ['ORBD', 'DRBD', 'BLK', 'FOUL'],
+  // 2人体制
+  offense: ['AST', 'ORBD'],
+  defense: ['DRBD', 'STL', 'TOV', 'BLK', 'FOUL'],
 };
 
 interface StatsPanelProps {

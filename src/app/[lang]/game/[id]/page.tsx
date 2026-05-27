@@ -38,7 +38,8 @@ export default function GamePage() {
   const searchParams = useSearchParams();
   const rawRole = searchParams.get('role');
   const collabRole: CollabRole | undefined =
-    rawRole === 'pts' || rawRole === 'reb' || rawRole === 'tov' || rawRole === 'def'
+    rawRole === 'pts' || rawRole === 'reb' || rawRole === 'tov' || rawRole === 'def' ||
+    rawRole === 'offense' || rawRole === 'defense' || rawRole === 'rebdef'
       ? rawRole
       : undefined;
 
@@ -321,7 +322,7 @@ export default function GamePage() {
     }
 
     setPendingPlayer(player);
-    if (!collabRole || collabRole === 'pts') setShotPhase('type');
+    if (!collabRole || collabRole === 'pts' || collabRole === 'offense') setShotPhase('type');
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
@@ -343,7 +344,7 @@ export default function GamePage() {
 
   const handlePlayerGesture = useCallback((player: Player, gesture: PlayerGesture) => {
     if (!pendingPlayer || pendingPlayer.id !== player.id) return;
-    if (collabRole && collabRole !== 'pts') return;
+    if (collabRole && collabRole !== 'pts' && collabRole !== 'offense') return;
 
     if (shotPhase === 'type') {
       let type: ShotType | null = null;
