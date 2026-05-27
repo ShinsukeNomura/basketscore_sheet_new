@@ -652,6 +652,7 @@ export default function GamePage() {
         onSubstitute={handleSubstitute}
         onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
+        collabRole={collabRole}
       />
       <UnsavedCloudSaveDialog
         open={unsavedDialogOpen}

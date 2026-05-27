@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, type PointerEvent } from 'react';
-import { Player, Team } from '@/types';
+import { Player, Team, CollabRole } from '@/types';
 import { getColorConfig } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { backNumbersMatch, normalizeBackNumber } from '@/lib/backNumber';
@@ -24,6 +24,7 @@ interface SubstitutionSheetProps {
   onSubstitute:  (pairs: { outId: string; inId: string }[]) => void;
   onAddPlayer:   (teamId: string, backNumber: string) => void;
   onClose:       () => void;
+  collabRole?:   CollabRole;
 }
 
 function toggleId(ids: string[], id: string): string[] {
@@ -40,7 +41,9 @@ export function SubstitutionSheet({
   onSubstitute,
   onAddPlayer,
   onClose,
+  collabRole,
 }: SubstitutionSheetProps) {
+  const isWorker = !!collabRole;
   const dict = useDictionary();
   const sub = dict.substitution;
   const g = dict.game;
@@ -191,106 +194,123 @@ export function SubstitutionSheet({
           </button>
         </SheetHeader>
 
-        <div className="flex items-center gap-2 mb-4 text-xs text-white/40">
-          <span className={benchCount > 0 ? 'text-emerald-400 font-semibold' : 'text-white/80 font-semibold'}>
-            {sub.step1}
-          </span>
-          <ArrowLeftRight size={12} />
-          <span className={benchCount > 0 ? (canApply ? 'text-emerald-400 font-semibold' : 'text-white/80') : 'text-white/20'}>
-            {sub.step2}
-          </span>
-        </div>
-
-        {benchCount > 0 && (
-          <p className="text-white/50 text-[11px] mb-3 tabular-nums">
-            {sub.selectionCount
-              .replace('{bench}', String(benchCount))
-              .replace('{court}', String(courtCount))}
-          </p>
-        )}
-
-        {/* ベンチ（先に複数選択） */}
-        <div className="mb-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="w-1.5 h-3 rounded-full bg-emerald-500/60" />
-            <span className="text-white/50 text-xs font-semibold">{sub.benchIn}</span>
+        {isWorker ? (
+          /* ── 作業員モード: コート選手確認のみ ── */
+          <div className="mb-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
+              <span className="text-white/50 text-xs font-semibold">{sub.workerCourt}</span>
+            </div>
+            <div className="grid grid-cols-5 gap-2 mb-3">
+              {courtPlayers.map((p) => (
+                <PlayerChip key={p.id} player={p} disabled />
+              ))}
+            </div>
+            <p className="text-white/30 text-[11px] text-center">{sub.workerSubNote}</p>
           </div>
-          <div className="grid grid-cols-5 gap-2">
-            {benchPlayers.length === 0 ? (
-              <span className="col-span-5 text-center text-white/25 text-xs py-4">{sub.noBench}</span>
-            ) : (
-              benchPlayers.map((p) => (
-                <PlayerChip
-                  key={p.id}
-                  player={p}
-                  isSelected={benchSelected.includes(p.id)}
-                  onClick={() => {
-                    setBenchSelected((prev) => {
-                      const next = toggleId(prev, p.id);
-                      setCourtSelected((c) => c.slice(0, next.length));
-                      return next;
-                    });
-                  }}
-                />
-              ))
+        ) : (
+          /* ── マスターモード: フル交代UI ── */
+          <>
+            <div className="flex items-center gap-2 mb-4 text-xs text-white/40">
+              <span className={benchCount > 0 ? 'text-emerald-400 font-semibold' : 'text-white/80 font-semibold'}>
+                {sub.step1}
+              </span>
+              <ArrowLeftRight size={12} />
+              <span className={benchCount > 0 ? (canApply ? 'text-emerald-400 font-semibold' : 'text-white/80') : 'text-white/20'}>
+                {sub.step2}
+              </span>
+            </div>
+
+            {benchCount > 0 && (
+              <p className="text-white/50 text-[11px] mb-3 tabular-nums">
+                {sub.selectionCount
+                  .replace('{bench}', String(benchCount))
+                  .replace('{court}', String(courtCount))}
+              </p>
             )}
-          </div>
-        </div>
 
-        {/* コート（同数選択） */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
-            <span className="text-white/50 text-xs font-semibold">
-              {sub.courtOut}
-              {benchCount === 0 && (
-                <span className="text-white/25 font-normal ml-1">{sub.selectBenchFirst}</span>
-              )}
-            </span>
-          </div>
-          <div
-            className={cn(
-              'grid grid-cols-5 gap-2 transition-opacity',
-              benchCount > 0 ? 'opacity-100' : 'opacity-30 pointer-events-none',
+            <div className="mb-4">
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-1.5 h-3 rounded-full bg-emerald-500/60" />
+                <span className="text-white/50 text-xs font-semibold">{sub.benchIn}</span>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {benchPlayers.length === 0 ? (
+                  <span className="col-span-5 text-center text-white/25 text-xs py-4">{sub.noBench}</span>
+                ) : (
+                  benchPlayers.map((p) => (
+                    <PlayerChip
+                      key={p.id}
+                      player={p}
+                      isSelected={benchSelected.includes(p.id)}
+                      onClick={() => {
+                        setBenchSelected((prev) => {
+                          const next = toggleId(prev, p.id);
+                          setCourtSelected((c) => c.slice(0, next.length));
+                          return next;
+                        });
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className={cn('w-1.5 h-3 rounded-full', cfg.accentDot)} />
+                <span className="text-white/50 text-xs font-semibold">
+                  {sub.courtOut}
+                  {benchCount === 0 && (
+                    <span className="text-white/25 font-normal ml-1">{sub.selectBenchFirst}</span>
+                  )}
+                </span>
+              </div>
+              <div
+                className={cn(
+                  'grid grid-cols-5 gap-2 transition-opacity',
+                  benchCount > 0 ? 'opacity-100' : 'opacity-30 pointer-events-none',
+                )}
+              >
+                {courtPlayers.map((p) => (
+                  <PlayerChip
+                    key={p.id}
+                    player={p}
+                    isSelected={courtSelected.includes(p.id)}
+                    disabled={benchCount > 0 && courtCount >= benchCount && !courtSelected.includes(p.id)}
+                    onClick={() => {
+                      if (benchCount === 0) return;
+                      setCourtSelected((prev) => {
+                        if (prev.includes(p.id)) return toggleId(prev, p.id);
+                        if (prev.length >= benchCount) return prev;
+                        return [...prev, p.id];
+                      });
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {canApply && (
+              <button
+                type="button"
+                onClick={applyBatch}
+                className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600 text-white font-bold text-sm active:bg-emerald-500"
+              >
+                <ArrowLeftRight size={16} />
+                {sub.applySubstitutions.replace('{count}', String(benchCount))}
+              </button>
             )}
-          >
-            {courtPlayers.map((p) => (
-              <PlayerChip
-                key={p.id}
-                player={p}
-                isSelected={courtSelected.includes(p.id)}
-                disabled={benchCount > 0 && courtCount >= benchCount && !courtSelected.includes(p.id)}
-                onClick={() => {
-                  if (benchCount === 0) return;
-                  setCourtSelected((prev) => {
-                    if (prev.includes(p.id)) return toggleId(prev, p.id);
-                    if (prev.length >= benchCount) return prev;
-                    return [...prev, p.id];
-                  });
-                }}
-              />
-            ))}
-          </div>
-        </div>
 
-        {canApply && (
-          <button
-            type="button"
-            onClick={applyBatch}
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600 text-white font-bold text-sm active:bg-emerald-500"
-          >
-            <ArrowLeftRight size={16} />
-            {sub.applySubstitutions.replace('{count}', String(benchCount))}
-          </button>
+            <button
+              type="button"
+              onClick={handleDone}
+              className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600/90 border-2 border-emerald-400/40 text-white font-bold text-sm active:bg-emerald-500 shadow-md shadow-emerald-900/30"
+            >
+              {sub.backToStats}
+            </button>
+          </>
         )}
-
-        <button
-          type="button"
-          onClick={handleDone}
-          className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-600/90 border-2 border-emerald-400/40 text-white font-bold text-sm active:bg-emerald-500 shadow-md shadow-emerald-900/30"
-        >
-          {sub.backToStats}
-        </button>
 
         <div className="mt-3 mb-2 rounded-2xl border-2 border-sky-500/55 bg-sky-950/35 p-3">
           <p className="text-sky-300 text-xs font-bold mb-2">{sub.addMember}</p>

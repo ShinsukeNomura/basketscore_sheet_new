@@ -486,7 +486,9 @@
     "applySubstitutions": "批量换人 {count}人",
     "addMember": "输入背号添加球员",
     "backToStats": "返回数据统计",
-    "doneAddingHint": "添加完成后点此返回"
+    "doneAddingHint": "添加完成后点此返回",
+    "workerCourt": "当前上场（参考）",
+    "workerSubNote": "换人操作由主控负责"
   },
   "myTeamsSheet": {
     "back": "返回",
@@ -821,7 +823,8 @@
     "collabNoteTitle": "注意事项",
     "collabNote1": "所有人必须用同一账户登录",
     "collabNote2": "各自输入实时保存至云端（需要Wi-Fi）",
-    "collabNote3": "只有主控才能按结束比赛按钮"
+    "collabNote3": "只有主控才能按结束比赛按钮",
+    "collabNote4": "建议赛前登记所有替补球员。比赛中未登记的换人球员，协作员也可自行添加"
   },
   "privacy": {
     "title": "隐私政策",

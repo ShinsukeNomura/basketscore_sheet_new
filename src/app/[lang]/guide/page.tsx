@@ -482,7 +482,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
               {/* 注意事項 */}
               <div className="rounded-2xl bg-amber-950/30 border border-amber-500/25 p-4 flex flex-col gap-2">
                 <p className="text-amber-400/90 text-xs font-black tracking-wide">{g.collabNoteTitle}</p>
-                {[g.collabNote1, g.collabNote2, g.collabNote3].map((note) => (
+                {[g.collabNote1, g.collabNote2, g.collabNote3, g.collabNote4].map((note) => (
                   <div key={note} className="flex items-start gap-2">
                     <span className="text-amber-400/70 text-xs font-bold shrink-0">·</span>
                     <p className="text-white/50 text-xs leading-relaxed">{note}</p>

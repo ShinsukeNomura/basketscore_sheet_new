@@ -486,7 +486,9 @@
     "applySubstitutions": "Sub {count} players",
     "addMember": "Add member by jersey #",
     "backToStats": "Back to stats",
-    "doneAddingHint": "Tap here when finished adding"
+    "doneAddingHint": "Tap here when finished adding",
+    "workerCourt": "Current court (reference)",
+    "workerSubNote": "Substitutions are handled by the master"
   },
   "myTeamsSheet": {
     "back": "Back",
@@ -821,7 +823,8 @@
     "collabNoteTitle": "Notes",
     "collabNote1": "Everyone must be logged in with the same account",
     "collabNote2": "Each person's input saves to the cloud in real time (Wi-Fi required)",
-    "collabNote3": "Only the master should press the End Game button"
+    "collabNote3": "Only the master should press the End Game button",
+    "collabNote4": "Pre-register all bench players before the game. Workers can also add unregistered substitutes during the game"
   },
   "privacy": {
     "title": "Privacy Policy",

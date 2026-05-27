@@ -500,7 +500,9 @@
     "applySubstitutions": "{count}人を一括交代",
     "addMember": "背番号でメンバーを追加",
     "backToStats": "スタッツ画面に戻る",
-    "doneAddingHint": "追加が終わったらここをタップ"
+    "doneAddingHint": "追加が終わったらここをタップ",
+    "workerCourt": "現在のコート（確認用）",
+    "workerSubNote": "交代入力はマスターが行います"
   },
 
   "myTeamsSheet": {
@@ -844,7 +846,8 @@
     "collabNoteTitle": "注意事項",
     "collabNote1": "全員が同一アカウントでログインしていること",
     "collabNote2": "各自の入力はリアルタイムでクラウドに保存されます（Wi-Fi必須）",
-    "collabNote3": "試合終了（終了ボタン）はマスターが行う"
+    "collabNote3": "試合終了（終了ボタン）はマスターが行う",
+    "collabNote4": "選手はベンチ全員を試合前に登録しておくことを推奨。未登録の交代選手は作業員側からも追加できます"
   },
 
   "privacy": {
