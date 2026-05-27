@@ -19,9 +19,9 @@ const BTN_ROW = 'shrink-0 flex gap-1.5 min-h-[46px] h-[46px]';
 
 /** ロール別に表示するスタッツボタン (null = 制限なし) */
 const COLLAB_ALLOWED: Record<CollabRole, ActionType[] | null> = {
-  pts: ['AST'],
+  pts: [],
   reb: ['ORBD', 'DRBD'],
-  tov: ['STL', 'TOV'],
+  tov: ['AST', 'STL', 'TOV'],
   def: ['BLK', 'FOUL'],
 };
 

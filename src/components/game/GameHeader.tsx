@@ -35,7 +35,7 @@ const PERIODS: Period[] = [1, 2, 3, 4, 5, 6];
 const ROLE_BADGE: Record<string, { label: string; cls: string }> = {
   pts: { label: '得点',        cls: 'bg-emerald-900/70 text-emerald-200 border-emerald-700/50' },
   reb: { label: 'リバウンド',  cls: 'bg-blue-900/70    text-blue-200    border-blue-700/50' },
-  tov: { label: 'TOV/STL',    cls: 'bg-orange-900/70  text-orange-200  border-orange-700/50' },
+  tov: { label: 'AST/TOV/STL', cls: 'bg-orange-900/70  text-orange-200  border-orange-700/50' },
   def: { label: 'ディフェンス', cls: 'bg-red-900/70    text-red-200     border-red-700/50' },
 };
 
