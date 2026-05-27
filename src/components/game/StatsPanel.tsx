@@ -22,7 +22,7 @@ const COLLAB_ALLOWED: Record<CollabRole, ActionType[] | null> = {
   pts: [],
   reb: ['ORBD', 'DRBD'],
   tov: ['STL', 'TOV'],
-  def: ['BLK', 'STL', 'FOUL'],
+  def: ['BLK', 'FOUL'],
 };
 
 interface StatsPanelProps {

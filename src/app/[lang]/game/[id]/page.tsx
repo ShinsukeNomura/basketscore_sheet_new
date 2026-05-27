@@ -321,7 +321,7 @@ export default function GamePage() {
     }
 
     setPendingPlayer(player);
-    setShotPhase('type');
+    if (!collabRole || collabRole === 'pts') setShotPhase('type');
     setPendingShotType(null);
     setFoulAwaitingSwipe(false);
     setStlAwaitingVictim(false);
@@ -332,6 +332,7 @@ export default function GamePage() {
     pendingPlayer, shotPhase, stlAwaitingVictim, stlPressureAwaitingVictim, teamTovAwaitingVictim,
     stlGdfAwaitingVictim,
     tovMode, logStlWithVictim, logTeamDefense, logTeamTov, commitStlTeamGdf, ourTeam.id, clearInputState,
+    collabRole,
   ]);
 
   const handleFoulPenalty = useCallback((penalty: FoulPenalty) => {
@@ -342,6 +343,7 @@ export default function GamePage() {
 
   const handlePlayerGesture = useCallback((player: Player, gesture: PlayerGesture) => {
     if (!pendingPlayer || pendingPlayer.id !== player.id) return;
+    if (collabRole && collabRole !== 'pts') return;
 
     if (shotPhase === 'type') {
       let type: ShotType | null = null;
@@ -367,7 +369,7 @@ export default function GamePage() {
         clearInputState();
       }
     }
-  }, [pendingPlayer, shotPhase, pendingShotType, logPlayerStat, clearInputState]);
+  }, [pendingPlayer, shotPhase, pendingShotType, logPlayerStat, clearInputState, collabRole]);
 
   const handleStatSelect = useCallback((action: ActionType) => {
     if (!pendingPlayer) return;
