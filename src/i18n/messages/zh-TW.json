@@ -53,7 +53,7 @@
     "sendToAccount": "傳送"
   },
   "home": {
-    "subtitle": "單手即時記錄籃球比賽",
+    "subtitle": "大家一起記錄籃球數據！",
     "cloudSync": "從雲端取得最新資料",
     "cloudSyncShort": "取得",
     "cloudSyncDoneShort": "完成",
@@ -804,7 +804,7 @@
     "collab1Title": "① 主控端準備",
     "collab1Desc": "在比賽畫面頂部點擊 👥 按鈕 → 複製各角色URL → 透過訊息/AirDrop等分享給隊員",
     "collab2Title": "② 協作員參加",
-    "collab2Desc": "在Safari中開啟收到的URL（需用同一帳戶登入）。僅顯示您角色所需按鈕的專屬介面",
+    "collab2Desc": "在瀏覽器中開啟收到的URL（需用同一帳戶登入）。僅顯示您角色所需按鈕的專屬介面",
     "collabRolesTitle": "角色分配",
     "collabRolePts": "得分",
     "collabRolePtsDesc": "2分·3分·罰球（滑動操作）",
@@ -817,7 +817,7 @@
     "collab3Title": "③ 結束比賽·整合資料",
     "collab3Desc": "主控端點擊 👥 →「取得最新記錄」。從Supabase一次取得所有協作員的記錄，整合後結束比賽",
     "collabTipTitle": "技巧：主控也參與記錄時",
-    "collabTipDesc": "用PWA（主畫面應用程式）進行主控操作，在Safari中開啟?role=pts等URL使用角色專屬介面。PWA和Safari可同時獨立運行",
+    "collabTipDesc": "用PWA（主畫面應用程式）進行主控操作，在瀏覽器中開啟?role=pts等URL使用角色專屬介面。PWA和瀏覽器可同時獨立運行",
     "collabNoteTitle": "注意事項",
     "collabNote1": "所有人必須用同一帳戶登入",
     "collabNote2": "各自輸入即時儲存至雲端（需要Wi-Fi）",

@@ -53,7 +53,7 @@
   },
 
   "home": {
-    "subtitle": "片手でリアルタイム記録",
+    "subtitle": "みんなで作るバスケスタッツ！",
     "cloudSync": "クラウドから最新データを取得",
     "cloudSyncShort": "最新取得",
     "cloudSyncDoneShort": "完了",
@@ -827,7 +827,7 @@
     "collab1Title": "① マスターが準備",
     "collab1Desc": "試合画面ヘッダーの 👥 ボタンをタップ → 各ロールのURLをコピー → 作業員のデバイスに共有（LINE・AirDropなど）",
     "collab2Title": "② 作業員が参加",
-    "collab2Desc": "受け取ったURLをSafari（またはブラウザ）で開く。同一アカウントでログイン済みであること。担当ロールのボタンだけが表示された専用UIが起動します",
+    "collab2Desc": "受け取ったURLをブラウザで開く。同一アカウントでログイン済みであること。担当ロールのボタンだけが表示された専用UIが起動します",
     "collabRolesTitle": "ロール分担",
     "collabRolePts": "得点担当",
     "collabRolePtsDesc": "2PT・3PT・FT（スワイプ操作）",
@@ -840,7 +840,7 @@
     "collab3Title": "③ 試合終了・統合",
     "collab3Desc": "マスターが 👥 ボタン →「最新ログを取得」をタップ。全作業員のログがSupabaseから一括取得され、スタッツが統合された状態で試合終了できます",
     "collabTipTitle": "マスター自身も作業する場合のコツ",
-    "collabTipDesc": "PWA（ホーム画面アプリ）をマスター管理に使い、Safari ブラウザで ?role=pts などのURLを開くと担当ロールの専用UIが使えます。PWAとSafariは独立したウィンドウで同時に使用できます",
+    "collabTipDesc": "PWA（ホーム画面アプリ）をマスター管理に使い、ブラウザで ?role=pts などのURLを開くと担当ロールの専用UIが使えます。PWAとブラウザは独立したウィンドウで同時に使用できます",
     "collabNoteTitle": "注意事項",
     "collabNote1": "全員が同一アカウントでログインしていること",
     "collabNote2": "各自の入力はリアルタイムでクラウドに保存されます（Wi-Fi必須）",

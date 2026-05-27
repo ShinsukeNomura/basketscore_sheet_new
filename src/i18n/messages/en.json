@@ -53,7 +53,7 @@
     "sendToAccount": "Send"
   },
   "home": {
-    "subtitle": "Real-time basketball stats, one hand",
+    "subtitle": "Basketball stats, built by the team!",
     "cloudSync": "Fetch Latest from Cloud",
     "cloudSyncShort": "Fetch",
     "cloudSyncDoneShort": "Done",
@@ -804,7 +804,7 @@
     "collab1Title": "① Master Setup",
     "collab1Desc": "Tap the 👥 button in the game header → Copy the URL for each role → Share with teammates (via message, AirDrop, etc.)",
     "collab2Title": "② Workers Join",
-    "collab2Desc": "Open the shared URL in Safari or a browser (must be logged in with the same account). A dedicated UI shows only the buttons for your assigned role",
+    "collab2Desc": "Open the shared URL in a browser (must be logged in with the same account). A dedicated UI shows only the buttons for your assigned role",
     "collabRolesTitle": "Role Assignments",
     "collabRolePts": "Points",
     "collabRolePtsDesc": "2PT · 3PT · FT (swipe gestures)",
@@ -817,7 +817,7 @@
     "collab3Title": "③ End Game & Integrate",
     "collab3Desc": "Master taps 👥 → Get Latest Logs. All workers logs are fetched from Supabase at once and the game can be ended with fully integrated stats",
     "collabTipTitle": "Tip: When Master Also Records Stats",
-    "collabTipDesc": "Use the PWA (home screen app) for master control, and open ?role=pts etc. in Safari for your assigned role UI. PWA and Safari run as independent windows simultaneously",
+    "collabTipDesc": "Use the PWA (home screen app) for master control, and open ?role=pts etc. in a browser for your assigned role UI. PWA and browser run as independent windows simultaneously",
     "collabNoteTitle": "Notes",
     "collabNote1": "Everyone must be logged in with the same account",
     "collabNote2": "Each person's input saves to the cloud in real time (Wi-Fi required)",

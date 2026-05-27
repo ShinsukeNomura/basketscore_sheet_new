@@ -53,7 +53,7 @@
     "sendToAccount": "发送"
   },
   "home": {
-    "subtitle": "实时篮球比赛记录，单手操作",
+    "subtitle": "大家一起记录篮球数据！",
     "cloudSync": "从云端获取最新数据",
     "cloudSyncShort": "获取",
     "cloudSyncDoneShort": "完成",
@@ -804,7 +804,7 @@
     "collab1Title": "① 主控端准备",
     "collab1Desc": "在比赛界面顶部点击 👥 按钮 → 复制各角色URL → 通过消息/AirDrop等分享给队员",
     "collab2Title": "② 协作员参加",
-    "collab2Desc": "在Safari中打开收到的URL（需用同一账户登录）。仅显示您角色所需按钮的专属界面",
+    "collab2Desc": "在浏览器中打开收到的URL（需用同一账户登录）。仅显示您角色所需按钮的专属界面",
     "collabRolesTitle": "角色分配",
     "collabRolePts": "得分",
     "collabRolePtsDesc": "2分·3分·罚球（滑动操作）",
@@ -817,7 +817,7 @@
     "collab3Title": "③ 结束比赛·整合数据",
     "collab3Desc": "主控端点击 👥 →「获取最新记录」。从Supabase一次性获取所有协作员的记录，整合后结束比赛",
     "collabTipTitle": "技巧：主控也参与记录时",
-    "collabTipDesc": "用PWA（主屏幕应用）进行主控操作，在Safari中打开?role=pts等URL使用角色专属界面。PWA和Safari可同时独立运行",
+    "collabTipDesc": "用PWA（主屏幕应用）进行主控操作，在浏览器中打开?role=pts等URL使用角色专属界面。PWA和浏览器可同时独立运行",
     "collabNoteTitle": "注意事项",
     "collabNote1": "所有人必须用同一账户登录",
     "collabNote2": "各自输入实时保存至云端（需要Wi-Fi）",
