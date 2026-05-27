@@ -449,21 +449,59 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
               <StepCard icon={Users} title={g.collab1Title} desc={g.collab1Desc} color="bg-violet-600/70" />
               <StepCard icon={Smartphone} title={g.collab2Title} desc={g.collab2Desc} color="bg-sky-700/70" />
 
-              {/* ロール分担 */}
-              <div className="rounded-2xl bg-white/4 border border-white/6 p-4 flex flex-col gap-3">
+              {/* 体制別ロール分担 */}
+              <div className="rounded-2xl bg-white/4 border border-white/6 p-4 flex flex-col gap-4">
                 <p className="text-white/50 text-xs font-semibold tracking-wider uppercase">{g.collabRolesTitle}</p>
-                <div className="flex flex-col gap-2">
-                  {([
-                    [g.collabRolePts, g.collabRolePtsDesc, 'bg-emerald-950/70 border-emerald-700/50 text-emerald-100'],
-                    [g.collabRoleReb, g.collabRoleRebDesc, 'bg-blue-950/70 border-blue-700/50 text-blue-100'],
-                    [g.collabRoleTov, g.collabRoleTovDesc, 'bg-orange-950/70 border-orange-700/50 text-orange-100'],
-                    [g.collabRoleDef, g.collabRoleDefDesc, 'bg-red-950/70 border-red-700/50 text-red-100'],
-                  ] as [string, string, string][]).map(([label, desc, cls]) => (
-                    <div key={label} className={cn('px-3 py-2.5 rounded-xl border', cls)}>
-                      <p className="font-semibold text-sm leading-none mb-0.5">{label}</p>
-                      <p className="text-[11px] opacity-60 leading-none">{desc}</p>
-                    </div>
-                  ))}
+
+                {/* 2人体制 */}
+                <div>
+                  <p className="text-violet-400/80 text-[11px] font-bold mb-1.5">{g.collab2pTitle}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {([
+                      [g.collab2pOffense, g.collab2pOffenseDesc, 'bg-violet-950/70 border-violet-700/50 text-violet-100'],
+                      [g.collab2pDefense, g.collab2pDefenseDesc, 'bg-rose-950/70 border-rose-700/50 text-rose-100'],
+                    ] as [string, string, string][]).map(([label, desc, cls]) => (
+                      <div key={label} className={cn('px-3 py-2 rounded-xl border', cls)}>
+                        <p className="font-semibold text-xs leading-none mb-0.5">{label}</p>
+                        <p className="text-[10px] opacity-60 leading-none">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3人体制 */}
+                <div>
+                  <p className="text-sky-400/80 text-[11px] font-bold mb-1.5">{g.collab3pTitle}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {([
+                      [g.collabRolePts, g.collabRolePtsDesc, 'bg-emerald-950/70 border-emerald-700/50 text-emerald-100'],
+                      [g.collabRoleTov, g.collabRoleTovDesc, 'bg-orange-950/70 border-orange-700/50 text-orange-100'],
+                      [g.collab3pRebDef, g.collab3pRebDefDesc, 'bg-blue-950/70 border-blue-700/50 text-blue-100'],
+                    ] as [string, string, string][]).map(([label, desc, cls]) => (
+                      <div key={label} className={cn('px-3 py-2 rounded-xl border', cls)}>
+                        <p className="font-semibold text-xs leading-none mb-0.5">{label}</p>
+                        <p className="text-[10px] opacity-60 leading-none">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 4人体制 */}
+                <div>
+                  <p className="text-amber-400/80 text-[11px] font-bold mb-1.5">{g.collab4pTitle}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {([
+                      [g.collabRolePts, g.collabRolePtsDesc, 'bg-emerald-950/70 border-emerald-700/50 text-emerald-100'],
+                      [g.collabRoleTov, g.collabRoleTovDesc, 'bg-orange-950/70 border-orange-700/50 text-orange-100'],
+                      [g.collabRoleReb, g.collabRoleRebDesc, 'bg-blue-950/70 border-blue-700/50 text-blue-100'],
+                      [g.collabRoleDef, g.collabRoleDefDesc, 'bg-red-950/70 border-red-700/50 text-red-100'],
+                    ] as [string, string, string][]).map(([label, desc, cls]) => (
+                      <div key={label} className={cn('px-3 py-2 rounded-xl border', cls)}>
+                        <p className="font-semibold text-xs leading-none mb-0.5">{label}</p>
+                        <p className="text-[10px] opacity-60 leading-none">{desc}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
