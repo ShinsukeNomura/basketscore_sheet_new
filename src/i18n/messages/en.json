@@ -807,7 +807,7 @@
     "collab2Desc": "Open the shared URL in a browser (must be logged in with the same account). A dedicated UI shows only the buttons for your assigned role",
     "collabRolesTitle": "Role Assignments",
     "collabRolePts": "Points",
-    "collabRolePtsDesc": "2PT · 3PT · FT (swipe gestures)",
+    "collabRolePtsDesc": "2PT · 3PT · FT (swipe gestures) · AST",
     "collabRoleReb": "Rebounds",
     "collabRoleRebDesc": "ORbd · DRbd",
     "collabRoleTov": "TOV / STL",

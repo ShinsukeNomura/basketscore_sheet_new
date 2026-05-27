@@ -830,7 +830,7 @@
     "collab2Desc": "受け取ったURLをブラウザで開く。同一アカウントでログイン済みであること。担当ロールのボタンだけが表示された専用UIが起動します",
     "collabRolesTitle": "ロール分担",
     "collabRolePts": "得点担当",
-    "collabRolePtsDesc": "2PT・3PT・FT（スワイプ操作）",
+    "collabRolePtsDesc": "2PT・3PT・FT（スワイプ操作）・AST",
     "collabRoleReb": "リバウンド担当",
     "collabRoleRebDesc": "ORbd・DRbd",
     "collabRoleTov": "TOV / STL 担当",
