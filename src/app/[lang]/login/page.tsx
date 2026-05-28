@@ -56,7 +56,7 @@ export default function LoginPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
 
-  const [mode,         setMode]         = useState<Mode>('signin');
+  const [mode,         setMode]         = useState<Mode>('signup');
   const [email,        setEmail]        = useState('');
   const [password,     setPassword]     = useState('');
   const [showPw,       setShowPw]       = useState(false);
