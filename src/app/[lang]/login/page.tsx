@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Loader2, Globe } from 'lucide-react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 import { useLocale } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 
 const LOCALES = [
   { code: 'ja',    label: '日本語',  flag: '🇯🇵' },
@@ -53,6 +54,7 @@ export default function LoginPage() {
   const dict = useDictionary();
   const d = dict.login;
   const locale = useLocale();
+  const searchParams = useSearchParams();
 
   const [mode,         setMode]         = useState<Mode>('signin');
   const [email,        setEmail]        = useState('');
@@ -63,6 +65,13 @@ export default function LoginPage() {
   const [done,         setDone]         = useState(false);
   const [resetSent,    setResetSent]    = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+
+  useEffect(() => {
+    const guest = searchParams.get('guest');
+    if (guest !== '1') return;
+    enterGuestMode();
+    window.location.href = `/${locale}`;
+  }, [enterGuestMode, locale, searchParams]);
 
   const handleSubmit = useCallback(async () => {
     if (!email.trim() || !password.trim()) {
