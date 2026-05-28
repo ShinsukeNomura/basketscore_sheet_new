@@ -641,11 +641,9 @@ export default function HomePage() {
           >
             <Plus size={18} />
             {h.createGame}
-            {(isGuest || !isPremium) && (
+            {!isGuest && !isPremium && (
               <span className="ml-auto text-[11px] text-blue-300/70 font-semibold">
-                {isGuest
-                  ? h.guestRemaining.replace('{count}', String(Math.max(0, gameLimit - games.length)))
-                  : h.remainingFree.replace('{count}', String(Math.max(0, gameLimit - games.length)))}
+                {h.remainingFree.replace('{count}', String(Math.max(0, gameLimit - games.length)))}
               </span>
             )}
           </button>
