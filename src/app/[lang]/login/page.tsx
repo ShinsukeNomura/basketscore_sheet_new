@@ -56,7 +56,7 @@ export default function LoginPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
 
-  const [mode,         setMode]         = useState<Mode>('signup');
+  const [mode,         setMode]         = useState<Mode>('signin');
   const [email,        setEmail]        = useState('');
   const [password,     setPassword]     = useState('');
   const [showPw,       setShowPw]       = useState(false);
@@ -72,6 +72,15 @@ export default function LoginPage() {
     enterGuestMode();
     window.location.href = `/${locale}`;
   }, [enterGuestMode, locale, searchParams]);
+
+  useEffect(() => {
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'signup') {
+      setMode('signup');
+      return;
+    }
+    setMode('signin');
+  }, [searchParams]);
 
   const handleSubmit = useCallback(async () => {
     if (!email.trim() || !password.trim()) {
