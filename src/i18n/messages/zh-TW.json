@@ -488,7 +488,10 @@
     "backToStats": "返回數據統計",
     "doneAddingHint": "新增完成後點此返回",
     "workerCourt": "當前上場（參考）",
-    "workerSubNote": "換人操作由主控負責"
+    "workerSubNote": "換人操作由主控負責",
+    "noPlayersTitle": "尚未登錄選手",
+    "noPlayersDesc": "請先在隊伍設定中登錄選手",
+    "goToSetup": "前往隊伍設定"
   },
   "myTeamsSheet": {
     "back": "返回",

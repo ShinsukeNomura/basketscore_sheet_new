@@ -488,7 +488,10 @@
     "backToStats": "Back to stats",
     "doneAddingHint": "Tap here when finished adding",
     "workerCourt": "Current court (reference)",
-    "workerSubNote": "Substitutions are handled by the master"
+    "workerSubNote": "Substitutions are handled by the master",
+    "noPlayersTitle": "No players registered",
+    "noPlayersDesc": "Please register players in team setup first",
+    "goToSetup": "Go to team setup"
   },
   "myTeamsSheet": {
     "back": "Back",

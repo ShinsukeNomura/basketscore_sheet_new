@@ -11,7 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { ArrowLeftRight, ChevronLeft, Plus } from 'lucide-react';
+import { ArrowLeftRight, ChevronLeft, Plus, Settings2, Users } from 'lucide-react';
 import { useDictionary } from '@/i18n/DictionaryProvider';
 
 interface SubstitutionSheetProps {
@@ -24,6 +24,7 @@ interface SubstitutionSheetProps {
   onSubstitute:  (pairs: { outId: string; inId: string }[]) => void;
   onAddPlayer:   (teamId: string, backNumber: string) => void;
   onClose:       () => void;
+  onEditSetup?:  () => void;
   collabRole?:   CollabRole;
 }
 
@@ -41,6 +42,7 @@ export function SubstitutionSheet({
   onSubstitute,
   onAddPlayer,
   onClose,
+  onEditSetup,
   collabRole,
 }: SubstitutionSheetProps) {
   const isWorker = !!collabRole;
@@ -193,6 +195,29 @@ export function SubstitutionSheet({
             {c.done}
           </button>
         </SheetHeader>
+
+        {/* 選手未登録の空状態 */}
+        {courtPlayers.length === 0 && benchPlayers.length === 0 && !isWorker && (
+          <div className="flex flex-col items-center gap-4 py-8 mb-2">
+            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Users size={26} className="text-white/25" />
+            </div>
+            <div className="text-center">
+              <p className="text-white/70 font-bold text-sm mb-1">{sub.noPlayersTitle}</p>
+              <p className="text-white/35 text-xs leading-relaxed">{sub.noPlayersDesc}</p>
+            </div>
+            {onEditSetup && (
+              <button
+                type="button"
+                onClick={() => { onClose(); onEditSetup(); }}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-sky-600 active:bg-sky-500 text-white font-bold text-sm"
+              >
+                <Settings2 size={15} />
+                {sub.goToSetup}
+              </button>
+            )}
+          </div>
+        )}
 
         {isWorker ? (
           /* ── 作業員モード: コート選手確認のみ ── */

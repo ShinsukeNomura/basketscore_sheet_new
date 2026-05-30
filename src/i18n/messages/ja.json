@@ -502,7 +502,10 @@
     "backToStats": "スタッツ画面に戻る",
     "doneAddingHint": "追加が終わったらここをタップ",
     "workerCourt": "現在のコート（確認用）",
-    "workerSubNote": "交代入力はマスターが行います"
+    "workerSubNote": "交代入力はマスターが行います",
+    "noPlayersTitle": "選手が登録されていません",
+    "noPlayersDesc": "先にチーム設定から選手を登録してください",
+    "goToSetup": "チームを設定する"
   },
 
   "myTeamsSheet": {

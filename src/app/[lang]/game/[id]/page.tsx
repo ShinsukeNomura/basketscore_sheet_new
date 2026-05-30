@@ -653,6 +653,7 @@ export default function GamePage() {
         onSubstitute={handleSubstitute}
         onAddPlayer={addPlayer}
         onClose={() => setSubOpen(false)}
+        onEditSetup={() => { setSubOpen(false); setCreateOpen(true); }}
         collabRole={collabRole}
       />
       <UnsavedCloudSaveDialog
